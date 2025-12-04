@@ -1,0 +1,85 @@
+import os
+from typing import List, Any
+import dspy
+import litellm
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
+import json
+import tqdm
+from dotenv import load_dotenv
+import yaml
+
+def use_lm(lm, n=1):
+    def decorator(program):
+        def wrapper(*args, **kwargs):
+            max_retries = 3
+            initial_delay = 1
+            delay = initial_delay
+            
+            for attempt in range(max_retries):
+                try:
+                    with dspy.context(lm=lm):
+                        return program(*args, **kwargs)
+                except litellm.APIError as e:
+                    if attempt < max_retries - 1:
+                        print(f"API Error (attempt {attempt + 1}/{max_retries}): {str(e)}")
+                        print(f"Retrying in {delay} seconds...")
+                        time.sleep(delay)
+                        delay *= 2  # Exponential backoff
+                    else:
+                        raise
+                except Exception as e:
+                    print(f"Error: {e}")
+                    return dspy.Example(output="")
+        return wrapper
+    return decorator
+
+def batch_inference(program, args_list, max_workers=32) -> List[Any]:
+    futures = {}
+    results = [None] * len(args_list)
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        for i, args in enumerate(args_list):
+            future = executor.submit(
+                program,
+                **args
+            )
+            futures[future] = i
+
+        for future in tqdm.tqdm(as_completed(futures), total=len(futures)):
+            result = future.result()
+            index = futures[future]
+            results[index] = result
+    return results
+
+def load_lmdict(yaml_path: str):
+    """Load YAML model list and construct a dict of dspy.LM objects."""
+
+    with open(yaml_path, "r") as f:
+        config = yaml.safe_load(f)
+
+    models = config.get("models", [])
+    lm_dict = {}
+
+    for m in models:
+        name = m["name"]
+        model_id = m["model"]
+
+        # Base kwargs: all fields except name/model and env-resolved fields
+        kwargs = {}
+        for k, v in m.items():
+            if k in ("name", "model"):
+                continue
+            elif isinstance(v, str) and v.startswith("${") and v.endswith("}"):
+                env_var = v[2:-1]
+                kwargs[k] = os.getenv(env_var)
+            else:
+                kwargs[k] = v
+
+        # Create LM
+        lm_dict[name] = dspy.LM(model_id, **kwargs)
+
+    return lm_dict
+
+load_dotenv(override=True)
+LM_DICT = load_lmdict("configs/models.yaml")
