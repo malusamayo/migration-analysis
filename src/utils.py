@@ -2,7 +2,7 @@ import os
 from typing import List, Any
 import dspy
 import litellm
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 import time
 import json
 import tqdm
@@ -34,11 +34,13 @@ def use_lm(lm, n=1):
         return wrapper
     return decorator
 
-def batch_inference(program, args_list, max_workers=32) -> List[Any]:
+def batch_inference(program, args_list, use_process=False, max_workers=32) -> List[Any]:
     futures = {}
     results = [None] * len(args_list)
+
+    executor_class = ProcessPoolExecutor if use_process else ThreadPoolExecutor
     
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+    with executor_class(max_workers=max_workers) as executor:
         for i, args in enumerate(args_list):
             future = executor.submit(
                 program,
@@ -73,6 +75,8 @@ def load_lmdict(yaml_path: str):
             elif isinstance(v, str) and v.startswith("${") and v.endswith("}"):
                 env_var = v[2:-1]
                 kwargs[k] = os.getenv(env_var)
+                if k == "vertex_credentials":
+                    kwargs[k] = json.dumps(json.load(open(kwargs[k])))
             else:
                 kwargs[k] = v
 

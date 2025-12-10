@@ -14,3 +14,5 @@ uv.lock
 data/
 results/
 .env
+.vertex-ai.json
+*.ipynb
