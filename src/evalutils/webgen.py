@@ -116,8 +116,8 @@ def run_ui_agent(
             Tool(name=BrowserToolSet.name),
         ],
     )
-    
-    try:        
+
+    try:
         conversation = Conversation(agent=agent, workspace=workspace)
         instruction = USER_PROMPT.format(
             instruction=example['prompt'],
@@ -148,14 +148,133 @@ def run_ui_agent(
             example["eval_result"]["trace_path"] = trace_path
 
         return example
-    
+
     except Exception as e:
         print(f"Error during web browser evaluation: {e}")
         return example
-    
+
     finally:
         print("🧹 Cleaning up conversation...")
         conversation.close()
+
+
+def run_ui_agent_browser_use(
+        lm: dspy.LM,
+        system_prompt_path: str,
+        example: dict,
+        website_path: str,
+        workspace: str,
+        trace_dir: Optional[str] = None,
+    ):
+    """
+    Alternative implementation using browser_use library instead of OpenHands SDK.
+    """
+    from browser_use import Agent as BrowserAgent, Browser, ChatGoogle
+
+    example = copy.deepcopy(example)
+
+    def extract_scores(eval_output: str) -> dict:
+        scores = {}
+
+        pattern = r'###\s+(\w+(?:\s+\w+)?)\s*\n(?:.*?\n)*?\*\*Score\*\*:\s*(\d+(?:\.\d+)?)/(\d+(?:\.\d+)?)'
+        matches = re.finditer(pattern, eval_output, re.DOTALL | re.IGNORECASE)
+
+        for match in matches:
+            category = match.group(1).strip()
+            score = float(match.group(2))
+            scores[category] = score
+
+        return scores
+
+    async def run_browser_agent():
+        # Read system prompt
+        system_content = ""
+        if system_prompt_path and os.path.exists(system_prompt_path):
+            with open(system_prompt_path, 'r') as f:
+                system_content = f.read()
+
+        # Create browser instance
+        browser = Browser(
+            headless=True,
+        )
+
+        llm = ChatGoogle(
+            model=lm.model.split('/')[-1],
+            vertexai=True,
+        )
+
+        # Prepare task instruction
+        instruction = USER_PROMPT.format(
+            instruction=example['prompt'],
+            website_path=website_path
+        )
+
+        # Combine system prompt with instruction
+        full_task = f"{system_content}\n\n{instruction}" if system_content else instruction
+
+        try:
+            # Create agent with the task
+            agent = BrowserAgent(
+                task=full_task,
+                llm=llm,
+                browser=browser,
+            )
+
+            # Run the agent
+            history = await agent.run()
+
+            # Extract evaluation output from history
+            eval_output = ""
+            if history and hasattr(history, 'all_results') and history.all_results:
+                # Get the last result which should be the done action with final output
+                final_result = history.all_results[-1]
+                if hasattr(final_result, 'extracted_content') and final_result.extracted_content:
+                    eval_output = final_result.extracted_content
+                elif hasattr(final_result, 'long_term_memory') and final_result.long_term_memory:
+                    eval_output = final_result.long_term_memory
+                else:
+                    eval_output = str(final_result)
+            else:
+                assert False, f"{history}"
+
+            # Create conversation data with full history details
+            conversation_data = {
+                "eval_lm": lm.model,
+                "eval_output": eval_output,
+                "eval_scores": extract_scores(eval_output),
+            }
+
+            return conversation_data
+
+        finally:
+            print("🧹 Cleaning up browser...")
+            try:
+                await browser.close()
+            except:
+                pass
+
+    try:
+        # Run the async function
+        conversation_data = asyncio.run(run_browser_agent())
+
+        example["eval_result"] = copy.deepcopy(conversation_data)
+
+        # Write trace to separate file if trace_dir is provided
+        if trace_dir:
+            os.makedirs(trace_dir, exist_ok=True)
+            trace_filename = f"browser_use_{time.time()}.json"
+            trace_path = os.path.join(trace_dir, trace_filename)
+            with open(trace_path, "w") as trace_file:
+                json.dump(conversation_data, trace_file, indent=2)
+            example["eval_result"]["trace_path"] = trace_path
+
+        return example
+
+    except Exception as e:
+        print(f"Error during browser_use evaluation: {e}")
+        import traceback
+        traceback.print_exc()
+        return example
 
 
 def run_screenshot_eval(
@@ -251,7 +370,7 @@ def run_single_instance_eval_web_browser(
     server_process, free_port, temp_dir = start_server(html_content=html_content)
     website_url = f"http://localhost:{free_port}/generated_website.html"
 
-    result = run_ui_agent(
+    result = run_ui_agent_browser_use(
         lm=lm,
         system_prompt_path=system_prompt_path,
         example=example,
