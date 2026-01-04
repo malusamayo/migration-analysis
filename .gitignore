@@ -16,3 +16,7 @@ results/
 .env
 .vertex-ai.json
 *.ipynb
+*.html
+
+.vscode/
+wandb/

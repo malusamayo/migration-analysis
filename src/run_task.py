@@ -9,6 +9,7 @@ from copy import deepcopy
 from typing import List, Any, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .utils import LM_DICT, batch_inference, use_lm
+from .evalutils.webgen import validate_webpage, generate_retry_function_webpage
 
 import os
 import numpy as np
@@ -23,15 +24,52 @@ def run_single_instance(
         system_prompt: str,
         example: dict,
         seed: int,
+        max_retries: int = 2,
+        validation_fn: Optional[callable] = None,
+        retry_gen_fn: Optional[callable] = None,
     ):
+    """
+    Run a single instance with retry logic and optional output validation.
+
+    Args:
+        lm: Language model to use
+        system_prompt: System prompt for the model
+        example: Example data dictionary
+        seed: Random seed/rollout ID
+        max_retries: Maximum number of retry attempts (default: 3)
+        validation_fn: Optional function that takes the output string and returns (is_valid: bool, error_msg: str)
+                      If None, no validation is performed.
+
+    Returns:
+        dict: Example with added fields including 'output', 'rollout_id', and optionally 'validation_errors'
+    """
     example = copy.deepcopy(example)
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": example['prompt']}
     ]
-    response = lm(messages=messages, rollout_id=seed)
-    example["rollout_id"] = seed
-    example["output"] = response[0]
+
+    validation_errors = []
+
+    for _ in range(max_retries):
+        response = lm(messages=messages, rollout_id=seed)
+        output = response[0]
+
+        # Validate output if validation function is provided
+        if validation_fn is not None:
+            is_valid, error_msg = validation_fn(output)
+            if not is_valid:
+                lm, messages = retry_gen_fn(lm, messages, error_msg)
+                validation_errors.append(error_msg)
+                continue
+        
+        # Success - output is valid or no validation required
+        example["rollout_id"] = seed
+        example["output"] = output
+        if validation_errors:
+            example["validation_errors"] = validation_errors
+        return example
+
     return example
 
 def prepare_task(
@@ -63,13 +101,33 @@ def run_task(
         max_examples: Optional[int] = None,
         n_responses: int = 1,
     ):
+    """
+    Run a task with specified model and prompt.
+
+    Args:
+        task_id: Task identifier
+        model_name: Name of the model to use
+        prompt_name: Name of the prompt template (default: "default")
+        max_examples: Maximum number of examples to process
+        n_responses: Number of responses to generate per example
+        max_retries: Maximum number of retry attempts for each instance (default: 3)
+        validation_fn: Optional validation function for output validation
+    """
     data, task_prompt, _ = prepare_task(task_id, max_examples=max_examples)
     lm = LM_DICT[model_name]
     results = batch_inference(
-        run_single_instance, 
-        [{"lm": lm, "system_prompt": task_prompt, "example": example, "seed": seed} for example in data for seed in range(n_responses) ]
+        run_single_instance,
+        [{
+            "lm": lm,
+            "system_prompt": task_prompt,
+            "example": example,
+            "seed": seed,
+            "validation_fn": validate_webpage,
+            "retry_gen_fn": generate_retry_function_webpage,
+        } for example in data for seed in range(n_responses)]
     )
     output_path = f"results/{task_id}/{model_name}_{prompt_name}.json"
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w") as f:
         json.dump(results, f, indent=2)
 
