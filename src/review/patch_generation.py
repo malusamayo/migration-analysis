@@ -259,12 +259,12 @@ def generate_patches_batch(
     """
     # Set default directories
     if comparison_dir is None:
-        comparison_dir = Path(f"results/{task_id}/comparisons/{model_name}_{prompt_name}")
+        comparison_dir = Path(f"results/{task_id}/{model_name}_{prompt_name}/comparisons")
     else:
         comparison_dir = Path(comparison_dir)
 
     if output_base_dir is None:
-        output_base_dir = Path(f"results/{task_id}/patches/{model_name}_{prompt_name}")
+        output_base_dir = Path(f"results/{task_id}/{model_name}_{prompt_name}/patches")
     else:
         output_base_dir = Path(output_base_dir)
 

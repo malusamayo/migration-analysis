@@ -224,13 +224,13 @@ def main():
     )
 
     edit_parser.add_argument(
-        "--prompt",
+        "--prompt_name",
         type=str,
         help="Prompt name (e.g., 'default') - will be resolved to data/{task_id}/prompts/{prompt}.md"
     )
 
     edit_parser.add_argument(
-        "--model",
+        "--model_name",
         type=str,
         default="gemini-2.5-flash",
         help="Model to use for patch refinement (default: 'gemini-2.5-flash')"
@@ -402,11 +402,11 @@ def main():
     elif args.mode == "edit-patch":
         # Construct base prompt path if task_id and prompt are provided
         base_prompt = None
-        if args.prompt:
+        if args.prompt_name:
             if not args.task_id:
-                print("❌ Error: --task_id is required when using --prompt")
+                print("❌ Error: --task_id is required when using --prompt_name")
                 return
-            base_prompt = Path(f"data/{args.task_id}/prompts/{args.prompt}.md")
+            base_prompt = Path(f"data/{args.task_id}/prompts/{args.prompt_name}.md")
             if not base_prompt.exists():
                 print(f"⚠️  Warning: Base prompt file not found: {base_prompt}")
                 print("   Continuing without base prompt context...")
@@ -415,7 +415,7 @@ def main():
         result = edit_patch_with_feedback(
             patch_path=Path(args.patch),
             user_feedback=args.feedback,
-            model_name=args.model,
+            model_name=args.model_name,
             output_path=Path(args.output) if args.output else None,
             base_prompt_path=base_prompt
         )
