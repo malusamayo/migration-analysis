@@ -9,7 +9,7 @@ from copy import deepcopy
 from typing import List, Any, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .utils import LM_DICT, batch_inference, use_lm
-from .evalutils.webgen import validate_webpage, generate_retry_function_webpage
+from .task_evals.webgen import validate_webpage, generate_retry_function_webpage
 
 import os
 import numpy as np

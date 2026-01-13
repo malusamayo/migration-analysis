@@ -1,50 +1,22 @@
-import pandas as pd
-import dspy
 import json
 import os
-import litellm
-from datasets import load_dataset, concatenate_datasets
-from functools import partial
-from copy import deepcopy
-from typing import List, Any, Optional
-from .utils import LM_DICT, batch_inference, use_lm
-from .run_task import prepare_task
-from .evalutils.webgen import validate_webpage, run_single_instance_eval_web_browser
-
-import os
-import numpy as np
-import tqdm
-import copy
-import time
-import json
 import argparse
+from typing import List, Any, Optional
+from .utils import batch_inference
+from .collect import prepare_task
 
-USER_PROMPT = """### User Instruction
-{instruction}
-### Model Response
-{response}"""
-
-def run_single_instance_eval(
-        lm: dspy.LM,
-        system_prompt_path: str,
-        example: dict,
-        trace_dir: Optional[str] = None,
-    ):
-    with open(system_prompt_path, "r") as f:
-        system_prompt = f.read()
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": USER_PROMPT.format(instruction=example['prompt'], response=example["output"])}
-    ]
-    response = lm(messages=messages)
-    example["eval_output"] = response[0]
-    return response
-    
 def get_config(task_id: str):
-    web_browser_tasks = ["webgen"]
-    if task_id in web_browser_tasks:
+    if task_id == "webgen":
+        from .task_evals.webgen import run_single_instance_eval
         return {
-            "eval_function": run_single_instance_eval_web_browser,
+            "eval_function": run_single_instance_eval,
+            "use_process": True,
+            "max_workers": 4,
+        }
+    elif task_id == "webtest":
+        from .task_evals.webtest import run_single_instance_eval
+        return {
+            "eval_function": run_single_instance_eval,
             "use_process": True,
             "max_workers": 4,
         }
@@ -54,6 +26,7 @@ def get_config(task_id: str):
             "use_process": False,
             "max_workers": 32,
         }
+
 
 def load_and_validate_results(
         output_path: str,
@@ -80,7 +53,7 @@ def load_and_validate_results(
         print("⚠️  Could not parse existing results file, starting fresh")
         return [], 0
 
-    # Calculate expected total results (examples * models)
+    # Calculate expected total results
     expected_total = len(data_loader)
 
     # Validate that existing results don't exceed expected
@@ -88,58 +61,102 @@ def load_and_validate_results(
         print(f"⚠️  Existing results ({len(results)}) exceed expected total ({expected_total}), starting fresh")
         return [], 0
 
-    # Determine how many examples are completed (results / number of models)
-    num_lms = len(data_loader.lms)
-    if num_lms == 0:
-        return [], 0
-
-    num_completed_examples = len(results) // num_lms
-
-    # Validate that the number of results is a multiple of the number of models
-    if len(results) % num_lms != 0:
-        print(f"⚠️  Number of results ({len(results)}) is not a multiple of models ({num_lms}), starting fresh")
-        return [], 0
-
-    # Generate expected args for completed examples to validate against
-    expected_args = data_loader.get_batch_args(0, num_completed_examples)
-
-    # Validate that results match expected args
-    for i, (result, expected_arg) in enumerate(zip(results, expected_args)):
-        expected_example = expected_arg["example"]
-        if (result.get("prompt") != expected_example.get("prompt") or
-            result.get("output") != expected_example.get("output")):
-            print(f"⚠️  Data mismatch at result index {i}, starting fresh")
-            return [], 0
-
-    start_idx = num_completed_examples
-    print(f"🔄 Resuming from {start_idx}/{len(data_loader.data)} completed examples ({len(results)}/{expected_total} total results)")
+    # Each workspace gets one result
+    start_idx = len(results)
+    print(f"🔄 Resuming from {start_idx}/{len(data_loader.data)} completed workspaces")
     return results, start_idx
 
 class EvalDataLoader:
     """
-    Global data loader for evaluation that provides arguments for batch inference.
+    Data loader for evaluation that provides arguments for batch inference.
+
+    Each evaluation task requires:
+    - workspace_dir: Path to the workspace directory
+    - example: Dict containing prompt, metadata, etc.
     """
     def __init__(
         self,
-        data: List[dict],
-        lms: List[dspy.LM],
-        system_prompt_path: str,
-        trace_dir: str
+        task_id: str,
+        model_name: str,
+        prompt_name: str,
+        max_examples: Optional[int] = None,
+        n_responses: int = 1,
     ):
         """
-        Initialize the data loader.
+        Initialize the data loader by loading task data and constructing workspace mappings.
 
         Args:
-            data: Full list of examples to evaluate
-            lms: List of language models to use
-            system_prompt_path: Path to the evaluation system prompt
-            trace_dir: Directory to save trace files
+            task_id: Task identifier (e.g., "webtest", "webgen")
+            model_name: Model name used for workspace directory
+            prompt_name: Prompt name used for workspace directory
+            max_examples: Maximum number of examples to load
+            n_responses: Number of rollouts per example
         """
-        self.data = data
-        self.lms = lms
-        self.system_prompt_path = system_prompt_path
-        self.trace_dir = trace_dir
-        self.total_size = len(data) * len(lms)
+        # Load task data using prepare_task
+        examples, _, _ = prepare_task(
+            task_id=task_id,
+            model_name=model_name,
+            prompt_name=prompt_name,
+            max_examples=max_examples,
+            n_responses=n_responses,
+        )
+
+        # Construct workspace data
+        workspace_base_dir = f"results/{task_id}/{model_name}_{prompt_name}_agentic_workspace"
+        self.data = self._construct_workspace_data(workspace_base_dir, examples, n_responses)
+
+    def _construct_workspace_data(
+        self,
+        workspace_base_dir: str,
+        examples: List[dict],
+        n_responses: int
+    ) -> List[dict]:
+        """
+        Construct workspace data by matching workspaces with examples.
+
+        Args:
+            workspace_base_dir: Base directory containing workspaces
+            examples: List of example dicts from prepare_task
+            n_responses: Number of rollouts per example
+
+        Returns:
+            List of workspace items with matched example data
+        """
+        from pathlib import Path
+        import re
+
+        base_path = Path(workspace_base_dir)
+        if not base_path.exists():
+            raise ValueError(f"Workspace base directory does not exist: {workspace_base_dir}")
+
+        # Create mapping: example0 -> examples[0], example1 -> examples[1], etc.
+        example_data_map = {f"example{idx}": example for idx, example in enumerate(examples)}
+        print(f"Loaded {len(example_data_map)} examples")
+
+        # Find all workspace directories matching pattern: example<N>_rollout<M>
+        workspace_pattern = re.compile(r'^(example\d+)_(rollout\d+)$')
+
+        workspace_data = []
+        for item in sorted(base_path.iterdir()):
+            if item.is_dir():
+                match = workspace_pattern.match(item.name)
+                if match:
+                    example_id, rollout_id = match.groups()
+
+                    # Skip if no matching example data
+                    if example_id not in example_data_map:
+                        print(f"⚠️  No example data found for {example_id}, skipping")
+                        continue
+
+                    workspace_data.append({
+                        "workspace_dir": str(item),
+                        "example_id": example_id,
+                        "rollout_id": rollout_id,
+                        "example": example_data_map[example_id],
+                    })
+
+        print(f"Found {len(workspace_data)} workspaces in {workspace_base_dir}")
+        return workspace_data
 
     def get_batch_args(self, batch_start: int, batch_size: int) -> List[dict]:
         """
@@ -157,48 +174,50 @@ class EvalDataLoader:
 
         return [
             {
-                "lm": lm,
-                "system_prompt_path": self.system_prompt_path,
-                "example": example,
-                "trace_dir": self.trace_dir
-            } for example in batch_data for lm in self.lms
+                "workspace_dir": item["workspace_dir"],
+                "example": item["example"],
+            }
+            for item in batch_data
         ]
 
     def __len__(self):
-        """Return total number of evaluation tasks (examples * models)."""
-        return self.total_size
+        """Return total number of evaluation tasks."""
+        return len(self.data)
 
 def run_task_eval(
         task_id: str,
-        data_path: str,
-        model_names: List[str] = [],
+        model_name: str,
+        prompt_name: str = "default",
         max_examples: Optional[int] = None,
+        n_responses: int = 1,
         batch_size: int = 16,
         resume: bool = True,
     ):
-    with open(data_path, "r") as f:
-        data = json.load(f)
-        data = data[:max_examples]
+    """
+    Run evaluation on a task.
 
-    cwd = os.getcwd()
-    eval_prompt_path = cwd + f"/data/{task_id}/eval.md"
-    output_path = data_path.replace(".json", "_eval.json")
-
-    # Create trace directory
-    trace_dir = data_path.replace(".json", "_eval_traces")
-    os.makedirs(trace_dir, exist_ok=True)
-
-    lms = [LM_DICT[name] for name in model_names]
-
+    Args:
+        task_id: Task identifier (e.g., "webtest", "webgen")
+        model_name: Model name used for workspace directory
+        prompt_name: Prompt name used for workspace directory
+        max_examples: Maximum number of examples to evaluate
+        n_responses: Number of rollouts per example
+        batch_size: Batch size for evaluation
+        resume: Whether to resume from existing results
+    """
     config = get_config(task_id)
 
-    # Initialize global data loader first (needed for validation)
+    # Initialize data loader (loads data via prepare_task and constructs workspaces)
     data_loader = EvalDataLoader(
-        data=data,
-        lms=lms,
-        system_prompt_path=eval_prompt_path,
-        trace_dir=trace_dir
+        task_id=task_id,
+        model_name=model_name,
+        prompt_name=prompt_name,
+        max_examples=max_examples,
+        n_responses=n_responses,
     )
+
+    workspace_base_dir = f"results/{task_id}/{model_name}_{prompt_name}_agentic_workspace"
+    output_path = os.path.join(workspace_base_dir, "eval_results.json")
 
     # Load existing results if resuming
     if resume:
@@ -230,20 +249,22 @@ def run_task_eval(
         print(f"💾 Saved partial results ({len(results)}/{len(data_loader)} completed)")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--task_id", type=str, required=True)
-    parser.add_argument("--data_path", type=str, required=True)
-    parser.add_argument("--model_names", type=str, nargs='+', default=[])
-    parser.add_argument("--max_examples", type=int, default=None)
-    parser.add_argument("--batch_size", type=int, default=16)
+    parser = argparse.ArgumentParser(description="Run task evaluation")
+    parser.add_argument("--task_id", type=str, required=True, help="Task identifier (e.g., webtest, webgen)")
+    parser.add_argument("--model_name", type=str, required=True, help="Model name used for workspace directory")
+    parser.add_argument("--prompt_name", type=str, default="default", help="Prompt name used for workspace directory")
+    parser.add_argument("--max_examples", type=int, default=None, help="Maximum number of examples to evaluate")
+    parser.add_argument("--n_responses", type=int, default=1, help="Number of rollouts per example")
+    parser.add_argument("--batch_size", type=int, default=16, help="Batch size for evaluation")
     parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results")
     args = parser.parse_args()
 
     run_task_eval(
         task_id=args.task_id,
-        data_path=args.data_path,
-        model_names=args.model_names,
+        model_name=args.model_name,
+        prompt_name=args.prompt_name,
         max_examples=args.max_examples,
+        n_responses=args.n_responses,
         batch_size=args.batch_size,
         resume=args.resume,
     )

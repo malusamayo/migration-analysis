@@ -353,7 +353,7 @@ def run_screenshot_eval(
     return example
 
 
-def run_single_instance_eval_web_browser(
+def run_single_instance_eval(
         lm: dspy.LM,
         system_prompt_path: str,
         example: dict,
