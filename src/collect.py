@@ -9,7 +9,8 @@ from copy import deepcopy
 from typing import List, Any, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .utils import LM_DICT, batch_inference, use_lm
-from .task_evals.webgen import validate_webpage, generate_retry_function_webpage
+from .dataloader import CollectDataLoader, load_and_validate_results
+
 
 import os
 import numpy as np
@@ -26,7 +27,6 @@ from openhands.tools.terminal import TerminalTool
 from openhands.sdk.context import (
     Skill,
 )
-
 
 def run_single_instance(
         lm: dspy.LM,
@@ -166,37 +166,6 @@ def run_single_instance_agentic(
             print("🧹 Cleaning up conversation...")
             conversation.close()
 
-def prepare_task(
-        task_id: str,
-        model_name: str,
-        prompt_name: str = "default",
-        n_responses: int = 1,
-        max_examples: Optional[int] = None,
-    ):
-    assert task_id in ["webgen", "webtest"], "Unsupported task_id"
-
-    data_path = f"data/{task_id}/{task_id}.csv"
-    data = pd.read_csv(data_path)
-    print(f"Loaded {len(data)} examples from {data_path}, keeping max_examples={max_examples}")
-    data = data.to_dict(orient="records")[:max_examples]
-
-    task_prompt_path = f"data/{task_id}/prompts/{prompt_name}.md"
-    with open(task_prompt_path, "r") as f:
-        task_prompt = f.read()
-    
-    eval_prompt_path = f"data/{task_id}/eval.md"
-    with open(eval_prompt_path, "r") as f:
-        eval_prompt = f.read()
-
-    for example_id, example in enumerate(data):
-        for rollout_id in range(n_responses):
-            workspace = f"results/{task_id}/{model_name}_{prompt_name}_agentic_workspace/example{example_id}_rollout{rollout_id}/"
-            os.makedirs(workspace, exist_ok=True)
-            if task_id == "webtest":
-                with open(os.path.join(workspace, "index.html"), "w") as f:
-                    f.write(example["html_content"])
-    return data, task_prompt, eval_prompt
-
 def run_task(
         task_id: str,
         model_name: str,
@@ -204,6 +173,8 @@ def run_task(
         is_agentic: bool = False,
         max_examples: Optional[int] = None,
         n_responses: int = 1,
+        batch_size: int = 16,
+        resume: bool = True,
     ):
     """
     Run a task with specified model and prompt.
@@ -212,45 +183,61 @@ def run_task(
         task_id: Task identifier
         model_name: Name of the model to use
         prompt_name: Name of the prompt template (default: "default")
+        is_agentic: Whether to use agentic execution
         max_examples: Maximum number of examples to process
         n_responses: Number of responses to generate per example
-        max_retries: Maximum number of retry attempts for each instance (default: 3)
-        validation_fn: Optional validation function for output validation
+        batch_size: Batch size for collection
+        resume: Whether to resume from existing results
     """
-    data, task_prompt, _ = prepare_task(task_id, 
-                                        model_name=model_name, 
-                                        prompt_name=prompt_name, 
-                                        max_examples=max_examples, 
-                                        n_responses=n_responses)
-    lm = LM_DICT[model_name]
-    if is_agentic:
-        results = batch_inference(
-            run_single_instance_agentic,
-            [{
-                "lm": lm,
-                "system_prompt_path": f"data/{task_id}/prompts/{prompt_name}.md",
-                "example": example,
-                "workspace": f"results/{task_id}/{model_name}_{prompt_name}_agentic_workspace/example{example_id}_rollout{rollout_id}/",
-            } for example_id, example in enumerate(data) for rollout_id in range(n_responses)],
-            use_process=True,
-            max_workers=16,
-        )
-    else:
-        results = batch_inference(
-            run_single_instance,
-            [{
-                "lm": lm,
-                "system_prompt": task_prompt,
-                "example": example,
-                "seed": seed,
-                "validation_fn": validate_webpage,
-                "retry_gen_fn": generate_retry_function_webpage,
-            } for example in data for seed in range(n_responses)]
-        )
+    # Initialize data loader
+    data_loader = CollectDataLoader(
+        task_id=task_id,
+        model_name=model_name,
+        prompt_name=prompt_name,
+        is_agentic=is_agentic,
+        max_examples=max_examples,
+        n_responses=n_responses,
+    )
+
     output_path = f"results/{task_id}/{model_name}_{prompt_name}.json"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    with open(output_path, "w") as f:
-        json.dump(results, f, indent=2)
+
+    # Load existing results if resuming
+    if resume:
+        results, start_idx = load_and_validate_results(output_path, data_loader)
+    else:
+        results, start_idx = [], 0
+
+    # Determine which function to use
+    if is_agentic:
+        run_function = run_single_instance_agentic
+        use_process = True
+        max_workers = 16
+    else:
+        run_function = run_single_instance
+        use_process = False
+        max_workers = 32
+
+    # Process remaining data in batches
+    for i in range(start_idx, len(data_loader), batch_size):
+        # Get batch arguments from data loader
+        args_list = data_loader.get_batch_args(
+            batch_start=i,
+            batch_size=batch_size
+        )
+
+        batch_results = batch_inference(
+            run_function,
+            args_list,
+            use_process=use_process,
+            max_workers=max_workers,
+        )
+        results.extend(batch_results)
+
+        # Write partial results after each batch
+        with open(output_path, "w") as f:
+            json.dump(results, f, indent=2)
+        print(f"💾 Saved partial results ({len(results)}/{len(data_loader)} completed)")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run task with specified model and prompt.")
@@ -260,6 +247,8 @@ if __name__ == "__main__":
     parser.add_argument("--max_examples", type=int, default=None, help="Maximum number of examples to process.")
     parser.add_argument("--n_responses", type=int, default=1, help="Number of responses to generate per example.")
     parser.add_argument("--is_agentic", action="store_true", help="Whether to use agentic execution.")
+    parser.add_argument("--batch_size", type=int, default=16, help="Batch size for collection.")
+    parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results.")
     args = parser.parse_args()
 
     run_task(
@@ -269,4 +258,6 @@ if __name__ == "__main__":
         is_agentic=args.is_agentic,
         max_examples=args.max_examples,
         n_responses=args.n_responses,
+        batch_size=args.batch_size,
+        resume=args.resume,
     )
