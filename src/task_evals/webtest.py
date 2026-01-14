@@ -66,10 +66,16 @@ def _create_error_result(workspace_dir: str, test_files: List[str], error_msg: s
 
 def _run_file_with_pytest(
     test_file: Path,
-    workspace_path: Path
+    workspace_path: Path,
+    timeout: int = 60
 ) -> Optional[Tuple[int, int, subprocess.CompletedProcess]]:
     """
     Run a single test file with pytest.
+
+    Args:
+        test_file: Path to the test file
+        workspace_path: Path to the workspace directory
+        timeout: Timeout in seconds for this individual file (default: 60)
 
     Returns:
         Tuple of (tests_passed, tests_failed, result) if successful, None otherwise.
@@ -81,7 +87,7 @@ def _run_file_with_pytest(
             cwd=str(workspace_path),
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=timeout,
         )
         print(f"    Pytest return code: {pytest_result.returncode}")
 
@@ -98,22 +104,34 @@ def _run_file_with_pytest(
             return (tests_passed, tests_failed, pytest_result)
 
         return None
+    except subprocess.TimeoutExpired as e:
+        print(f"    Pytest execution timed out after {timeout}s")
+        return None
     except Exception as e:
         print(f"    Pytest execution failed: {e}")
         return None
-
-_run_file_with_pytest(Path("test_webapp.py"), Path("/Users/chenyang/Projects/migration_analysis/results/webtest/gemini-3-flash-preview_default_agentic_workspace/example9_rollout2"))
 
 def _run_file_with_python(
     test_file: Path,
     workspace_path: Path,
     test_function_names: List[str],
-    has_main_block: bool
+    has_main_block: bool,
+    timeout: int = 60
 ) -> subprocess.CompletedProcess:
     """
     Run a single test file directly using Python.
 
     If the file has no __main__ block, creates a wrapper script to call test functions.
+
+    Args:
+        test_file: Path to the test file
+        workspace_path: Path to the workspace directory
+        test_function_names: List of test function names found in the file
+        has_main_block: Whether the file has a __main__ block
+        timeout: Timeout in seconds for this individual file (default: 60)
+
+    Returns:
+        CompletedProcess result from subprocess.run
     """
     relative_path = test_file.relative_to(workspace_path)
 
@@ -132,7 +150,7 @@ if __name__ == '__main__':
             cwd=str(workspace_path),
             capture_output=True,
             text=True,
-            timeout=60,
+            timeout=timeout,
         )
     else:
         # Run the file directly
@@ -141,7 +159,7 @@ if __name__ == '__main__':
             cwd=str(workspace_path),
             capture_output=True,
             text=True,
-            timeout=60,
+            timeout=timeout,
         )
 
 
@@ -151,10 +169,20 @@ def _run_tests_batch(
     test_file_names: List[str],
     test_function_pattern: re.Pattern,
     main_block_pattern: re.Pattern,
-    expected_tests: int
+    expected_tests: int,
+    timeout_per_file: int = 60
 ) -> Dict[str, Any]:
     """
     Run multiple test files, trying pytest first for each, then falling back to python3.
+
+    Args:
+        workspace_path: Path to the workspace directory
+        test_files: List of test file paths
+        test_file_names: List of test file names (for error reporting)
+        test_function_pattern: Regex pattern to find test functions
+        main_block_pattern: Regex pattern to find __main__ blocks
+        expected_tests: Expected number of test functions
+        timeout_per_file: Timeout in seconds for each individual test file (default: 60)
 
     Returns:
         Evaluation result dictionary.
@@ -174,45 +202,72 @@ def _run_tests_batch(
         relative_path = test_file.relative_to(workspace_path)
         print(f"  Running {relative_path}...")
 
-        # Count test functions in this file
-        with open(test_file, 'r') as f:
-            content = f.read()
-            test_function_names = test_function_pattern.findall(content)
-            test_functions_in_file = len(test_function_names)
-            has_main_block = main_block_pattern.search(content)
-
         execution_method = None
         result = None
+        status = None
+        test_functions_in_file = 0
 
-        # Try pytest first if available
-        if pytest_available:
-            pytest_result = _run_file_with_pytest(relative_path, workspace_path)
-            if pytest_result is not None:
-                file_passed, file_failed, result = pytest_result
-                execution_method = "pytest"
-                tests_passed += file_passed
-                tests_failed += file_failed
-                status = "passed" if file_failed == 0 else "failed"
+        try:
+            # Count test functions in this file
+            with open(test_file, 'r') as f:
+                content = f.read()
+                test_function_names = test_function_pattern.findall(content)
+                test_functions_in_file = len(test_function_names)
+                has_main_block = main_block_pattern.search(content)
 
-        # Fallback to direct python3 execution
-        if execution_method is None:
-            execution_method = "python3"
-            result = _run_file_with_python(test_file, workspace_path, test_function_names, has_main_block)
+            # Try pytest first if available
+            if pytest_available:
+                pytest_result = _run_file_with_pytest(relative_path, workspace_path, timeout_per_file)
+                if pytest_result is not None:
+                    file_passed, file_failed, result = pytest_result
+                    execution_method = "pytest"
+                    tests_passed += file_passed
+                    tests_failed += file_failed
+                    status = "passed" if file_failed == 0 else "failed"
 
-            # All functions in file pass or fail together
-            if result.returncode == 0:
-                tests_passed += test_functions_in_file
-                status = "passed"
-            else:
-                tests_failed += test_functions_in_file
-                status = "failed"
+            # Fallback to direct python3 execution
+            if execution_method is None:
+                execution_method = "python3"
+                result = _run_file_with_python(test_file, workspace_path, test_function_names, has_main_block, timeout_per_file)
+
+                # All functions in file pass or fail together
+                if result.returncode == 0:
+                    tests_passed += test_functions_in_file
+                    status = "passed"
+                else:
+                    tests_failed += test_functions_in_file
+                    status = "failed"
+
+        except subprocess.TimeoutExpired:
+            # Handle timeout for this specific file
+            print(f"    ⚠️  Test file timed out after {timeout_per_file}s")
+            tests_failed += test_functions_in_file
+            status = "timeout"
+            execution_method = execution_method or "python3"
+            result = type('obj', (object,), {
+                'returncode': -1,
+                'stdout': '',
+                'stderr': f'Test execution timed out after {timeout_per_file}s'
+            })()
+
+        except Exception as e:
+            # Handle any other error for this specific file
+            print(f"    ⚠️  Test file failed with error: {str(e)}")
+            tests_failed += test_functions_in_file
+            status = "error"
+            execution_method = execution_method or "unknown"
+            result = type('obj', (object,), {
+                'returncode': -1,
+                'stdout': '',
+                'stderr': f'Test execution failed: {str(e)}'
+            })()
 
         file_results.append({
             "file": str(relative_path),
             "test_functions": test_functions_in_file,
-            "returncode": result.returncode,
-            "stdout": result.stdout,
-            "stderr": result.stderr,
+            "returncode": result.returncode if result else -1,
+            "stdout": result.stdout if result else '',
+            "stderr": result.stderr if result else '',
             "status": status,
             "execution_method": execution_method,
         })
@@ -243,6 +298,7 @@ def run_single_instance_eval(
     example: Optional[dict] = None,
     expected_tests: int = 5,
     score_per_test: float = 0.2,
+    timeout_per_file: int = 60,
 ) -> Dict[str, Any]:
     """
     Run test files in a workspace directory and calculate scores.
@@ -259,8 +315,10 @@ def run_single_instance_eval(
 
     Args:
         workspace_dir: Path to workspace directory containing test files
+        example: Optional example dictionary (not used, kept for compatibility)
         expected_tests: Expected number of test FUNCTIONS (default: 5)
         score_per_test: Deprecated, kept for backwards compatibility
+        timeout_per_file: Timeout in seconds for each individual test file (default: 60)
 
     Returns:
         Dictionary containing evaluation results with the following keys:
@@ -277,7 +335,8 @@ def run_single_instance_eval(
 
     Example:
         >>> result = run_single_instance_eval(
-        ...     workspace_dir="results/webtest/gemini-2.5-flash_SKILL_agentic_workspace/example2_rollout0"
+        ...     workspace_dir="results/webtest/gemini-2.5-flash_SKILL_agentic_workspace/example2_rollout0",
+        ...     timeout_per_file=30
         ... )
         >>> print(f"Score: {result['score']:.2f} (Pass rate: {result['pass_rate']:.1%})")
     """
@@ -304,35 +363,31 @@ def run_single_instance_eval(
     print(f"Found {len(test_files)} test file(s): {', '.join(test_file_names)}")
     print(f"Working directory: {workspace_path}")
 
-    try:
-        # Setup regex patterns
-        test_function_pattern = re.compile(r"^\s*def\s+(\w*test\w*)\s*\(", re.MULTILINE | re.IGNORECASE)
-        main_block_pattern = re.compile(r'if\s+__name__\s*==\s*["\']__main__["\']', re.MULTILINE)
+    # Setup regex patterns
+    test_function_pattern = re.compile(r"^\s*def\s+(\w*test\w*)\s*\(", re.MULTILINE | re.IGNORECASE)
+    main_block_pattern = re.compile(r'if\s+__name__\s*==\s*["\']__main__["\']', re.MULTILINE)
 
+    try:
         # Count test functions and check for missing __main__ blocks
         total_test_functions = _count_test_functions(test_files, test_function_pattern)
         _check_main_blocks(test_files, test_function_pattern, main_block_pattern)
         print(f"Found {total_test_functions} test function(s) across {len(test_files)} file(s)")
-
-        # Run all test files (tries pytest per file, falls back to python3)
-        return _run_tests_batch(
-            workspace_path,
-            test_files,
-            test_file_names,
-            test_function_pattern,
-            main_block_pattern,
-            expected_tests
-        )
-
-    except subprocess.TimeoutExpired:
-        return _create_error_result(
-            workspace_dir,
-            test_file_names,
-            "Test execution timed out (60s limit)"
-        )
     except Exception as e:
+        # Handle errors during file scanning/parsing (before running tests)
         return _create_error_result(
             workspace_dir,
-            test_file_names if test_files else [],
-            f"Failed to run tests: {str(e)}"
+            test_file_names,
+            f"Failed to analyze test files: {str(e)}"
         )
+
+    # Run all test files (tries pytest per file, falls back to python3)
+    # Errors and timeouts are now handled per file within _run_tests_batch
+    return _run_tests_batch(
+        workspace_path,
+        test_files,
+        test_file_names,
+        test_function_pattern,
+        main_block_pattern,
+        expected_tests,
+        timeout_per_file
+    )
