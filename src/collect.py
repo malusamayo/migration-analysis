@@ -28,6 +28,66 @@ from openhands.sdk.context import (
     Skill,
 )
 
+def discover_skills(
+    task_id: str,
+    model_name: str,
+    prompt_name: str,
+    rollout_version: str,
+    update_config: bool = True,
+) -> List[Skill]:
+    """
+    Discover and load skills for a given rollout version.
+
+    Args:
+        task_id: Task identifier
+        model_name: Model name
+        prompt_name: Prompt name
+        rollout_version: Rollout version identifier (e.g., "v0", "v1")
+        update_config: Whether to update rollout_config.json with skill information
+
+    Returns:
+        List of loaded Skill objects (empty list if rollout_version is "v0")
+    """
+    if rollout_version == "v0":
+        return []
+
+    from pathlib import Path
+
+    skill_dir = Path(f"results/{task_id}/{model_name}_{prompt_name}/skills/{rollout_version}")
+    skills = []
+
+    if skill_dir.exists():
+        # Load all SKILL.md files from skill_dir subdirectories
+        skill_paths = []
+        for skill_folder in skill_dir.iterdir():
+            if skill_folder.is_dir():
+                skill_file = skill_folder / "SKILL.md"
+                if skill_file.exists():
+                    try:
+                        skills.append(Skill.load(path=str(skill_file)))
+                        skills[-1].is_agentskills_format = False
+                        skill_paths.append(str(skill_file))
+                    except Exception as e:
+                        print(f"⚠️  Failed to load skill from {skill_file}: {e}")
+
+        print(f"✅ Found {len(skills)} skills in {skill_dir}")
+
+        # Update rollout_config.json with skill information
+        if update_config:
+            config_path = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}/rollout_config.json"
+            if os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+                config["skills_dir"] = str(skill_dir)
+                config["num_skills"] = len(skills)
+                config["skills_used"] = [skill_folder.name for skill_folder in skill_dir.iterdir() if skill_folder.is_dir() and (skill_folder / "SKILL.md").exists()]
+                with open(config_path, 'w') as f:
+                    json.dump(config, f, indent=2)
+    else:
+        print(f"⚠️  Warning: Skill directory not found: {skill_dir}")
+
+    return skills
+
 def run_single_instance(
         lm: dspy.LM,
         system_prompt: str,
@@ -86,6 +146,7 @@ def run_single_instance_agentic(
         system_prompt_path: str,
         example: dict,
         workspace: str,
+        skills: Optional[List[Skill]] = None,
     ):
     """
     Run a single instance using OpenHands agents.
@@ -95,6 +156,7 @@ def run_single_instance_agentic(
         system_prompt_path: Path to the system prompt file
         example: Example data dictionary containing 'prompt' field
         workspace: Workspace directory for the agent
+        skills: Optional list of pre-loaded Skill objects
 
     Returns:
         dict: Example with added 'eval_result' field containing evaluation output and scores
@@ -110,19 +172,16 @@ def run_single_instance_agentic(
 
     llm = LLM(model=lm.model)
 
-    # agent_context = AgentContext(
-    #     skills=[
-    #         Skill.load(path=system_prompt_path),
-    #     ],
-    # )
-
     system_prompt_path = os.path.abspath(system_prompt_path)
+
+    # Create AgentContext with skills (use empty list if None)
+    agent_context = AgentContext(skills=skills or [])
 
     agent = Agent(
         llm=llm,
         tools=tools,
         system_prompt_filename=system_prompt_path,
-        # agent_context=agent_context,
+        agent_context=agent_context,
     )
 
     conversation = None
@@ -175,6 +234,7 @@ def run_task(
         n_responses: int = 1,
         batch_size: int = 16,
         resume: bool = True,
+        rollout_version: str = "v0",
     ):
     """
     Run a task with specified model and prompt.
@@ -188,7 +248,17 @@ def run_task(
         n_responses: Number of responses to generate per example
         batch_size: Batch size for collection
         resume: Whether to resume from existing results
+        rollout_version: Rollout version identifier (e.g., "v0", "v1")
     """
+    # Discover and load skills for this rollout version
+    skills = discover_skills(
+        task_id=task_id,
+        model_name=model_name,
+        prompt_name=prompt_name,
+        rollout_version=rollout_version,
+        update_config=True,
+    )
+
     # Initialize data loader
     data_loader = CollectDataLoader(
         task_id=task_id,
@@ -197,9 +267,10 @@ def run_task(
         is_agentic=is_agentic,
         max_examples=max_examples,
         n_responses=n_responses,
+        rollout_version=rollout_version,
     )
 
-    output_path = f"results/{task_id}/{model_name}_{prompt_name}.json"
+    output_path = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}/run.json"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     # Load existing results if resuming
@@ -226,6 +297,11 @@ def run_task(
             batch_size=batch_size
         )
 
+        # Add skills to agentic args
+        if is_agentic and skills:
+            for args in args_list:
+                args["skills"] = skills
+
         batch_results = batch_inference(
             run_function,
             args_list,
@@ -249,6 +325,7 @@ if __name__ == "__main__":
     parser.add_argument("--is_agentic", action="store_true", help="Whether to use agentic execution.")
     parser.add_argument("--batch_size", type=int, default=16, help="Batch size for collection.")
     parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results.")
+    parser.add_argument("--rollout_version", type=str, default="v0", help="Rollout version identifier (v0=no skills, v1/v2/etc=with skills)")
     args = parser.parse_args()
 
     run_task(
@@ -260,4 +337,5 @@ if __name__ == "__main__":
         n_responses=args.n_responses,
         batch_size=args.batch_size,
         resume=args.resume,
+        rollout_version=args.rollout_version,
     )

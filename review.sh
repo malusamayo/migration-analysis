@@ -3,10 +3,12 @@
 
 # Default values
 DEFAULT_TASK_ID="webtest"
-DEFAULT_MODEL_NAME="gemini-2.5-flash"
-DEFAULT_PROMPT_NAME="SKILL"
+# DEFAULT_MODEL_NAME="gemini-2.5-flash"
+DEFAULT_MODEL_NAME="qwen3-coder-30b-a3b"
+DEFAULT_PROMPT_NAME="default"
 DEFAULT_NUM_EXAMPLES="10"
 DEFAULT_COMPARISON_MODEL="gemini-2.5-flash"
+DEFAULT_ROLLOUT_VERSION="v0"
 
 # Parse arguments to check if defaults should be applied
 ARGS=()
@@ -15,11 +17,12 @@ HAS_MODEL_NAME=false
 HAS_PROMPT_NAME=false
 HAS_NUM_EXAMPLES=false
 HAS_COMPARISON_MODEL=false
+HAS_ROLLOUT_VERSION=false
 MODE=""
 
 # First pass: identify the mode and which arguments are provided
 for arg in "$@"; do
-    if [[ "$arg" == "analyze" ]] || [[ "$arg" == "generate-patches" ]] || [[ "$arg" == "apply-patches" ]] || [[ "$arg" == "edit-patch" ]]; then
+    if [[ "$arg" == "analyze" ]] || [[ "$arg" == "generate-patches" ]] || [[ "$arg" == "apply-patches" ]] || [[ "$arg" == "edit-patch" ]] || [[ "$arg" == "generate-skills" ]] || [[ "$arg" == "cross-model" ]]; then
         MODE="$arg"
     elif [[ "$arg" == "--task_id" ]] || [[ "$arg" == "--task_id="* ]]; then
         HAS_TASK_ID=true
@@ -31,6 +34,8 @@ for arg in "$@"; do
         HAS_NUM_EXAMPLES=true
     elif [[ "$arg" == "--comparison_model" ]] || [[ "$arg" == "--comparison_model="* ]]; then
         HAS_COMPARISON_MODEL=true
+    elif [[ "$arg" == "--rollout_version" ]] || [[ "$arg" == "--rollout_version="* ]]; then
+        HAS_ROLLOUT_VERSION=true
     fi
 done
 
@@ -48,12 +53,15 @@ if [[ "$HAS_PROMPT_NAME" == false ]]; then
 fi
 
 # Mode-specific defaults
-if [[ "$MODE" == "analyze" ]]; then
+if [[ "$MODE" == "analyze" ]] || [[ "$MODE" == "cross-model" ]]; then
     if [[ "$HAS_NUM_EXAMPLES" == false ]]; then
         ARGS+=("--num_examples" "$DEFAULT_NUM_EXAMPLES")
     fi
     if [[ "$HAS_COMPARISON_MODEL" == false ]]; then
         ARGS+=("--comparison_model" "$DEFAULT_COMPARISON_MODEL")
+    fi
+    if [[ "$HAS_ROLLOUT_VERSION" == false ]]; then
+        ARGS+=("--rollout_version" "$DEFAULT_ROLLOUT_VERSION")
     fi
 elif [[ "$MODE" == "generate-patches" ]]; then
     if [[ "$HAS_NUM_EXAMPLES" == false ]]; then

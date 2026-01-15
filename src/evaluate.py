@@ -36,6 +36,7 @@ def run_task_eval(
         n_responses: int = 1,
         batch_size: int = 16,
         resume: bool = True,
+        rollout_version: str = "v0",
     ):
     """
     Run evaluation on a task.
@@ -48,6 +49,7 @@ def run_task_eval(
         n_responses: Number of rollouts per example
         batch_size: Batch size for evaluation
         resume: Whether to resume from existing results
+        rollout_version: Rollout version identifier (e.g., "v0", "v1")
     """
     config = get_config(task_id)
 
@@ -58,9 +60,10 @@ def run_task_eval(
         prompt_name=prompt_name,
         max_examples=max_examples,
         n_responses=n_responses,
+        rollout_version=rollout_version,
     )
 
-    workspace_base_dir = f"results/{task_id}/{model_name}_{prompt_name}_agentic_workspace"
+    workspace_base_dir = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}"
     output_path = os.path.join(workspace_base_dir, "eval_results.json")
 
     # Load existing results if resuming
@@ -101,6 +104,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_responses", type=int, default=1, help="Number of rollouts per example")
     parser.add_argument("--batch_size", type=int, default=16, help="Batch size for evaluation")
     parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results")
+    parser.add_argument("--rollout_version", type=str, default="v0", help="Rollout version identifier (v0=no skills, v1/v2/etc=with skills)")
     args = parser.parse_args()
 
     run_task_eval(
@@ -111,4 +115,5 @@ if __name__ == "__main__":
         n_responses=args.n_responses,
         batch_size=args.batch_size,
         resume=args.resume,
+        rollout_version=args.rollout_version,
     )

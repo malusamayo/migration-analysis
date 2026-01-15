@@ -9,12 +9,19 @@ import json
 import argparse
 from pathlib import Path
 
-from .trajectory_comparison import compare_examples_batch, aggregate_comparison_analyses
+from .trajectory_comparison import (
+    compare_examples_batch,
+    aggregate_comparison_analyses,
+    compare_cross_model_batch
+)
 from .patch_generation import (
     generate_patches_batch,
     apply_patches,
     generate_universal_patches,
     edit_patch_with_feedback
+)
+from .skill_generation import (
+    generate_universal_skills
 )
 
 
@@ -29,6 +36,84 @@ def main():
 
     # Unified analyze mode (batch comparison + aggregation)
     analyze_parser = subparsers.add_parser("analyze", help="Analyze trajectories: compare examples and aggregate patterns")
+
+    # Cross-model comparison mode (NEW)
+    cross_model_parser = subparsers.add_parser("cross-model", help="Compare trajectories from different models on the same examples")
+
+    cross_model_parser.add_argument(
+        "--task_id",
+        type=str,
+        required=True,
+        help="Task identifier (e.g., 'webgen', 'webtest')"
+    )
+
+    cross_model_parser.add_argument(
+        "--models",
+        type=str,
+        required=True,
+        help="Comma-separated list of model names to compare (e.g., 'qwen3-coder-30b-a3b,gemini-3-flash-preview')"
+    )
+
+    cross_model_parser.add_argument(
+        "--prompt_name",
+        type=str,
+        default="default",
+        help="Prompt template name (default: 'default')"
+    )
+
+    cross_model_parser.add_argument(
+        "--num_examples",
+        type=int,
+        default=10,
+        help="Number of examples to compare (default: 10)"
+    )
+
+    cross_model_parser.add_argument(
+        "--rollout_id",
+        type=int,
+        default=0,
+        help="Which rollout to compare (default: 0)"
+    )
+
+    cross_model_parser.add_argument(
+        "--comparison_model",
+        type=str,
+        default="gemini-2.5-flash",
+        help="Model to use for comparison analysis (default: 'gemini-2.5-flash')"
+    )
+
+    cross_model_parser.add_argument(
+        "--output_dir",
+        type=str,
+        help="Directory to save comparison results (default: results/{task_id}/cross_model_comparisons)"
+    )
+
+    cross_model_parser.add_argument(
+        "--agentic",
+        action="store_true",
+        default=True,
+        help="Whether the runs used agentic execution (default: True)"
+    )
+
+    cross_model_parser.add_argument(
+        "--non-agentic",
+        action="store_true",
+        help="Set if the runs used non-agentic execution"
+    )
+
+    cross_model_parser.add_argument(
+        "--max_workers",
+        type=int,
+        default=8,
+        help="Maximum number of parallel workers (default: 8)"
+    )
+
+    cross_model_parser.add_argument(
+        "--rollout_version",
+        type=str,
+        default="v0",
+        help="Rollout version identifier (default: 'v0')"
+    )
 
     analyze_parser.add_argument(
         "--task_id",
@@ -97,6 +182,13 @@ def main():
         help="Skip aggregation step (only perform batch comparison)"
     )
 
+    analyze_parser.add_argument(
+        "--rollout_version",
+        type=str,
+        default="v0",
+        help="Rollout version identifier (default: 'v0')"
+    )
+
     # Patch generation mode (unified)
     patch_parser = subparsers.add_parser("generate-patches", help="Generate patches from comparison results")
 
@@ -157,6 +249,49 @@ def main():
         "--aggregated_file",
         type=str,
         help="Path to aggregated analysis JSON file (only for --universal mode, default: results/{task_id}/{model_name}_{prompt_name}/comparisons/aggregated.json)"
+    )
+
+    # Skill generation mode
+    skill_parser = subparsers.add_parser("generate-skills", help="Generate skill files from aggregated analysis")
+
+    skill_parser.add_argument(
+        "--task_id",
+        type=str,
+        required=True,
+        help="Task identifier (e.g., 'webgen', 'webtest')"
+    )
+
+    skill_parser.add_argument(
+        "--model_name",
+        type=str,
+        required=True,
+        help="Model name used for generation"
+    )
+
+    skill_parser.add_argument(
+        "--prompt_name",
+        type=str,
+        default="default",
+        help="Prompt template name (default: 'default')"
+    )
+
+    skill_parser.add_argument(
+        "--skill_model",
+        type=str,
+        default="gemini-2.5-flash",
+        help="Model to use for skill generation (default: 'gemini-2.5-flash')"
+    )
+
+    skill_parser.add_argument(
+        "--aggregated_file",
+        type=str,
+        help="Path to aggregated analysis JSON file (default: results/{task_id}/{model_name}_{prompt_name}/comparisons/aggregated.json)"
+    )
+
+    skill_parser.add_argument(
+        "--output_dir",
+        type=str,
+        help="Base directory to save skill files (will auto-version as v1, v2, etc. Default: results/{task_id}/{model_name}_{prompt_name}/skills)"
     )
 
     # Apply patches mode
@@ -249,8 +384,58 @@ def main():
         parser.print_help()
         return
 
+    # Cross-model comparison mode
+    if args.mode == "cross-model":
+        agentic = not args.non_agentic
+
+        # Parse model names from comma-separated list
+        model_names = [m.strip() for m in args.models.split(',')]
+
+        if len(model_names) < 2:
+            print(f"❌ Error: Need at least 2 models to compare, got {len(model_names)}")
+            return
+
+        # Set output directory
+        if args.output_dir:
+            output_dir = Path(args.output_dir)
+        else:
+            output_dir = Path(f"results/{args.task_id}/cross_model_comparisons")
+
+        print(f"\n{'='*80}")
+        print("CROSS-MODEL COMPARISON")
+        print(f"{'='*80}")
+
+        results = compare_cross_model_batch(
+            task_id=args.task_id,
+            model_names=model_names,
+            prompt_name=args.prompt_name,
+            num_examples=args.num_examples,
+            rollout_id=args.rollout_id,
+            comparison_model=args.comparison_model,
+            output_dir=output_dir,
+            agentic=agentic,
+            max_workers=args.max_workers,
+            rollout_version=args.rollout_version,
+        )
+
+        # Print comparison summary
+        successful = [r for r in results if "error" not in r]
+        failed = [r for r in results if "error" in r]
+        print(f"\nCross-Model Comparison Summary:")
+        print(f"  Models compared: {', '.join(model_names)}")
+        print(f"  Total examples: {len(results)}")
+        print(f"  Successful: {len(successful)}")
+        print(f"  Failed/Skipped: {len(failed)}")
+        print(f"  Output directory: {output_dir}")
+        if failed:
+            print(f"  Failed examples: {[r['example_id'] for r in failed]}")
+
+        print(f"\n{'='*80}")
+        print("CROSS-MODEL COMPARISON COMPLETE")
+        print(f"{'='*80}")
+
     # Unified analyze mode (batch comparison + aggregation)
-    if args.mode == "analyze":
+    elif args.mode == "analyze":
 
         agentic = not args.non_agentic
 
@@ -258,7 +443,7 @@ def main():
         if args.output_dir:
             output_dir = Path(args.output_dir)
         else:
-            output_dir = Path(f"results/{args.task_id}/{args.model_name}_{args.prompt_name}/comparisons")
+            output_dir = Path(f"results/{args.task_id}/{args.model_name}_{args.prompt_name}/comparisons/{args.rollout_version}")
 
         # Step 1: Batch comparison
         print(f"\n{'='*80}")
@@ -273,7 +458,8 @@ def main():
             comparison_model=args.comparison_model,
             output_dir=output_dir,
             agentic=agentic,
-            max_workers=args.max_workers
+            max_workers=args.max_workers,
+            rollout_version=args.rollout_version,
         )
 
         # Print comparison summary
@@ -505,6 +691,47 @@ def main():
         if result['versions_file']:
             print(f"Version tracking: {result['versions_file']}")
         print(f"\n✅ Prompt saved to data directory and can be used with --prompt {args.prompt_name}_{version}")
+        print(f"{'='*80}")
+
+    # Skill generation mode
+    elif args.mode == "generate-skills":
+        # Set default paths
+        if args.aggregated_file:
+            aggregated_file = Path(args.aggregated_file)
+        else:
+            aggregated_file = Path(f"results/{args.task_id}/{args.model_name}_{args.prompt_name}/comparisons/aggregated.json")
+
+        if args.output_dir:
+            output_base_dir = Path(args.output_dir)
+        else:
+            output_base_dir = Path(f"results/{args.task_id}/{args.model_name}_{args.prompt_name}/skills")
+
+        if not aggregated_file.exists():
+            print(f"❌ Error: Aggregated analysis file not found: {aggregated_file}")
+            print(f"   Run 'analyze' command first to generate aggregated analysis!")
+            return
+
+        # Load aggregated analysis
+        with open(aggregated_file, 'r', encoding='utf-8') as f:
+            aggregated_analysis = json.load(f)
+
+        result = generate_universal_skills(
+            aggregated_analysis=aggregated_analysis,
+            model_name=args.skill_model,
+            output_dir=output_base_dir
+        )
+
+        print(f"\n{'='*80}")
+        print("SKILL GENERATION SUMMARY")
+        print(f"{'='*80}")
+        print(f"Version: {result['version']}")
+        if result['previous_version']:
+            print(f"Previous version: {result['previous_version']}")
+        print(f"Examples analyzed: {result['num_examples_analyzed']}")
+        print(f"Existing skills copied: {result['num_existing_skills']}")
+        print(f"New skills generated: {result['num_new_skills']}")
+        print(f"Total skills: {result['total_skills']}")
+        print(f"Output directory: {result['output_dir']}")
         print(f"{'='*80}")
 
 if __name__ == "__main__":

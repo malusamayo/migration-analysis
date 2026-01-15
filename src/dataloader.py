@@ -15,6 +15,7 @@ def prepare_task(
         prompt_name: str = "default",
         n_responses: int = 1,
         max_examples: Optional[int] = None,
+        rollout_version: str = "v0",
     ):
     assert task_id in ["webgen", "webtest"], "Unsupported task_id"
 
@@ -26,14 +27,36 @@ def prepare_task(
     task_prompt_path = f"data/{task_id}/prompts/{prompt_name}.md"
     with open(task_prompt_path, "r") as f:
         task_prompt = f.read()
-    
+
     eval_prompt_path = f"data/{task_id}/eval.md"
     with open(eval_prompt_path, "r") as f:
         eval_prompt = f.read()
 
+    # Create version subdirectory
+    workspace_base = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}"
+    os.makedirs(workspace_base, exist_ok=True)
+
+    # Create rollout_config.json in version directory
+    config_path = os.path.join(workspace_base, "rollout_config.json")
+    if not os.path.exists(config_path):
+        from datetime import datetime
+        config = {
+            "task_id": task_id,
+            "model_name": model_name,
+            "prompt_name": prompt_name,
+            "rollout_version": rollout_version,
+            "skills_version": rollout_version if rollout_version != "v0" else None,
+            "timestamp": datetime.now().isoformat(),
+            "max_examples": max_examples,
+            "n_responses": n_responses
+        }
+        with open(config_path, "w") as f:
+            json.dump(config, f, indent=2)
+        print(f"✅ Created rollout config: {config_path}")
+
     for example_id, example in enumerate(data):
         for rollout_id in range(n_responses):
-            workspace = f"results/{task_id}/{model_name}_{prompt_name}_agentic_workspace/example{example_id}_rollout{rollout_id}/"
+            workspace = f"{workspace_base}/example{example_id}_rollout{rollout_id}/"
             os.makedirs(workspace, exist_ok=True)
             if task_id == "webtest":
                 with open(os.path.join(workspace, "index.html"), "w") as f:
@@ -102,6 +125,7 @@ class EvalDataLoader(BaseDataLoader):
         prompt_name: str,
         max_examples: Optional[int] = None,
         n_responses: int = 1,
+        rollout_version: str = "v0",
     ):
         """
         Initialize the data loader by loading task data and constructing workspace mappings.
@@ -112,6 +136,7 @@ class EvalDataLoader(BaseDataLoader):
             prompt_name: Prompt name used for workspace directory
             max_examples: Maximum number of examples to load
             n_responses: Number of rollouts per example
+            rollout_version: Rollout version identifier (e.g., "v0", "v1")
         """
 
         # Load task data using prepare_task
@@ -121,10 +146,11 @@ class EvalDataLoader(BaseDataLoader):
             prompt_name=prompt_name,
             max_examples=max_examples,
             n_responses=n_responses,
+            rollout_version=rollout_version,
         )
 
         # Construct workspace data
-        workspace_base_dir = f"results/{task_id}/{model_name}_{prompt_name}_agentic_workspace"
+        workspace_base_dir = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}"
         self.data = self._construct_workspace_data(workspace_base_dir, examples, n_responses)
 
     def _construct_workspace_data(
@@ -218,6 +244,7 @@ class CollectDataLoader(BaseDataLoader):
         is_agentic: bool = False,
         max_examples: Optional[int] = None,
         n_responses: int = 1,
+        rollout_version: str = "v0",
     ):
         """
         Initialize the data loader by loading task data.
@@ -229,6 +256,7 @@ class CollectDataLoader(BaseDataLoader):
             is_agentic: Whether to use agentic execution
             max_examples: Maximum number of examples to load
             n_responses: Number of rollouts per example
+            rollout_version: Rollout version identifier (e.g., "v0", "v1")
         """
 
         self.task_id = task_id
@@ -236,6 +264,7 @@ class CollectDataLoader(BaseDataLoader):
         self.prompt_name = prompt_name
         self.is_agentic = is_agentic
         self.n_responses = n_responses
+        self.rollout_version = rollout_version
 
         # Load task data using prepare_task
         examples, task_prompt, _ = prepare_task(
@@ -244,6 +273,7 @@ class CollectDataLoader(BaseDataLoader):
             prompt_name=prompt_name,
             max_examples=max_examples,
             n_responses=n_responses,
+            rollout_version=rollout_version,
         )
 
         self.lm = LM_DICT[model_name]
@@ -268,7 +298,7 @@ class CollectDataLoader(BaseDataLoader):
             # For agentic mode: each (example, rollout) pair becomes one item
             for example_id, example in enumerate(examples):
                 for rollout_id in range(self.n_responses):
-                    workspace = f"results/{self.task_id}/{self.model_name}_{self.prompt_name}_agentic_workspace/example{example_id}_rollout{rollout_id}/"
+                    workspace = f"results/{self.task_id}/{self.model_name}_{self.prompt_name}/rollouts/{self.rollout_version}/example{example_id}_rollout{rollout_id}/"
                     collection_data.append({
                         "lm": self.lm,
                         "system_prompt_path": f"data/{self.task_id}/prompts/{self.prompt_name}.md",
