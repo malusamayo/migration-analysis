@@ -8,10 +8,16 @@ dependencies = [
     "boto3>=1.42.3",
     "datasets>=4.4.1",
     "dspy>=3.0.4",
+    "google-auth>=2.47.0",
+    "openhands-sdk",
     "pandas>=2.3.3",
     "pillow>=12.0.0",
     "playwright>=1.57.0",
     "pytest>=9.0.2",
     "pytest-timeout>=2.4.0",
+    "pyyaml>=6.0.0",
     "wandb>=0.23.1",
 ]
+
+[tool.uv.sources]
+openhands-sdk = { path = "software-agent-sdk/openhands-sdk", editable = true }
