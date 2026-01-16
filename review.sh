@@ -22,7 +22,7 @@ MODE=""
 
 # First pass: identify the mode and which arguments are provided
 for arg in "$@"; do
-    if [[ "$arg" == "analyze" ]] || [[ "$arg" == "generate-patches" ]] || [[ "$arg" == "apply-patches" ]] || [[ "$arg" == "edit-patch" ]] || [[ "$arg" == "generate-skills" ]] || [[ "$arg" == "cross-model" ]]; then
+    if [[ "$arg" == "analyze" ]] || [[ "$arg" == "generate-patches" ]] || [[ "$arg" == "apply-patches" ]] || [[ "$arg" == "edit-patch" ]] || [[ "$arg" == "generate-skills" ]]  || [[ "$arg" == "analyze-cmp" ]]; then
         MODE="$arg"
     elif [[ "$arg" == "--task_id" ]] || [[ "$arg" == "--task_id="* ]]; then
         HAS_TASK_ID=true
@@ -39,34 +39,78 @@ for arg in "$@"; do
     fi
 done
 
-# Add defaults based on mode
-if [[ "$HAS_TASK_ID" == false ]]; then
+# Determine which defaults apply for the selected mode
+NEEDS_TASK_ID=false
+NEEDS_MODEL_NAME=false
+NEEDS_PROMPT_NAME=false
+NEEDS_NUM_EXAMPLES=false
+NEEDS_COMPARISON_MODEL=false
+NEEDS_ROLLOUT_VERSION=false
+
+case "$MODE" in
+    analyze)
+        NEEDS_TASK_ID=true
+        NEEDS_MODEL_NAME=true
+        NEEDS_PROMPT_NAME=true
+        NEEDS_NUM_EXAMPLES=true
+        NEEDS_COMPARISON_MODEL=true
+        NEEDS_ROLLOUT_VERSION=true
+        ;;
+    generate-patches)
+        NEEDS_TASK_ID=true
+        NEEDS_MODEL_NAME=true
+        NEEDS_PROMPT_NAME=true
+        NEEDS_NUM_EXAMPLES=true
+        ;;
+    generate-skills)
+        NEEDS_TASK_ID=true
+        NEEDS_MODEL_NAME=true
+        NEEDS_PROMPT_NAME=true
+        ;;
+    apply-patches)
+        NEEDS_TASK_ID=true
+        NEEDS_MODEL_NAME=true
+        NEEDS_PROMPT_NAME=true
+        ;;
+    edit-patch)
+        NEEDS_MODEL_NAME=true
+        NEEDS_PROMPT_NAME=true
+        ;;
+    cross-model)
+        NEEDS_TASK_ID=true
+        NEEDS_PROMPT_NAME=true
+        NEEDS_NUM_EXAMPLES=true
+        NEEDS_COMPARISON_MODEL=true
+        NEEDS_ROLLOUT_VERSION=true
+        ;;
+    analyze-cmp)
+        NEEDS_NUM_EXAMPLES=true
+        NEEDS_COMPARISON_MODEL=true
+        ;;
+esac
+
+if [[ "$NEEDS_TASK_ID" == true && "$HAS_TASK_ID" == false ]]; then
     ARGS+=("--task_id" "$DEFAULT_TASK_ID")
 fi
 
-if [[ "$HAS_MODEL_NAME" == false ]]; then
+if [[ "$NEEDS_MODEL_NAME" == true && "$HAS_MODEL_NAME" == false ]]; then
     ARGS+=("--model_name" "$DEFAULT_MODEL_NAME")
 fi
 
-if [[ "$HAS_PROMPT_NAME" == false ]]; then
+if [[ "$NEEDS_PROMPT_NAME" == true && "$HAS_PROMPT_NAME" == false ]]; then
     ARGS+=("--prompt_name" "$DEFAULT_PROMPT_NAME")
 fi
 
-# Mode-specific defaults
-if [[ "$MODE" == "analyze" ]] || [[ "$MODE" == "cross-model" ]]; then
-    if [[ "$HAS_NUM_EXAMPLES" == false ]]; then
-        ARGS+=("--num_examples" "$DEFAULT_NUM_EXAMPLES")
-    fi
-    if [[ "$HAS_COMPARISON_MODEL" == false ]]; then
-        ARGS+=("--comparison_model" "$DEFAULT_COMPARISON_MODEL")
-    fi
-    if [[ "$HAS_ROLLOUT_VERSION" == false ]]; then
-        ARGS+=("--rollout_version" "$DEFAULT_ROLLOUT_VERSION")
-    fi
-elif [[ "$MODE" == "generate-patches" ]]; then
-    if [[ "$HAS_NUM_EXAMPLES" == false ]]; then
-        ARGS+=("--num_examples" "$DEFAULT_NUM_EXAMPLES")
-    fi
+if [[ "$NEEDS_NUM_EXAMPLES" == true && "$HAS_NUM_EXAMPLES" == false ]]; then
+    ARGS+=("--num_examples" "$DEFAULT_NUM_EXAMPLES")
+fi
+
+if [[ "$NEEDS_COMPARISON_MODEL" == true && "$HAS_COMPARISON_MODEL" == false ]]; then
+    ARGS+=("--comparison_model" "$DEFAULT_COMPARISON_MODEL")
+fi
+
+if [[ "$NEEDS_ROLLOUT_VERSION" == true && "$HAS_ROLLOUT_VERSION" == false ]]; then
+    ARGS+=("--rollout_version" "$DEFAULT_ROLLOUT_VERSION")
 fi
 
 # Run with user args + defaults

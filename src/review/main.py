@@ -12,7 +12,7 @@ from pathlib import Path
 from .trajectory_comparison import (
     compare_examples_batch,
     aggregate_comparison_analyses,
-    compare_cross_model_batch
+    compare_trajectory_sets_batch
 )
 from .patch_generation import (
     generate_patches_batch,
@@ -113,6 +113,76 @@ def main():
         type=str,
         default="v0",
         help="Rollout version identifier (default: 'v0')"
+    )
+
+    # Compare trajectory sets mode (NEW - generic path-based comparison)
+    compare_sets_parser = subparsers.add_parser(
+        "analyze-cmp",
+        help="Compare trajectory rollout sets from two arbitrary paths (models, prompts, skills, etc.)"
+    )
+
+    compare_sets_parser.add_argument(
+        "--path_a",
+        type=str,
+        required=True,
+        help="Path to first rollout directory (e.g., 'results/webtest/model_default/rollouts/v0')"
+    )
+
+    compare_sets_parser.add_argument(
+        "--path_b",
+        type=str,
+        required=True,
+        help="Path to second rollout directory (e.g., 'results/webtest/model_default/rollouts/v1')"
+    )
+
+    compare_sets_parser.add_argument(
+        "--num_examples",
+        type=int,
+        help="Number of examples to compare (batch mode). If not specified, uses --example_id for single comparison"
+    )
+
+    compare_sets_parser.add_argument(
+        "--comparison_model",
+        type=str,
+        default="gemini-2.5-flash",
+        help="Model to use for comparison analysis (default: 'gemini-2.5-flash')"
+    )
+
+    compare_sets_parser.add_argument(
+        "--output",
+        type=str,
+        help="Path to save comparison results (auto-generated if not specified)"
+    )
+
+    compare_sets_parser.add_argument(
+        "--output_dir",
+        type=str,
+        help="Directory to save batch comparison results (batch mode only)"
+    )
+
+    compare_sets_parser.add_argument(
+        "--max_rollouts",
+        type=int,
+        help="Maximum number of rollouts to include per set (default: all)"
+    )
+
+    compare_sets_parser.add_argument(
+        "--label_a",
+        type=str,
+        help="Optional label for first set (default: extracted from path)"
+    )
+
+    compare_sets_parser.add_argument(
+        "--label_b",
+        type=str,
+        help="Optional label for second set (default: extracted from path)"
+    )
+
+    compare_sets_parser.add_argument(
+        "--max_workers",
+        type=int,
+        default=8,
+        help="Maximum number of parallel workers for batch mode (default: 8)"
     )
 
     analyze_parser.add_argument(
@@ -384,54 +454,101 @@ def main():
         parser.print_help()
         return
 
-    # Cross-model comparison mode
-    if args.mode == "cross-model":
-        agentic = not args.non_agentic
+     # Compare trajectory sets mode (generic path-based comparison)
+    if args.mode == "analyze-cmp":
+        path_a = Path(args.path_a)
+        path_b = Path(args.path_b)
 
-        # Parse model names from comma-separated list
-        model_names = [m.strip() for m in args.models.split(',')]
+        # Auto-generate labels from paths if not provided
+        label_a = args.label_a or path_a.name
+        label_b = args.label_b or path_b.name
 
-        if len(model_names) < 2:
-            print(f"❌ Error: Need at least 2 models to compare, got {len(model_names)}")
-            return
+        # Batch mode
+        output_dir = Path(args.output_dir) if args.output_dir else None
 
-        # Set output directory
-        if args.output_dir:
-            output_dir = Path(args.output_dir)
-        else:
-            output_dir = Path(f"results/{args.task_id}/cross_model_comparisons")
-
+        # Step 1: Batch comparison
         print(f"\n{'='*80}")
-        print("CROSS-MODEL COMPARISON")
+        print("STEP 1: BATCH COMPARISON")
         print(f"{'='*80}")
 
-        results = compare_cross_model_batch(
-            task_id=args.task_id,
-            model_names=model_names,
-            prompt_name=args.prompt_name,
+        if output_dir is None:
+            # Find common base directory
+            try:
+                common_base = Path(*[p for p in path_a.parts if p in path_b.parts]).parent
+                output_dir = common_base / "comparisons" / f"{label_a}_vs_{label_b}"
+            except:
+                # Fallback if no common base found
+                output_dir = Path(f"comparisons_{label_a}_vs_{label_b}")
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        results = compare_trajectory_sets_batch(
+            path_a=str(path_a),
+            path_b=str(path_b),
             num_examples=args.num_examples,
-            rollout_id=args.rollout_id,
             comparison_model=args.comparison_model,
             output_dir=output_dir,
-            agentic=agentic,
+            max_rollouts=args.max_rollouts,
+            label_a=label_a,
+            label_b=label_b,
             max_workers=args.max_workers,
-            rollout_version=args.rollout_version,
         )
 
         # Print comparison summary
         successful = [r for r in results if "error" not in r]
         failed = [r for r in results if "error" in r]
-        print(f"\nCross-Model Comparison Summary:")
-        print(f"  Models compared: {', '.join(model_names)}")
+        print(f"\nComparison Summary:")
         print(f"  Total examples: {len(results)}")
         print(f"  Successful: {len(successful)}")
         print(f"  Failed/Skipped: {len(failed)}")
-        print(f"  Output directory: {output_dir}")
-        if failed:
-            print(f"  Failed examples: {[r['example_id'] for r in failed]}")
 
+        # Step 2: Aggregation
+        if successful and output_dir:
+            print(f"\n{'='*80}")
+            print("STEP 2: AGGREGATION")
+            print(f"{'='*80}")
+
+            output_path = output_dir / "aggregated.md"
+            output_json = output_dir / "aggregated.json"
+
+            aggregation_result = aggregate_comparison_analyses(
+                comparison_dir=output_dir,
+                model_name=args.comparison_model,
+                output_path=output_path
+            )
+
+            # Save JSON version
+            with open(output_json, 'w', encoding='utf-8') as f:
+                json.dump(aggregation_result, f, indent=2, ensure_ascii=False)
+
+            print(f"\nAggregation Summary:")
+            print(f"  Examples analyzed: {aggregation_result['num_examples_analyzed']}")
+
+            # Handle patterns as either list or string
+            patterns = aggregation_result['common_patterns']
+            if isinstance(patterns, list):
+                print(f"  Common patterns: {len(patterns)}")
+            else:
+                print(f"  Common patterns: Found (see output file)")
+
+            # Handle improvements as either list or string
+            improvements = aggregation_result['recommended_improvements']
+            if isinstance(improvements, list):
+                print(f"  Recommended improvements: {len(improvements)}")
+            else:
+                print(f"  Recommended improvements: Found (see output file)")
+
+            print(f"  Output (markdown): {output_path}")
+            print(f"  Output (JSON): {output_json}")
+
+        # Final summary
         print(f"\n{'='*80}")
-        print("CROSS-MODEL COMPARISON COMPLETE")
+        print("COMPARISON COMPLETE")
+        print(f"{'='*80}")
+        if output_dir:
+            print(f"Results directory: {output_dir}")
+        if failed:
+            print(f"⚠️  Failed/Skipped examples: {[r['example_id'] for r in failed]}")
         print(f"{'='*80}")
 
     # Unified analyze mode (batch comparison + aggregation)

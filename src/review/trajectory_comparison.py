@@ -47,6 +47,48 @@ class CompareTrajectories(dspy.Module):
             task_description=task_description
         )
 
+class CrossModelTrajectorySetComparison(dspy.Signature):
+    """Compare sets of trajectories from two different models on the same task.
+
+    Analyze behavioral patterns, common strategies, and systematic differences between the two model sets.
+    Focus on: 1) Consistent behavioral differences across rollouts, 2) Success/failure patterns,
+    3) Different problem-solving approaches, 4) Tool usage patterns, 5) Error handling strategies.
+    """
+
+    trajectories_set_a = dspy.InputField(
+        desc="Markdown-formatted trajectories from first model across multiple rollouts, separated by '---TRAJECTORY---'"
+    )
+    trajectories_set_b = dspy.InputField(
+        desc="Markdown-formatted trajectories from second model across multiple rollouts, separated by '---TRAJECTORY---'"
+    )
+    task_description = dspy.InputField(
+        desc="The original task/request that both models attempted"
+    )
+    comparison = dspy.OutputField(
+        desc="Systematic analysis of differences between the two model sets, including success rates, common patterns, and behavioral differences"
+    )
+
+
+class CompareModelTrajectorysets(dspy.Module):
+    """Module for comparing trajectory sets from two different models."""
+
+    def __init__(self):
+        super().__init__()
+        self.compare = dspy.ChainOfThought(CrossModelTrajectorySetComparison)
+
+    def forward(
+        self,
+        trajectories_set_a: str,
+        trajectories_set_b: str,
+        task_description: str,
+    ):
+        """Compare trajectory sets from two models and return analysis."""
+        return self.compare(
+            trajectories_set_a=trajectories_set_a,
+            trajectories_set_b=trajectories_set_b,
+            task_description=task_description,
+        )
+
 
 def compare_rollout_trajectories(
     trace_paths: List[Path],
@@ -163,16 +205,35 @@ def _compare_single_example(
     output_path = output_dir / f"example{example_id}_comparison.md"
 
     try:
+        # Load trace data to extract task description
+        from .trajectory_loader import load_trajectory_trace, extract_task_description
+
+        first_trace_data = load_trajectory_trace(trace_files[0])
+        task_description = extract_task_description(first_trace_data)
+
+        # Get rollout IDs from workspace directories
+        rollout_ids = []
+        for trace_file in trace_files:
+            # Extract rollout ID from path (e.g., example0_rollout2/trace_xyz.json -> "rollout2")
+            workspace_name = trace_file.parent.name
+            if "_rollout" in workspace_name:
+                rollout_id = workspace_name.split("_rollout")[1]
+                rollout_ids.append(f"rollout{rollout_id}")
+
         result = compare_rollout_trajectories(
             trace_paths=trace_files,
             model_name=comparison_model,
             output_path=output_path
         )
+
         return {
             "example_id": example_id,
             "num_trajectories": len(trace_files),
-            "comparison": result,
-            "output_path": str(output_path)
+            "comparison_model": comparison_model,
+            "task_description": task_description,
+            "comparison": result["comparison_analysis"],  # Extract comparison text from result dict
+            "output_path": str(output_path),
+            "rollout_ids": rollout_ids
         }
     except Exception as e:
         return {
@@ -188,7 +249,8 @@ def compare_examples_batch(
     comparison_model: str = "gemini-2.5-flash",
     output_dir: Path = None,
     agentic: bool = True,
-    max_workers: int = 8
+    max_workers: int = 8,
+    rollout_version: str = "v0",
 ) -> List[Dict[str, Any]]:
     """
     Compare trajectories for multiple examples independently using parallel batch inference.
@@ -202,15 +264,16 @@ def compare_examples_batch(
         output_dir: Directory to save comparison results (default: results/{task_id}/{model_name}_{prompt_name}/comparisons)
         agentic: Whether the runs used agentic execution (default: True)
         max_workers: Maximum number of parallel workers (default: 8)
+        rollout_version: Rollout version identifier (e.g., "v0", "v1")
 
     Returns:
         List of comparison results for each example
     """
     # Determine base directory based on execution mode
     if agentic:
-        base_dir = Path(f"results/{task_id}/{model_name}_{prompt_name}_agentic_workspace")
+        base_dir = Path(f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}")
     else:
-        base_dir = Path(f"results/{task_id}/{model_name}_{prompt_name}_workspace")
+        base_dir = Path(f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}")
 
     if not base_dir.exists():
         raise ValueError(f"Base directory does not exist: {base_dir}")
@@ -273,6 +336,380 @@ def compare_examples_batch(
     print(f"Successful: {successful}")
     print(f"Failed/Skipped: {failed}")
     print(f"Summary saved to: {summary_path}")
+    print(f"{'='*80}")
+
+    return results
+
+
+def _compare_single_example_trajectory_sets(
+    path_a: str,
+    path_b: str,
+    example_id: int,
+    comparison_model: str = "gemini-2.5-flash",
+    output_path: Path = None,
+    max_rollouts: int = None,
+    label_a: str = None,
+    label_b: str = None,
+) -> Dict[str, Any]:
+    """
+    Compare trajectory rollout sets from two arbitrary paths.
+
+    This is a generic function that can compare any two sets of rollouts,
+    whether from different models, prompts, skill versions, etc.
+
+    Args:
+        path_a: Path to first rollout directory (e.g., "results/webtest/model_default/rollouts/v0")
+        path_b: Path to second rollout directory (e.g., "results/webtest/model_default/rollouts/v1")
+        example_id: Example identifier (e.g., 0 for example0)
+        comparison_model: Model to use for comparison analysis (default: "gemini-2.5-flash")
+        output_path: Optional path to save comparison results
+        max_rollouts: Maximum number of rollouts to include per set (default: all)
+        label_a: Optional label for first set (default: extracted from path)
+        label_b: Optional label for second set (default: extracted from path)
+
+    Returns:
+        Dictionary containing comparison results with trajectory sets
+
+    Example:
+        >>> result = compare_trajectory_sets(
+        ...     path_a="results/webtest/qwen3-coder-30b-a3b_default/rollouts/v0",
+        ...     path_b="results/webtest/qwen3-coder-30b-a3b_default/rollouts/v1",
+        ...     example_id=0,
+        ...     output_path=Path("results/webtest/qwen3-coder-30b-a3b_default/comparisons/v0_vs_v1.md")
+        ... )
+    """
+    from pathlib import Path
+
+    path_a = Path(path_a)
+    path_b = Path(path_b)
+
+    # Extract labels from paths if not provided
+    if label_a is None:
+        label_a = str(path_a)
+    if label_b is None:
+        label_b = str(path_b)
+
+    def load_trajectories_from_path(path: Path, label: str) -> List[Dict[str, Any]]:
+        """Load all rollout trajectories from a given path."""
+        if not path.exists():
+            print(f"⚠️  Warning: Directory not found: {path}")
+            return []
+
+        # Find all rollout directories for this example
+        rollout_dirs = sorted(path.glob(f"example{example_id}_rollout*"))
+
+        if max_rollouts:
+            rollout_dirs = rollout_dirs[:max_rollouts]
+
+        trajectories = []
+        for rollout_dir in rollout_dirs:
+            # Find trace file in the workspace
+            traces = list(rollout_dir.glob("trace_*.json"))
+
+            if not traces:
+                print(f"⚠️  Warning: No trace file found in {rollout_dir}")
+                continue
+
+            if len(traces) > 1:
+                print(f"⚠️  Warning: Multiple trace files found in {rollout_dir}, using first one")
+
+            # Extract rollout_id from directory name
+            rollout_id = rollout_dir.name.split("_rollout")[1]
+
+            trajectories.append({
+                "trace_path": traces[0],
+                "rollout_id": rollout_id,
+                "rollout_dir": rollout_dir,
+            })
+
+        return trajectories
+
+    print(f"\n{'='*80}")
+    print(f"Comparing trajectory sets on example{example_id}")
+    print(f"Set A: {label_a}")
+    print(f"Set B: {label_b}")
+    print(f"{'='*80}\n")
+
+    # Load trajectories from both paths
+    print(f"Loading trajectories from {label_a}...")
+    trajectories_a = load_trajectories_from_path(path_a, label_a)
+    print(f"  Found {len(trajectories_a)} rollout(s)")
+
+    print(f"Loading trajectories from {label_b}...")
+    trajectories_b = load_trajectories_from_path(path_b, label_b)
+    print(f"  Found {len(trajectories_b)} rollout(s)")
+
+    if not trajectories_a:
+        return {
+            "example_id": example_id,
+            "error": f"No trajectories found in {path_a}"
+        }
+    if not trajectories_b:
+        return {
+            "example_id": example_id,
+            "error": f"No trajectories found in {path_b}"
+        }
+
+    try:
+        def convert_and_combine_trajectories(
+            trajectory_list: List[Dict[str, Any]],
+            label: str
+        ) -> tuple[List[Dict[str, Any]], str]:
+            """Convert trajectories to markdown and combine them."""
+            print(f"\nConverting {len(trajectory_list)} trajectories from {label}...")
+            trace_paths = [t["trace_path"] for t in trajectory_list]
+            traj_data = load_and_convert_trajectories(trace_paths)
+
+            # Add rollout_id to each trajectory
+            for i, traj in enumerate(traj_data):
+                traj["rollout_id"] = trajectory_list[i]["rollout_id"]
+
+            # Combine trajectories into markdown text
+            text_parts = []
+            for traj in traj_data:
+                rollout_label = f"Rollout {traj['rollout_id']}"
+                text_parts.append(
+                    f"---TRAJECTORY---\n\n**{rollout_label}**\n\n{traj['markdown']}"
+                )
+            combined_text = "\n\n".join(text_parts)
+
+            return traj_data, combined_text
+
+        # Load and convert trajectories for both sets
+        traj_data_a, trajectories_set_a = convert_and_combine_trajectories(
+            trajectories_a, label_a
+        )
+        traj_data_b, trajectories_set_b = convert_and_combine_trajectories(
+            trajectories_b, label_b
+        )
+
+        # Extract task description from first trajectory
+        task_description = extract_task_description(traj_data_a[0]["trace_data"])
+
+        # Get LLM for comparison
+        lm = LM_DICT[comparison_model]
+
+        print(f"\nComparing trajectory sets using {comparison_model}...")
+        with dspy.context(lm=lm):
+            comparator = CompareModelTrajectorysets()
+            result = comparator(
+                trajectories_set_a=trajectories_set_a,
+                trajectories_set_b=trajectories_set_b,
+                task_description=task_description,
+            )
+
+        # Prepare output
+        total_trajectories = len(traj_data_a) + len(traj_data_b)
+
+        comparison_result = {
+            "example_id": example_id,
+            "num_trajectories": total_trajectories,  # For compatibility with compare_examples_batch
+            "set_a": {
+                "label": label_a,
+                "path": str(path_a),
+                "num_rollouts": len(traj_data_a),
+                "rollout_ids": [t["rollout_id"] for t in traj_data_a],
+            },
+            "set_b": {
+                "label": label_b,
+                "path": str(path_b),
+                "num_rollouts": len(traj_data_b),
+                "rollout_ids": [t["rollout_id"] for t in traj_data_b],
+            },
+            "comparison_model": comparison_model,
+            "task_description": task_description,
+            "comparison": result.comparison,
+        }
+
+        print(f"\n✅ Comparison complete")
+
+        # Save to file if output path provided
+        if output_path:
+            output_path = Path(output_path)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # Add output_path to result (for compatibility with compare_examples_batch)
+            comparison_result["output_path"] = str(output_path)
+
+            # Save as JSON
+            if output_path.suffix == ".json":
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    json.dump(comparison_result, f, indent=2, ensure_ascii=False)
+            # Save as Markdown
+            else:
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    f.write(f"# Trajectory Set Comparison\n\n")
+                    f.write(f"**Example:** example{example_id}\n\n")
+                    f.write(f"## Sets Compared\n\n")
+                    f.write(f"**Set A:** {label_a}\n")
+                    f.write(f"  - Path: {path_a}\n")
+                    f.write(f"  - Rollouts: {len(traj_data_a)} ({', '.join([t['rollout_id'] for t in traj_data_a])})\n\n")
+                    f.write(f"**Set B:** {label_b}\n")
+                    f.write(f"  - Path: {path_b}\n")
+                    f.write(f"  - Rollouts: {len(traj_data_b)} ({', '.join([t['rollout_id'] for t in traj_data_b])})\n\n")
+                    f.write(f"**Comparison Model:** {comparison_model}\n\n")
+                    f.write(f"## Task Description\n\n{task_description}\n\n")
+                    f.write(f"## Comparison Analysis\n\n{result.comparison}\n\n")
+                    f.write(f"---\n\n## Set A Trajectories\n\n{trajectories_set_a}\n\n")
+                    f.write(f"---\n\n## Set B Trajectories\n\n{trajectories_set_b}\n")
+
+            print(f"✅ Comparison saved to: {output_path}")
+
+        return comparison_result
+
+    except Exception as e:
+        return {
+            "example_id": example_id,
+            "error": str(e)
+        }
+
+
+def compare_trajectory_sets_batch(
+    path_a: str,
+    path_b: str,
+    num_examples: int,
+    comparison_model: str = "gemini-2.5-flash",
+    output_dir: Path = None,
+    max_rollouts: int = None,
+    label_a: str = None,
+    label_b: str = None,
+    max_workers: int = 8,
+    task_id: str = None,
+    model_name: str = None,
+    prompt_name: str = None,
+) -> List[Dict[str, Any]]:
+    """
+    Compare trajectory rollout sets from two arbitrary paths across multiple examples.
+
+    This is a batch processing version of _compare_single_example_trajectory_sets that
+    processes multiple examples in parallel.
+
+    Args:
+        path_a: Path to first rollout directory (e.g., "results/webtest/model_default/rollouts/v0")
+        path_b: Path to second rollout directory (e.g., "results/webtest/model_default/rollouts/v1")
+        num_examples: Number of examples to compare
+        comparison_model: Model to use for comparison analysis (default: "gemini-2.5-flash")
+        output_dir: Directory to save comparison results (auto-generated if not specified)
+        max_rollouts: Maximum number of rollouts to include per set (default: all)
+        label_a: Optional label for first set (default: extracted from path)
+        label_b: Optional label for second set (default: extracted from path)
+        max_workers: Maximum number of parallel workers (default: 8)
+
+    Returns:
+        List of comparison results for each example
+
+    Example:
+        >>> results = compare_trajectory_sets_batch(
+        ...     path_a="results/webtest/qwen3-coder-30b-a3b_default/rollouts/v0",
+        ...     path_b="results/webtest/qwen3-coder-30b-a3b_default/rollouts/v1",
+        ...     num_examples=10,
+        ... )
+    """
+    from pathlib import Path
+
+    path_a = Path(path_a)
+    path_b = Path(path_b)
+
+    # Auto-generate labels from paths if not provided
+    if label_a is None:
+        label_a = path_a.name
+    if label_b is None:
+        label_b = path_b.name
+
+    # Auto-generate output directory if not provided
+
+    print(f"\n{'='*80}")
+    print(f"BATCH TRAJECTORY SET COMPARISON")
+    print(f"{'='*80}")
+    print(f"Set A: {label_a}")
+    print(f"  Path: {path_a}")
+    print(f"Set B: {label_b}")
+    print(f"  Path: {path_b}")
+    print(f"Examples: {num_examples}")
+    print(f"Comparison Model: {comparison_model}")
+    print(f"Max Workers: {max_workers}")
+    if max_rollouts:
+        print(f"Max Rollouts per Set: {max_rollouts}")
+    print(f"Output Directory: {output_dir}")
+    print(f"{'='*80}\n")
+
+    # Prepare arguments for batch inference
+    args_list = []
+    for example_id in range(num_examples):
+        output_filename = f"example{example_id}_{label_a}_vs_{label_b}.md"
+        output_path = output_dir / output_filename
+
+        args_list.append({
+            "path_a": str(path_a),
+            "path_b": str(path_b),
+            "example_id": example_id,
+            "comparison_model": comparison_model,
+            "output_path": output_path,
+            "max_rollouts": max_rollouts,
+            "label_a": label_a,
+            "label_b": label_b,
+        })
+
+    # Run comparisons in parallel using batch inference
+    results = batch_inference(
+        program=_compare_single_example_trajectory_sets,
+        args_list=args_list,
+        use_process=False,  # Use threads since we're doing I/O and API calls
+        max_workers=max_workers
+    )
+
+    # Print summary for each result
+    successful = 0
+    failed = 0
+    for result in results:
+        example_id = result["example_id"]
+        if "error" in result:
+            print(f"⚠️  Example {example_id}: {result.get('error', 'Unknown error')}")
+            failed += 1
+        else:
+            set_a = result.get("set_a", {})
+            set_b = result.get("set_b", {})
+            print(f"✅ Example {example_id}: {set_a.get('num_rollouts', 0)} vs {set_b.get('num_rollouts', 0)} rollouts")
+            successful += 1
+
+    # Save summary of all comparisons
+    summary_path = output_dir / "batch_comparison_summary.json"
+    summary_data = {
+        "comparison_model": comparison_model,
+        "num_examples_processed": len(results),
+        "results": results
+    }
+
+    # Add optional task metadata fields (for compatibility with compare_examples_batch)
+    if task_id:
+        summary_data["task_id"] = task_id
+    if model_name:
+        summary_data["model_name"] = model_name
+    if prompt_name:
+        summary_data["prompt_name"] = prompt_name
+
+    # Add trajectory set comparison specific fields
+    summary_data.update({
+        "path_a": str(path_a),
+        "path_b": str(path_b),
+        "label_a": label_a,
+        "label_b": label_b,
+        "successful": successful,
+        "failed": failed,
+        "max_rollouts": max_rollouts,
+    })
+
+    with open(summary_path, 'w', encoding='utf-8') as f:
+        json.dump(summary_data, f, indent=2, ensure_ascii=False)
+
+    print(f"\n{'='*80}")
+    print(f"BATCH COMPARISON COMPLETE")
+    print(f"{'='*80}")
+    print(f"Total examples: {len(results)}")
+    print(f"Successful: {successful}")
+    print(f"Failed/Skipped: {failed}")
+    print(f"Summary saved to: {summary_path}")
+    print(f"Output directory: {output_dir}")
     print(f"{'='*80}")
 
     return results
@@ -356,22 +793,27 @@ def aggregate_comparison_analyses(
             continue
 
         example_id = result.get("example_id")
-        comparison = result.get("comparison", {})
-        comparison_analysis = comparison.get("comparison_analysis", [])
+        comparison = result.get("comparison", "")
 
-        if comparison_analysis:
+        if comparison:
             successful_examples.append(example_id)
             comparison_summaries.append({
                 "example_id": example_id,
-                "analysis": comparison_analysis
+                "analysis": comparison
             })
 
     if not comparison_summaries:
         raise ValueError("No successful comparison analyses found")
 
-    # Extract task description from first comparison
-    first_comparison = batch_summary["results"][0].get("comparison", {})
-    task_description = first_comparison.get("task_description", "Task description not found")
+    # Extract task description from first result (it's at the top level now)
+    task_description = None
+    for result in batch_summary["results"]:
+        if "error" not in result and result.get("task_description"):
+            task_description = result["task_description"]
+            break
+
+    if not task_description:
+        task_description = "Task description not found"
 
     # Format summaries for aggregation
     formatted_summaries = []
