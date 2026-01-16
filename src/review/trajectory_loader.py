@@ -130,6 +130,16 @@ def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
                 markdown_lines.append(obs_str)
                 markdown_lines.append("```\n")
 
+        # Handle AgentErrorEvent (errors from tool validation or execution)
+        elif event_kind == "AgentErrorEvent":
+            error_msg = event.get("error", "Unknown error")
+            tool_name = event.get("tool_name", "Unknown tool")
+
+            markdown_lines.append(f"**Error ({tool_name}):**\n")
+            markdown_lines.append("```")
+            markdown_lines.append(error_msg)
+            markdown_lines.append("```\n")
+
         # Handle any uncaptured event types
         else:
             assert False, f"Unhandled event kind: {event_kind}"
