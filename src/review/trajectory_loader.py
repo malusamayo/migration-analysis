@@ -73,6 +73,21 @@ def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
             action_count += 1
             markdown_lines.append(f"\n### Step {action_count}\n")
 
+            # Extract and add thought content if present
+            thought_text = ""
+            if "thought" in event and event["thought"]:
+                if isinstance(event["thought"], list):
+                    for item in event["thought"]:
+                        if isinstance(item, dict) and "text" in item:
+                            thought_text = item["text"]
+                            break
+                elif isinstance(event["thought"], str):
+                    thought_text = event["thought"]
+
+            if thought_text:
+                markdown_lines.append(f"**Thought:**\n")
+                markdown_lines.append(f"{thought_text}\n")
+
             # Add reasoning content
             if "reasoning_content" in event and event["reasoning_content"]:
                 markdown_lines.append(f"**Reasoning:**\n")
@@ -114,6 +129,10 @@ def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
                 markdown_lines.append("```")
                 markdown_lines.append(obs_str)
                 markdown_lines.append("```\n")
+
+        # Handle any uncaptured event types
+        else:
+            assert False, f"Unhandled event kind: {event_kind}"
 
     return "\n".join(markdown_lines)
 
