@@ -2,6 +2,7 @@ import pandas as pd
 import dspy
 import json
 import os
+import platform
 import litellm
 from datasets import load_dataset, concatenate_datasets
 from functools import partial
@@ -10,7 +11,7 @@ from typing import List, Any, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .utils import LM_DICT, batch_inference, use_lm
 from .dataloader import CollectDataLoader, load_and_validate_results
-
+from .review.trajectory_loader import convert_json_to_markdown
 
 import os
 import numpy as np
@@ -20,6 +21,7 @@ import time
 import json
 import argparse
 import re
+from pathlib import Path
 
 from openhands.sdk import LLM, Agent, Conversation, Tool, AgentContext
 from openhands.tools.file_editor import FileEditorTool
@@ -32,8 +34,8 @@ def discover_skills(
     task_id: str,
     model_name: str,
     prompt_name: str,
-    rollout_version: str,
-    update_config: bool = True,
+    skill_version: Optional[str] = None,
+    skill_mode: str = "all_loaded",
 ) -> List[Skill]:
     """
     Discover and load skills for a given rollout version.
@@ -42,18 +44,21 @@ def discover_skills(
         task_id: Task identifier
         model_name: Model name
         prompt_name: Prompt name
-        rollout_version: Rollout version identifier (e.g., "v0", "v1")
+        rollout_version: Rollout version identifier (e.g., "v0", "v1_all_seed0")
+        skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
         update_config: Whether to update rollout_config.json with skill information
 
     Returns:
-        List of loaded Skill objects (empty list if rollout_version is "v0")
+        List of loaded Skill objects (empty list if skill_version is None)
     """
-    if rollout_version == "v0":
+    # If no skill_version specified, no skills to load
+    if skill_version is None:
         return []
 
-    from pathlib import Path
+    # Construct full path to skill directory
+    base_path = Path(f"results/{task_id}/{model_name}_{prompt_name}")
+    skill_dir = base_path / skill_version
 
-    skill_dir = Path(f"results/{task_id}/{model_name}_{prompt_name}/skills/{rollout_version}")
     skills = []
 
     if skill_dir.exists():
@@ -64,25 +69,15 @@ def discover_skills(
                 skill_file = skill_folder / "SKILL.md"
                 if skill_file.exists():
                     try:
-                        skills.append(Skill.load(path=str(skill_file)))
-                        skills[-1].is_agentskills_format = False
+                        skills.append(Skill.load(path=str(skill_file), strict=False))
+                        if skill_mode == "all_loaded":
+                            skills[-1].is_agentskills_format = False
                         skill_paths.append(str(skill_file))
                     except Exception as e:
                         print(f"⚠️  Failed to load skill from {skill_file}: {e}")
 
         print(f"✅ Found {len(skills)} skills in {skill_dir}")
 
-        # Update rollout_config.json with skill information
-        if update_config:
-            config_path = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}/rollout_config.json"
-            if os.path.exists(config_path):
-                with open(config_path, 'r') as f:
-                    config = json.load(f)
-                config["skills_dir"] = str(skill_dir)
-                config["num_skills"] = len(skills)
-                config["skills_used"] = [skill_folder.name for skill_folder in skill_dir.iterdir() if skill_folder.is_dir() and (skill_folder / "SKILL.md").exists()]
-                with open(config_path, 'w') as f:
-                    json.dump(config, f, indent=2)
     else:
         print(f"⚠️  Warning: Skill directory not found: {skill_dir}")
 
@@ -141,11 +136,38 @@ def run_single_instance(
 
     return example
 
+def save_conversation_trace(conversation: Conversation, workspace: str) -> str:
+    events = [event.model_dump() for event in conversation.state.events]
+    if events[-1]["kind"] == "ObservationEvent":
+        final_message = events[-1]["observation"]["content"][0]["text"]
+    elif events[-1]["kind"] == "MessageEvent":
+        final_message = events[-1]["llm_message"]["content"][0]["text"]
+    else:
+        assert False, f"Unexpected final event type {events[-1]['kind']}"
+    
+    conversation_data = {
+        "conversation_id": str(conversation.id),
+        "eval_output": final_message,
+        "events": events,
+    }
+    
+    trace_path = os.path.join(workspace, f"trace_{conversation.id}.json")
+    with open(trace_path, "w") as trace_file:
+        json.dump(conversation_data, trace_file, indent=2)
+    
+    markdown_content = convert_json_to_markdown(conversation_data)
+    markdown_path = os.path.join(workspace, f"trace_{conversation.id}.md")
+    with open(markdown_path, "w") as md_file:
+        md_file.write(markdown_content)
+    
+    return conversation_data
+
 def run_single_instance_agentic(
         lm: dspy.LM,
         system_prompt_path: str,
         example: dict,
         workspace: str,
+        seed: int,
         skills: Optional[List[Skill]] = None,
     ):
     """
@@ -192,27 +214,8 @@ def run_single_instance_agentic(
         conversation.send_message(instruction)
         conversation.run()
 
-        events = [event.model_dump() for event in conversation.state.events]
-        if events[-1]["kind"] == "ObservationEvent":
-            eval_output = events[-1]["observation"]["content"][0]["text"]
-        elif events[-1]["kind"] == "MessageEvent":
-            eval_output = events[-1]["llm_message"]["content"][0]["text"]
-        else:
-            print("Unexpected final event type:", events[-1]["kind"])
-        conversation_data = {
-            "conversation_id": str(conversation.id),
-            "eval_lm": lm.model,
-            "eval_output": eval_output,
-        }
+        conversation_data = save_conversation_trace(conversation, workspace)
         example["eval_result"] = copy.deepcopy(conversation_data)
-        conversation_data["events"] = events
-
-        # Write trace to separate file if trace_dir is provided
-        trace_filename = f"trace_{conversation.id}.json"
-        trace_path = os.path.join(workspace, trace_filename)
-        with open(trace_path, "w") as trace_file:
-            json.dump(conversation_data, trace_file, indent=2)
-        example["eval_result"]["trace_path"] = trace_path
 
         return example
 
@@ -234,7 +237,8 @@ def run_task(
         n_responses: int = 1,
         batch_size: int = 16,
         resume: bool = True,
-        rollout_version: str = "v0",
+        skill_version: Optional[str] = None,
+        skill_mode: str = "all_loaded",
     ):
     """
     Run a task with specified model and prompt.
@@ -248,15 +252,30 @@ def run_task(
         n_responses: Number of responses to generate per example
         batch_size: Batch size for collection
         resume: Whether to resume from existing results
-        rollout_version: Rollout version identifier (e.g., "v0", "v1")
+        skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
+        skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+
+    Note:
+        For agentic execution, volume mounts are automatically inferred from:
+        - System prompt directory (mounted as /workspace/prompts:ro)
+        - Workspace path (mounted as /workspace/data)
     """
+    from .dataloader import generate_rollout_version
+
+    # Auto-generate rollout_version
+    rollout_version = generate_rollout_version(
+        skill_version=skill_version,
+        skill_mode=skill_mode,
+    )
+    print(f"📦 Auto-generated rollout version: {rollout_version}")
+
     # Discover and load skills for this rollout version
     skills = discover_skills(
         task_id=task_id,
         model_name=model_name,
         prompt_name=prompt_name,
-        rollout_version=rollout_version,
-        update_config=True,
+        skill_version=skill_version,
+        skill_mode=skill_mode,
     )
 
     # Initialize data loader
@@ -268,6 +287,8 @@ def run_task(
         max_examples=max_examples,
         n_responses=n_responses,
         rollout_version=rollout_version,
+        skill_version=skill_version,
+        skill_mode=skill_mode,
     )
 
     output_path = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}/run.json"
@@ -325,7 +346,14 @@ if __name__ == "__main__":
     parser.add_argument("--is_agentic", action="store_true", help="Whether to use agentic execution.")
     parser.add_argument("--batch_size", type=int, default=16, help="Batch size for collection.")
     parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results.")
-    parser.add_argument("--rollout_version", type=str, default="v0", help="Rollout version identifier (v0=no skills, v1/v2/etc=with skills)")
+
+    # New parameters for automatic rollout versioning
+    parser.add_argument("--skill_version", type=str, default=None,
+                        help="Path to skill folder (e.g., 'skills/v1'), or None for no skills")
+    parser.add_argument("--skill_mode", type=str, default="all_loaded",
+                        choices=["all_loaded", "agent_decided", "monitor_decided"],
+                        help="Skill mode: all_loaded, agent_decided, or monitor_decided")
+
     args = parser.parse_args()
 
     run_task(
@@ -337,5 +365,6 @@ if __name__ == "__main__":
         n_responses=args.n_responses,
         batch_size=args.batch_size,
         resume=args.resume,
-        rollout_version=args.rollout_version,
+        skill_version=args.skill_version,
+        skill_mode=args.skill_mode,
     )

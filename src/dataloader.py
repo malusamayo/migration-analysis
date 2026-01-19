@@ -9,14 +9,75 @@ from pathlib import Path
 import re
 from .utils import LM_DICT
 
+def generate_rollout_version(
+    skill_version: Optional[str] = None,
+    skill_mode: str = "all_loaded",
+) -> str:
+    """
+    Generate a rollout version name based on configuration parameters.
+
+    Args:
+        skill_version: Path to the skill folder (e.g., "skills/v1"), or None for no skills
+        skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+
+    Returns:
+        Rollout version string (e.g., "v0", "v1_all", "v1_agent")
+
+    Examples:
+        >>> generate_rollout_version(None, "all_loaded")
+        'v0'
+        >>> generate_rollout_version("skills/v1", "all_loaded")
+        'v1_all'
+        >>> generate_rollout_version("skills/v1", "agent_decided")
+        'v1_agent'
+    """
+    # If no skills, always return v0
+    if skill_version is None:
+        return "v0"
+
+    skill_version_name = Path(skill_version).name
+
+    # Map skill_mode to short name
+    mode_map = {
+        "all_loaded": "all",
+        "agent_decided": "agent",
+        "monitor_decided": "monitor",
+    }
+
+    if skill_mode not in mode_map:
+        raise ValueError(f"Invalid skill_mode: {skill_mode}. Must be one of {list(mode_map.keys())}")
+
+    mode_short = mode_map[skill_mode]
+
+    # Generate version string
+    return f"{skill_version_name}_{mode_short}"
+
 def prepare_task(
         task_id: str,
         model_name: str,
+        rollout_version: str,
         prompt_name: str = "default",
         n_responses: int = 1,
         max_examples: Optional[int] = None,
-        rollout_version: str = "v0",
+        skill_version: Optional[str] = None,
+        skill_mode: str = "all_loaded",
     ):
+    """
+    Prepare task data and create workspace directories.
+
+    Args:
+        task_id: Task identifier (e.g., "webtest", "webgen")
+        model_name: Model name
+        rollout_version: Rollout version identifier (required)
+        prompt_name: Prompt name
+        n_responses: Number of rollouts per example
+        max_examples: Maximum number of examples to process
+        skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
+        skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+
+    Returns:
+        Tuple of (data, task_prompt, eval_prompt)
+    """
     assert task_id in ["webgen", "webtest"], "Unsupported task_id"
 
     data_path = f"data/{task_id}/{task_id}.csv"
@@ -45,7 +106,8 @@ def prepare_task(
             "model_name": model_name,
             "prompt_name": prompt_name,
             "rollout_version": rollout_version,
-            "skills_version": rollout_version if rollout_version != "v0" else None,
+            "skill_version": skill_version,
+            "skill_mode": skill_mode,
             "timestamp": datetime.now().isoformat(),
             "max_examples": max_examples,
             "n_responses": n_responses
@@ -122,10 +184,12 @@ class EvalDataLoader(BaseDataLoader):
         self,
         task_id: str,
         model_name: str,
-        prompt_name: str,
+        rollout_version: str,
+        prompt_name: str = "default",
         max_examples: Optional[int] = None,
         n_responses: int = 1,
-        rollout_version: str = "v0",
+        skill_version: Optional[str] = None,
+        skill_mode: str = "all_loaded",
     ):
         """
         Initialize the data loader by loading task data and constructing workspace mappings.
@@ -133,20 +197,24 @@ class EvalDataLoader(BaseDataLoader):
         Args:
             task_id: Task identifier (e.g., "webtest", "webgen")
             model_name: Model name used for workspace directory
+            rollout_version: Rollout version identifier (required)
             prompt_name: Prompt name used for workspace directory
             max_examples: Maximum number of examples to load
             n_responses: Number of rollouts per example
-            rollout_version: Rollout version identifier (e.g., "v0", "v1")
+            skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
+            skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
         """
 
         # Load task data using prepare_task
         examples, _, _ = prepare_task(
             task_id=task_id,
             model_name=model_name,
+            rollout_version=rollout_version,
             prompt_name=prompt_name,
             max_examples=max_examples,
             n_responses=n_responses,
-            rollout_version=rollout_version,
+            skill_version=skill_version,
+            skill_mode=skill_mode,
         )
 
         # Construct workspace data
@@ -240,11 +308,13 @@ class CollectDataLoader(BaseDataLoader):
         self,
         task_id: str,
         model_name: str,
+        rollout_version: str,
         prompt_name: str = "default",
         is_agentic: bool = False,
         max_examples: Optional[int] = None,
         n_responses: int = 1,
-        rollout_version: str = "v0",
+        skill_version: Optional[str] = None,
+        skill_mode: str = "all_loaded",
     ):
         """
         Initialize the data loader by loading task data.
@@ -252,11 +322,13 @@ class CollectDataLoader(BaseDataLoader):
         Args:
             task_id: Task identifier (e.g., "webtest", "webgen")
             model_name: Model name to use
+            rollout_version: Rollout version identifier (required)
             prompt_name: Prompt name to use
             is_agentic: Whether to use agentic execution
             max_examples: Maximum number of examples to load
             n_responses: Number of rollouts per example
-            rollout_version: Rollout version identifier (e.g., "v0", "v1")
+            skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
+            skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
         """
 
         self.task_id = task_id
@@ -270,12 +342,13 @@ class CollectDataLoader(BaseDataLoader):
         examples, task_prompt, _ = prepare_task(
             task_id=task_id,
             model_name=model_name,
+            rollout_version=rollout_version,
             prompt_name=prompt_name,
             max_examples=max_examples,
             n_responses=n_responses,
-            rollout_version=rollout_version,
+            skill_version=skill_version,
+            skill_mode=skill_mode,
         )
-
         self.lm = LM_DICT[model_name]
         self.task_prompt = task_prompt
 
@@ -304,6 +377,7 @@ class CollectDataLoader(BaseDataLoader):
                         "system_prompt_path": f"data/{self.task_id}/prompts/{self.prompt_name}.md",
                         "example": example,
                         "workspace": workspace,
+                        "seed": rollout_id,
                     })
         else:
             # For non-agentic mode: each (example, seed) pair becomes one item

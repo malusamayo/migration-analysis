@@ -3,7 +3,7 @@ import os
 import argparse
 from typing import Optional
 from .utils import batch_inference
-from .dataloader import EvalDataLoader, load_and_validate_results
+from .dataloader import EvalDataLoader, load_and_validate_results, generate_rollout_version
 
 def get_config(task_id: str):
     if task_id == "webgen":
@@ -104,8 +104,22 @@ if __name__ == "__main__":
     parser.add_argument("--n_responses", type=int, default=1, help="Number of rollouts per example")
     parser.add_argument("--batch_size", type=int, default=16, help="Batch size for evaluation")
     parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results")
-    parser.add_argument("--rollout_version", type=str, default="v0", help="Rollout version identifier (v0=no skills, v1/v2/etc=with skills)")
+
+    # New parameters for automatic rollout versioning
+    parser.add_argument("--skill_version", type=str, default=None,
+                        help="Path to skill folder (e.g., 'skills/v1'), or None for no skills")
+    parser.add_argument("--skill_mode", type=str, default="all_loaded",
+                        choices=["all_loaded", "agent_decided", "monitor_decided"],
+                        help="Skill mode: all_loaded, agent_decided, or monitor_decided")
+
     args = parser.parse_args()
+
+    # Auto-generate rollout_version from skill parameters
+    rollout_version = generate_rollout_version(
+        skill_version=args.skill_version,
+        skill_mode=args.skill_mode,
+    )
+    print(f"📦 Auto-generated rollout version: {rollout_version}")
 
     run_task_eval(
         task_id=args.task_id,
@@ -115,5 +129,5 @@ if __name__ == "__main__":
         n_responses=args.n_responses,
         batch_size=args.batch_size,
         resume=args.resume,
-        rollout_version=args.rollout_version,
+        rollout_version=rollout_version,
     )
