@@ -40,11 +40,12 @@ class CompareTrajectories(dspy.Module):
         super().__init__()
         self.compare = dspy.ChainOfThought(TrajectoryComparison)
 
-    def forward(self, trajectories: str, task_description: str):
+    def forward(self, trajectories: str, task_description: str, config):
         """Compare trajectories and return analysis."""
         return self.compare(
             trajectories=trajectories,
-            task_description=task_description
+            task_description=task_description,
+            config=config
         )
 
 class CrossModelTrajectorySetComparison(dspy.Signature):
@@ -93,7 +94,8 @@ class CompareModelTrajectorysets(dspy.Module):
 def compare_rollout_trajectories(
     trace_paths: List[Path],
     model_name: str = "gemini-2.5-flash",
-    output_path: Path = None
+    output_path: Path = None,
+    random_seed: int = 0,
 ) -> Dict[str, Any]:
     """
     Compare multiple trajectory rollouts using LLM analysis.
@@ -102,6 +104,7 @@ def compare_rollout_trajectories(
         trace_paths: List of paths to trace JSON files
         model_name: Name of the language model to use for comparison
         output_path: Optional path to save comparison results
+        random_seed: Random seed for reproducibility in LLM calls
 
     Returns:
         Dictionary containing comparison results
@@ -119,12 +122,13 @@ def compare_rollout_trajectories(
     # Get LLM for comparison
     lm = LM_DICT[model_name]
 
-    print(f"Comparing trajectories using {model_name}...")
+    print(f"Comparing trajectories using {model_name} (seed={random_seed})...")
     with dspy.context(lm=lm):
         comparator = CompareTrajectories()
         result = comparator(
             trajectories=trajectories_text,
-            task_description=task_description
+            task_description=task_description,
+            config={"rollout_id": random_seed},
         )
 
     # Prepare output
@@ -165,7 +169,8 @@ def _compare_single_example(
     example_id: int,
     base_dir: Path,
     output_dir: Path,
-    comparison_model: str
+    comparison_model: str,
+    random_seed: int = 0,
 ) -> Dict[str, Any]:
     """
     Helper function to compare trajectories for a single example.
@@ -176,6 +181,7 @@ def _compare_single_example(
         base_dir: Base directory containing workspace directories
         output_dir: Directory to save comparison results
         comparison_model: Model to use for comparison
+        random_seed: Random seed for reproducibility in LLM calls
 
     Returns:
         Dictionary containing comparison result or error
@@ -223,7 +229,8 @@ def _compare_single_example(
         result = compare_rollout_trajectories(
             trace_paths=trace_files,
             model_name=comparison_model,
-            output_path=output_path
+            output_path=output_path,
+            random_seed=random_seed,
         )
 
         return {
@@ -251,6 +258,7 @@ def compare_examples_batch(
     agentic: bool = True,
     max_workers: int = 8,
     rollout_version: str = "v0",
+    random_seed: int = 0,
 ) -> List[Dict[str, Any]]:
     """
     Compare trajectories for multiple examples independently using parallel batch inference.
@@ -265,6 +273,7 @@ def compare_examples_batch(
         agentic: Whether the runs used agentic execution (default: True)
         max_workers: Maximum number of parallel workers (default: 8)
         rollout_version: Rollout version identifier (e.g., "v0", "v1")
+        random_seed: Random seed for reproducibility in LLM calls (default: 0)
 
     Returns:
         List of comparison results for each example
@@ -279,12 +288,12 @@ def compare_examples_batch(
         raise ValueError(f"Base directory does not exist: {base_dir}")
 
     if output_dir is None:
-        output_dir = Path(f"results/{task_id}/{model_name}_{prompt_name}/comparisons")
+        output_dir = Path(f"results/{task_id}/{model_name}_{prompt_name}/comparisons/{rollout_version}_seed{random_seed}")
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"\n{'='*80}")
-    print(f"Starting batch comparison for {num_examples} examples using {max_workers} workers")
+    print(f"Starting batch comparison for {num_examples} examples using {max_workers} workers (seed={random_seed})")
     print(f"{'='*80}\n")
 
     # Prepare arguments for batch inference
@@ -293,7 +302,8 @@ def compare_examples_batch(
             "example_id": example_id,
             "base_dir": base_dir,
             "output_dir": output_dir,
-            "comparison_model": comparison_model
+            "comparison_model": comparison_model,
+            "random_seed": random_seed,
         }
         for example_id in range(num_examples)
     ]
@@ -746,18 +756,20 @@ class AggregateComparisons(dspy.Module):
         super().__init__()
         self.aggregate = dspy.ChainOfThought(AggregateAnalysis)
 
-    def forward(self, comparison_summaries: str, task_description: str):
+    def forward(self, comparison_summaries: str, task_description: str, config):
         """Aggregate comparisons and identify common patterns."""
         return self.aggregate(
             comparison_summaries=comparison_summaries,
-            task_description=task_description
+            task_description=task_description,
+            config=config,
         )
 
 
 def aggregate_comparison_analyses(
     comparison_dir: Path,
     model_name: str = "gemini-2.5-flash",
-    output_path: Path = None
+    output_path: Path = None,
+    random_seed: int = 0,
 ) -> Dict[str, Any]:
     """
     Aggregate multiple comparison analyses to identify common patterns.
@@ -770,6 +782,7 @@ def aggregate_comparison_analyses(
         comparison_dir: Directory containing comparison result files
         model_name: Model to use for aggregation (default: "gemini-2.5-flash")
         output_path: Optional path to save aggregated analysis
+        random_seed: Random seed for reproducibility in LLM calls (default: 0)
 
     Returns:
         Dictionary containing aggregated analysis results
@@ -831,12 +844,13 @@ def aggregate_comparison_analyses(
     # Get LLM for aggregation
     lm = LM_DICT[model_name]
 
-    print(f"Aggregating {len(comparison_summaries)} comparison analyses using {model_name}...")
+    print(f"Aggregating {len(comparison_summaries)} comparison analyses using {model_name} (seed={random_seed})...")
     with dspy.context(lm=lm):
         aggregator = AggregateComparisons()
         result = aggregator(
             comparison_summaries=summaries_text,
             task_description=task_description,
+            config={"rollout_id": random_seed},
         )
 
     # Prepare output

@@ -18,7 +18,8 @@ from ..utils import LM_DICT
 def format_skill_file(
     skill_name: str,
     skill_description: str,
-    skill_body: str
+    skill_body: str,
+    skill_trigger: str = None
 ) -> str:
     """
     Format a skill file with proper YAML frontmatter and markdown body.
@@ -27,6 +28,7 @@ def format_skill_file(
         skill_name: Name of the skill (used in frontmatter)
         skill_description: Description of what the skill does and when to use it
         skill_body: The markdown body with instructions and guidance
+        skill_trigger: Natural language description of when the skill should be triggered
 
     Returns:
         Formatted skill file content as a string
@@ -37,6 +39,9 @@ def format_skill_file(
         'description': skill_description
     }
 
+    if skill_trigger:
+        frontmatter['trigger'] = skill_trigger
+
     # Combine frontmatter and body
     skill_content = "---\n"
     skill_content += yaml.dump(frontmatter, default_flow_style=False, allow_unicode=True)
@@ -45,9 +50,21 @@ def format_skill_file(
 
     return skill_content
 
+from pydantic import BaseModel
+class Skill(BaseModel):
+    skill_name: str
+    skill_description: str
+    skill_trigger: str
+    skill_body: str
+    
 
 class SkillGeneration(dspy.Signature):
-    """Generate skill files based on aggregated analysis of trajectory comparisons."""
+    """Generate skill files based on aggregated analysis of trajectory comparisons.
+Each skill should have:
+- 'skill_name' (short identifier like 'error-recovery')
+- 'skill_description' (clear description of what the skill does)
+- 'skill_trigger' (a natural language description of when the skill should be triggered - this should be clear and specific enough that another agent can decide when to use this skill by comparing the current execution state against this trigger description)
+- 'skill_body' (markdown content with detailed instructions, examples, and guidance)"""
 
     task_description = dspy.InputField(
         desc="The original task/request that agents were trying to complete"
@@ -58,8 +75,8 @@ class SkillGeneration(dspy.Signature):
     recommended_improvements = dspy.InputField(
         desc="Recommended improvements based on the analysis"
     )
-    skills = dspy.OutputField(
-        desc="A JSON list of skill objects. Each skill should have: 'skill_name' (short identifier like 'error-recovery'), 'skill_description' (clear description of what the skill does and when Claude should use it - this is CRITICAL as it determines when the skill triggers), and 'skill_body' (markdown content with detailed instructions, examples, and guidance)"
+    skills: List[Skill] = dspy.OutputField(
+        desc="A list of skills. Each skill MUST include: skill_name, skill_description, skill_trigger (when to use the skill), and skill_body."
     )
 
 
@@ -124,13 +141,18 @@ def copy_existing_skills(
                 if len(parts) >= 3:
                     frontmatter = yaml.safe_load(parts[1])
                     skill_description = frontmatter.get('description', '')
+                    skill_trigger = frontmatter.get('trigger', None)
 
-                    existing_skills.append({
+                    skill_metadata = {
                         'name': skill_name,
                         'description': skill_description,
                         'path': f"{skill_name}/SKILL.md",
                         'utility_score': None  # Existing skills don't have utility scores yet
-                    })
+                    }
+                    if skill_trigger:
+                        skill_metadata['trigger'] = skill_trigger
+
+                    existing_skills.append(skill_metadata)
         except Exception as e:
             print(f"⚠️  Warning: Could not read skill file {skill_file}: {e}")
             continue
@@ -143,6 +165,7 @@ def generate_universal_skills(
     aggregated_analysis: Dict[str, Any],
     model_name: str = "gemini-2.5-flash",
     output_dir: Path = None,
+    latest_version_dir: Path = None,
 ) -> Dict[str, Any]:
     """
     Generate universal skills from aggregated analysis.
@@ -165,47 +188,12 @@ def generate_universal_skills(
     if not common_patterns:
         raise ValueError("No common patterns found in aggregated analysis")
 
-    # Set base output directory (without version)
-    if output_dir is None:
-        base_output_dir = Path("skills")
-    else:
-        base_output_dir = Path(output_dir)
-        # Remove version suffix if provided (e.g., "skills/v1" -> "skills")
-        if base_output_dir.name.startswith('v') and base_output_dir.name[1:].isdigit():
-            base_output_dir = base_output_dir.parent
-
-    # Auto-detect latest existing version and determine next version
-    existing_versions = []
-    if base_output_dir.exists():
-        for item in base_output_dir.iterdir():
-            if item.is_dir() and item.name.startswith('v'):
-                try:
-                    version_num = int(item.name[1:])
-                    existing_versions.append(version_num)
-                except ValueError:
-                    pass
-
-    # Determine the latest existing version
-    if existing_versions:
-        latest_version = max(existing_versions)
-        latest_version_dir = base_output_dir / f"v{latest_version}"
-        next_version = latest_version + 1
-        print(f"📁 Found existing skill versions: {sorted(existing_versions)}")
-        print(f"📁 Latest version: v{latest_version} at {latest_version_dir}")
-        print(f"📁 Creating new version: v{next_version}")
-    else:
-        latest_version_dir = None
-        next_version = 1
-        print(f"📁 No existing skill versions found. Creating v1")
-
-    # Set versioned output directory
-    output_dir = base_output_dir / f"v{next_version}"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Copy existing skills from the latest version if it exists
     existing_skills_metadata = []
     if latest_version_dir and latest_version_dir.exists():
-        print(f"📋 Copying existing skills from v{latest_version}...")
+        print(f"📋 Copying existing skills from {latest_version_dir}...")
         existing_skills_metadata = copy_existing_skills(latest_version_dir, output_dir)
     else:
         print(f"📋 No existing skills to copy.")
@@ -230,36 +218,19 @@ def generate_universal_skills(
 
     with dspy.context(lm=lm):
         skill_generator = GenerateTaskSkills()
-        result = skill_generator(
+        skills = skill_generator(
             task_description=task_description,
             common_patterns=patterns_text,
             recommended_improvements=improvements_text
-        )
-
-    # Parse skills
-    skills_data = result.skills.replace('```json', '').replace('```', '').strip()
-    if isinstance(skills_data, str):
-        try:
-            skills = json.loads(skills_data)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Could not parse skills as JSON: {e}")
-    else:
-        skills = skills_data
-
-    if not isinstance(skills, list):
-        skills = [skills]
+        ).skills
 
     # Save each skill
     saved_skills = []
     for i, skill in enumerate(skills, 1):
-        if isinstance(skill, dict):
-            skill_name = skill.get("skill_name", f"skill-{i}")
-            skill_description = skill.get("skill_description", "")
-            skill_body = skill.get("skill_body", "")
-        else:
-            skill_name = f"skill-{i}"
-            skill_description = ""
-            skill_body = str(skill)
+        skill_name = skill.skill_name
+        skill_description = skill.skill_description
+        skill_trigger = skill.skill_trigger
+        skill_body = skill.skill_body
 
         # Create skill directory
         skill_dir = output_dir / skill_name
@@ -269,19 +240,24 @@ def generate_universal_skills(
         skill_file_content = format_skill_file(
             skill_name=skill_name,
             skill_description=skill_description,
-            skill_body=skill_body
+            skill_body=skill_body,
+            skill_trigger=skill_trigger
         )
 
         skill_path = skill_dir / "SKILL.md"
         with open(skill_path, 'w', encoding='utf-8') as f:
             f.write(skill_file_content)
 
-        saved_skills.append({
+        skill_metadata = {
             "name": skill_name,
             "description": skill_description,
             "path": f"{skill_name}/SKILL.md",
             "utility_score": None  # New skills don't have utility scores yet
-        })
+        }
+        if skill_trigger:
+            skill_metadata["trigger"] = skill_trigger
+
+        saved_skills.append(skill_metadata)
         print(f"✅ Saved skill: {skill_path}")
 
     # Combine all skills metadata (existing + new)
@@ -299,9 +275,9 @@ def generate_universal_skills(
     # Also save detailed generation info as JSON
     generation_info = {
         "model": model_name,
-        "version": f"v{next_version}",
+        "version": output_dir.name,
         "output_dir": str(output_dir),
-        "previous_version": f"v{latest_version}" if latest_version_dir else None,
+        "previous_version": latest_version_dir.name if latest_version_dir else None,
         "num_new_skills": len(saved_skills),
         "num_existing_skills": len(existing_skills_metadata),
         "total_skills": len(all_skills_metadata),
