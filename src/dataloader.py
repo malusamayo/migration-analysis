@@ -120,9 +120,6 @@ def prepare_task(
         for rollout_id in range(n_responses):
             workspace = f"{workspace_base}/example{example_id}_rollout{rollout_id}/"
             os.makedirs(workspace, exist_ok=True)
-            if task_id == "webtest":
-                with open(os.path.join(workspace, "index.html"), "w") as f:
-                    f.write(example["html_content"])
     return data, task_prompt, eval_prompt
 
 def load_and_validate_results(
@@ -378,6 +375,7 @@ class CollectDataLoader(BaseDataLoader):
                         "example": example,
                         "workspace": workspace,
                         "seed": rollout_id,
+                        "task_id": self.task_id,
                     })
         else:
             # For non-agentic mode: each (example, seed) pair becomes one item

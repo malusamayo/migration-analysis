@@ -22,6 +22,7 @@ import json
 import argparse
 import re
 from pathlib import Path
+from dotenv import dotenv_values
 
 from openhands.sdk import LLM, Agent, Conversation, Tool, AgentContext
 from openhands.tools.file_editor import FileEditorTool
@@ -29,11 +30,16 @@ from openhands.tools.terminal import TerminalTool
 from openhands.sdk.context import (
     Skill,
 )
+from openhands.workspace import DockerWorkspace
+
+def detect_platform() -> str:
+    """Detects the correct platform string for container images."""
+    machine = platform.machine().lower()
+    if "arm" in machine or "aarch64" in machine:
+        return "linux/arm64"
+    return "linux/amd64"
 
 def discover_skills(
-    task_id: str,
-    model_name: str,
-    prompt_name: str,
     skill_version: Optional[str] = None,
     skill_mode: str = "all_loaded",
 ) -> List[Skill]:
@@ -41,12 +47,11 @@ def discover_skills(
     Discover and load skills for a given rollout version.
 
     Args:
-        task_id: Task identifier
-        model_name: Model name
-        prompt_name: Prompt name
-        rollout_version: Rollout version identifier (e.g., "v0", "v1_all_seed0")
-        skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
-        update_config: Whether to update rollout_config.json with skill information
+        task_id: Task identifier (not used when skill_version contains full path)
+        model_name: Model name (not used when skill_version contains full path)
+        prompt_name: Prompt name (not used when skill_version contains full path)
+        skill_version: Full relative path to skill folder (e.g., "results/webtest/model_default/skills/v1"), or None for no skills
+        skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
 
     Returns:
         List of loaded Skill objects (empty list if skill_version is None)
@@ -55,9 +60,8 @@ def discover_skills(
     if skill_version is None:
         return []
 
-    # Construct full path to skill directory
-    base_path = Path(f"results/{task_id}/{model_name}_{prompt_name}")
-    skill_dir = base_path / skill_version
+    # skill_version is now the full relative path
+    skill_dir = Path(skill_version)
 
     skills = []
 
@@ -138,6 +142,7 @@ def run_single_instance(
 
 def save_conversation_trace(conversation: Conversation, workspace: str) -> str:
     events = [event.model_dump() for event in conversation.state.events]
+    events = [e for e in events if e["kind"] != "ConversationStateUpdateEvent"]
     if events[-1]["kind"] == "ObservationEvent":
         final_message = events[-1]["observation"]["content"][0]["text"]
     elif events[-1]["kind"] == "MessageEvent":
@@ -162,13 +167,104 @@ def save_conversation_trace(conversation: Conversation, workspace: str) -> str:
     
     return conversation_data
 
+def construct_docker_workspace(workspace_dir, system_prompt_path):
+    """
+    Construct Docker workspace configuration with volumes and environment variables.
+
+    Args:
+        workspace_dir: Local workspace directory path
+        system_prompt_path: Path to system prompt file
+
+    Returns:
+        Tuple of (docker_workspace_path, docker_system_prompt_path, docker_volumes, forward_env, workspace_dir)
+    """
+    all_envs = os.environ.copy()
+    env_config = dotenv_values(".env")
+    forward_env = [key for key in env_config.keys() if key in all_envs]
+
+    docker_volumes = []
+
+    docker_workspace_path = "/workspace/project"
+    docker_volumes.append(f"{workspace_dir}:{docker_workspace_path}")
+
+    docker_system_prompt_path = "/workspace/prompt.md"
+    docker_volumes.append(f"{system_prompt_path}:{docker_system_prompt_path}")
+
+    docker_volumes.append(f"{os.path.abspath('.vertex-ai.json')}:/workspace/.vertex-ai.json:ro")
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/workspace/.vertex-ai.json"
+
+    return (docker_workspace_path, docker_system_prompt_path, docker_volumes, forward_env, workspace_dir)
+
+def _run_agentic_conversation(
+        agent: Agent,
+        workspace_obj: Any,
+        workspace_dir: str,
+        example: dict,
+        skill_mode: str = "",
+    ):
+    """
+    Core logic for running an agentic conversation.
+
+    Args:
+        agent: The agent to use for conversation
+        workspace_obj: Workspace object (string path or DockerWorkspace)
+        workspace_dir: Directory to save conversation trace
+        example: Example data dictionary containing 'prompt' field
+        skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+
+    Returns:
+        dict: Example with added 'eval_result' field containing evaluation output and scores
+    """
+    conversation = None
+    try:
+        conversation = Conversation(agent=agent, workspace=workspace_obj)
+        instruction = example['prompt']
+
+        if skill_mode == "agent_decided":
+            instruction += "\n\n### Hints\nThere are also some provided skills listed above. Please read the markdown file for more details when you find any skills relevant to your current context."
+
+        conversation.send_message(instruction)
+        conversation.run()
+
+        conversation_data = save_conversation_trace(conversation, workspace_dir)
+        example["eval_result"] = copy.deepcopy(conversation_data)
+
+        return example
+
+    except Exception as e:
+        print(f"Error during agentic execution: {e}")
+        import traceback
+        traceback.print_exc()
+        return example
+
+    finally:
+        if conversation:
+            print("🧹 Cleaning up conversation...")
+            conversation.close()
+
+def _setup_workspace(task_id, workspace_dir: str, example: dict):
+    # clean up previous contents
+    for root, dirs, files in os.walk(workspace_dir):
+        for file in files:
+            os.remove(os.path.join(root, file))
+        for dir in dirs:
+            os.rmdir(os.path.join(root, dir))
+
+    # set up workspace files
+    if task_id == "webtest":
+        with open(os.path.join(workspace_dir, "index.html"), "w") as f:
+            f.write(example["html_content"])
+
 def run_single_instance_agentic(
         lm: dspy.LM,
         system_prompt_path: str,
         example: dict,
         workspace: str,
         seed: int,
+        task_id: str,
         skills: Optional[List[Skill]] = None,
+        skill_mode: str = "",
+        use_docker: bool = True,
     ):
     """
     Run a single instance using OpenHands agents.
@@ -178,55 +274,79 @@ def run_single_instance_agentic(
         system_prompt_path: Path to the system prompt file
         example: Example data dictionary containing 'prompt' field
         workspace: Workspace directory for the agent
+        seed: Random seed for reproducibility
         skills: Optional list of pre-loaded Skill objects
+        skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+        use_docker: If True, use DockerWorkspace for containerized execution
 
     Returns:
         dict: Example with added 'eval_result' field containing evaluation output and scores
+
+    Note:
+        When use_docker=True:
+        - Sets up a sandboxed Docker container environment
+        - Mounts workspace and system prompt into container
+        - Uses server_image "migration_analysis:latest"
     """
     example = copy.deepcopy(example)
 
     tools = [
-        Tool(
-            name=TerminalTool.name,
-        ),
+        Tool(name=TerminalTool.name),
         Tool(name=FileEditorTool.name),
     ]
 
     llm = LLM(model=lm.model)
-
     system_prompt_path = os.path.abspath(system_prompt_path)
-
-    # Create AgentContext with skills (use empty list if None)
     agent_context = AgentContext(skills=skills or [])
 
-    agent = Agent(
-        llm=llm,
-        tools=tools,
-        system_prompt_filename=system_prompt_path,
-        agent_context=agent_context,
-    )
+    _setup_workspace(task_id, workspace, example)
 
-    conversation = None
-    try:
-        conversation = Conversation(agent=agent, workspace=workspace)
-        instruction = example['prompt']
+    if use_docker:
+        # Docker execution path
+        workspace_dir = os.path.abspath(workspace)
+        (docker_workspace_path,
+            docker_system_prompt_path,
+            docker_volumes,
+            forward_env,
+            workspace_dir) = construct_docker_workspace(workspace_dir, system_prompt_path)
 
-        conversation.send_message(instruction)
-        conversation.run()
+        agent = Agent(
+            llm=llm,
+            tools=tools,
+            system_prompt_filename=docker_system_prompt_path,
+            agent_context=agent_context,
+        )
 
-        conversation_data = save_conversation_trace(conversation, workspace)
-        example["eval_result"] = copy.deepcopy(conversation_data)
+        with DockerWorkspace(
+            working_dir=docker_workspace_path,
+            server_image="migration-analysis:latest",
+            platform=detect_platform(),
+            volumes=docker_volumes,
+            forward_env=forward_env,
+        ) as docker_workspace:
+            return _run_agentic_conversation(
+                agent=agent,
+                workspace_obj=docker_workspace,
+                workspace_dir=workspace_dir,
+                example=example,
+                skill_mode=skill_mode,
+            )
+    else:
+        # Local execution path
+        agent = Agent(
+            llm=llm,
+            tools=tools,
+            system_prompt_filename=system_prompt_path,
+            agent_context=agent_context,
+        )
 
-        return example
-
-    except Exception as e:
-        print(f"Error during agentic execution: {e}")
-        return example
-
-    finally:
-        if conversation:
-            print("🧹 Cleaning up conversation...")
-            conversation.close()
+        return _run_agentic_conversation(
+            agent=agent,
+            workspace_obj=workspace,
+            workspace_dir=workspace,
+            example=example,
+            skill_mode=skill_mode,
+        )
 
 def run_task(
         task_id: str,
@@ -269,12 +389,19 @@ def run_task(
     )
     print(f"📦 Auto-generated rollout version: {rollout_version}")
 
+    # Construct full skill path if skill_version is provided
+    full_skill_path = None
+    if skill_version:
+        # If skill_version already starts with "results/", use it as-is
+        if skill_version.startswith("results/"):
+            full_skill_path = skill_version
+        else:
+            # Otherwise, construct the full path
+            full_skill_path = f"results/{task_id}/{model_name}_{prompt_name}/{skill_version}"
+
     # Discover and load skills for this rollout version
     skills = discover_skills(
-        task_id=task_id,
-        model_name=model_name,
-        prompt_name=prompt_name,
-        skill_version=skill_version,
+        skill_version=full_skill_path,
         skill_mode=skill_mode,
     )
 
@@ -322,6 +449,7 @@ def run_task(
         if is_agentic and skills:
             for args in args_list:
                 args["skills"] = skills
+                args["skill_mode"] = skill_mode
 
         batch_results = batch_inference(
             run_function,

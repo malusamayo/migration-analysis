@@ -70,7 +70,7 @@ def _run_file_with_pytest(
     timeout: int = 60
 ) -> Optional[Tuple[int, int, subprocess.CompletedProcess]]:
     """
-    Run a single test file with pytest.
+    Run a single test file with pytest inside Docker container.
 
     Args:
         test_file: Path to the test file
@@ -81,17 +81,31 @@ def _run_file_with_pytest(
         Tuple of (tests_passed, tests_failed, result) if successful, None otherwise.
     """
     try:
-        print(f"    Trying pytest for {test_file}...")
+        print(f"    Running pytest in Docker for {test_file}...")
+
+        # Build Docker command
+        docker_cmd = [
+            "docker", "run", "--rm",
+            "--entrypoint", "/workspace/.venv/bin/python",
+            "-v", f"{workspace_path.absolute()}:/workspace/project:ro",
+            "-w", "/workspace/project",
+            "migration-analysis:latest",
+            "-m", "pytest",
+            "-v", "--tb=short", f"--timeout={timeout}",
+            str(test_file)
+        ]
+
         pytest_result = subprocess.run(
-            ["python3", "-m", "pytest", "-v", "--tb=short", "--timeout=10", str(test_file)],
-            cwd=str(workspace_path),
+            docker_cmd,
             capture_output=True,
             text=True,
-            timeout=timeout,
+            timeout=timeout + 10,  # Extra buffer for Docker overhead
         )
-        print(f"    Pytest return code: {pytest_result.returncode}")
 
-        # Parse output to count test results
+        print(f"    Docker pytest stdout:\n{pytest_result.stdout}")
+        print(f"    Docker pytest return code: {pytest_result.returncode}")
+
+        # Parse output to count test results (same logic as before)
         combined_output = f"{pytest_result.stdout}\n{pytest_result.stderr}"
         passed_pattern = re.compile(r"::(\w*test\w*)\s+PASSED", re.IGNORECASE)
         failed_pattern = re.compile(r"::(\w*test\w*)\s+FAILED", re.IGNORECASE)
@@ -104,11 +118,11 @@ def _run_file_with_pytest(
             return (tests_passed, tests_failed, pytest_result)
 
         return None
-    except subprocess.TimeoutExpired as e:
-        print(f"    Pytest execution timed out after {timeout}s")
+    except subprocess.TimeoutExpired:
+        print(f"    Docker pytest execution timed out after {timeout + 10}s")
         return None
     except Exception as e:
-        print(f"    Pytest execution failed: {e}")
+        print(f"    Docker pytest execution failed: {e}")
         return None
 
 def _run_file_with_python(
@@ -119,7 +133,7 @@ def _run_file_with_python(
     timeout: int = 60
 ) -> subprocess.CompletedProcess:
     """
-    Run a single test file directly using Python.
+    Run a single test file directly using Python inside Docker container.
 
     If the file has no __main__ block, creates a wrapper script to call test functions.
 
@@ -139,27 +153,40 @@ def _run_file_with_python(
         # Create a wrapper script that imports and calls the test functions
         wrapper_script = f"""
 import sys
-sys.path.insert(0, '{workspace_path}')
+sys.path.insert(0, '/workspace/project')
 from {test_file.stem} import {', '.join(test_function_names)}
 
 if __name__ == '__main__':
     {'; '.join([f'{name}()' for name in test_function_names])}
 """
+        # Run wrapper script in Docker
         return subprocess.run(
-            ["python3", "-c", wrapper_script],
-            cwd=str(workspace_path),
+            [
+                "docker", "run", "--rm",
+                "--entrypoint", "/workspace/.venv/bin/python",
+                "-v", f"{workspace_path.absolute()}:/workspace/project:ro",
+                "-w", "/workspace/project",
+                "migration-analysis:latest",
+                "-c", wrapper_script
+            ],
             capture_output=True,
             text=True,
-            timeout=timeout,
+            timeout=timeout + 10,
         )
     else:
-        # Run the file directly
+        # Run the file directly in Docker
         return subprocess.run(
-            ["python3", str(relative_path)],
-            cwd=str(workspace_path),
+            [
+                "docker", "run", "--rm",
+                "--entrypoint", "/workspace/.venv/bin/python",
+                "-v", f"{workspace_path.absolute()}:/workspace/project:ro",
+                "-w", "/workspace/project",
+                "migration-analysis:latest",
+                str(relative_path)
+            ],
             capture_output=True,
             text=True,
-            timeout=timeout,
+            timeout=timeout + 10,
         )
 
 
@@ -191,12 +218,26 @@ def _run_tests_batch(
     tests_failed = 0
     file_results = []
 
-    # Check if pytest is available once
-    pytest_available = subprocess.run(
-        ["python3", "-m", "pytest", "--version"],
+    # Check if Docker is available once
+    docker_available = subprocess.run(
+        ["docker", "--version"],
         capture_output=True,
         text=True,
     ).returncode == 0
+
+    if not docker_available:
+        raise RuntimeError("Docker is not available. Please install Docker to run test evaluation.")
+
+    # Check if image exists
+    image_check = subprocess.run(
+        ["docker", "images", "-q", "migration-analysis:latest"],
+        capture_output=True,
+        text=True,
+    )
+    if not image_check.stdout.strip():
+        raise RuntimeError("Docker image 'migration-analysis:latest' not found. Please build it with: docker build -t migration-analysis:latest .")
+
+    pytest_available = True  # Always true in Docker
 
     for test_file in test_files:
         relative_path = test_file.relative_to(workspace_path)
@@ -341,6 +382,8 @@ def run_single_instance_eval(
         >>> print(f"Score: {result['score']:.2f} (Pass rate: {result['pass_rate']:.1%})")
     """
     workspace_path = Path(workspace_dir)
+
+    print(f"🐳 Running tests in Docker (image: migration-analysis:latest)")
 
     # Validate workspace exists
     if not workspace_path.exists():

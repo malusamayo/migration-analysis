@@ -10,6 +10,8 @@ dependencies = [
     "dspy>=3.0.4",
     "google-auth>=2.47.0",
     "openhands-sdk",
+    "openhands-tools",
+    "openhands-workspace",
     "pandas>=2.3.3",
     "pillow>=12.0.0",
     "playwright>=1.57.0",
@@ -21,3 +23,5 @@ dependencies = [
 
 [tool.uv.sources]
 openhands-sdk = { path = "software-agent-sdk/openhands-sdk", editable = true }
+openhands-tools = { path = "software-agent-sdk/openhands-tools", editable = true }
+openhands-workspace = { path = "software-agent-sdk/openhands-workspace", editable = true }
