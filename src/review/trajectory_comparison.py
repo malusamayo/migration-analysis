@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 from .trajectory_loader import (
+    load_trajectory_trace,
     load_and_convert_trajectories,
     combine_trajectories_markdown,
     extract_task_description
@@ -96,6 +97,7 @@ def compare_rollout_trajectories(
     model_name: str = "gemini-2.5-flash",
     output_path: Path = None,
     random_seed: int = 0,
+    task_id: str = None,
 ) -> Dict[str, Any]:
     """
     Compare multiple trajectory rollouts using LLM analysis.
@@ -105,6 +107,7 @@ def compare_rollout_trajectories(
         model_name: Name of the language model to use for comparison
         output_path: Optional path to save comparison results
         random_seed: Random seed for reproducibility in LLM calls
+        task_id: Optional task identifier (e.g., "webtest", "webgen")
 
     Returns:
         Dictionary containing comparison results
@@ -114,7 +117,7 @@ def compare_rollout_trajectories(
     trajectories_data = load_and_convert_trajectories(trace_paths)
 
     # Extract task description from first trajectory
-    task_description = extract_task_description(trajectories_data[0]["trace_data"])
+    task_description = extract_task_description(trajectories_data[0]["trace_data"], task_id=task_id)
 
     # Combine trajectories with separators
     trajectories_text = combine_trajectories_markdown(trajectories_data)
@@ -171,6 +174,7 @@ def _compare_single_example(
     output_dir: Path,
     comparison_model: str,
     random_seed: int = 0,
+    task_id: str = None,
 ) -> Dict[str, Any]:
     """
     Helper function to compare trajectories for a single example.
@@ -182,6 +186,7 @@ def _compare_single_example(
         output_dir: Directory to save comparison results
         comparison_model: Model to use for comparison
         random_seed: Random seed for reproducibility in LLM calls
+        task_id: Optional task identifier (e.g., "webtest", "webgen")
 
     Returns:
         Dictionary containing comparison result or error
@@ -212,10 +217,9 @@ def _compare_single_example(
 
     try:
         # Load trace data to extract task description
-        from .trajectory_loader import load_trajectory_trace, extract_task_description
 
         first_trace_data = load_trajectory_trace(trace_files[0])
-        task_description = extract_task_description(first_trace_data)
+        task_description = extract_task_description(first_trace_data, task_id=task_id)
 
         # Get rollout IDs from workspace directories
         rollout_ids = []
@@ -231,6 +235,7 @@ def _compare_single_example(
             model_name=comparison_model,
             output_path=output_path,
             random_seed=random_seed,
+            task_id=task_id,
         )
 
         return {
@@ -304,6 +309,7 @@ def compare_examples_batch(
             "output_dir": output_dir,
             "comparison_model": comparison_model,
             "random_seed": random_seed,
+            "task_id": task_id,
         }
         for example_id in range(num_examples)
     ]
@@ -360,6 +366,7 @@ def _compare_single_example_trajectory_sets(
     max_rollouts: int = None,
     label_a: str = None,
     label_b: str = None,
+    task_id: str = None,
 ) -> Dict[str, Any]:
     """
     Compare trajectory rollout sets from two arbitrary paths.
@@ -376,6 +383,7 @@ def _compare_single_example_trajectory_sets(
         max_rollouts: Maximum number of rollouts to include per set (default: all)
         label_a: Optional label for first set (default: extracted from path)
         label_b: Optional label for second set (default: extracted from path)
+        task_id: Optional task identifier (e.g., "webtest", "webgen")
 
     Returns:
         Dictionary containing comparison results with trajectory sets
@@ -494,7 +502,7 @@ def _compare_single_example_trajectory_sets(
         )
 
         # Extract task description from first trajectory
-        task_description = extract_task_description(traj_data_a[0]["trace_data"])
+        task_description = extract_task_description(traj_data_a[0]["trace_data"], task_id=task_id)
 
         # Get LLM for comparison
         lm = LM_DICT[comparison_model]
@@ -658,6 +666,7 @@ def compare_trajectory_sets_batch(
             "max_rollouts": max_rollouts,
             "label_a": label_a,
             "label_b": label_b,
+            "task_id": task_id,
         })
 
     # Run comparisons in parallel using batch inference

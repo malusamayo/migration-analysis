@@ -6,6 +6,7 @@ and converting them to markdown format for analysis.
 """
 
 import json
+import yaml
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
@@ -152,9 +153,33 @@ def load_trajectory_trace(trace_path: Path) -> Dict[str, Any]:
         return json.load(f)
 
 
-def extract_task_description(trace_data: Dict[str, Any]) -> str:
-    """Extract the system instructions from trace data."""
-    # Look for the SystemPromptEvent which contains the agent's instructions
+def extract_task_description(trace_data: Dict[str, Any], task_id: Optional[str] = None) -> str:
+    """
+    Extract the task description.
+
+    If task_id is provided, reads from data/{task_id}/metadata.yaml.
+    Otherwise, falls back to extracting from trace data's SystemPromptEvent.
+
+    Args:
+        trace_data: Dictionary containing evaluation trace data
+        task_id: Optional task identifier (e.g., "webtest", "webgen")
+
+    Returns:
+        Task description string
+    """
+    # If task_id is provided, read from metadata.yaml
+    if task_id:
+        metadata_path = Path(f"data/{task_id}/metadata.yaml")
+        if metadata_path.exists():
+            try:
+                with open(metadata_path, 'r', encoding='utf-8') as f:
+                    metadata = yaml.safe_load(f)
+                    if metadata and "description" in metadata:
+                        return metadata["description"]
+            except Exception as e:
+                print(f"Warning: Failed to load metadata from {metadata_path}: {e}")
+
+    # Fallback: Look for the SystemPromptEvent which contains the agent's instructions
     if "events" in trace_data:
         for event in trace_data["events"]:
             if event.get("kind") == "SystemPromptEvent":
