@@ -10,21 +10,21 @@ import re
 from .utils import LM_DICT
 
 def generate_rollout_version(
-    skill_version: Optional[str] = None,
+    skill_version: str = "",
     skill_mode: str = "all_loaded",
 ) -> str:
     """
     Generate a rollout version name based on configuration parameters.
 
     Args:
-        skill_version: Path to the skill folder (e.g., "skills/v1"), or None for no skills
+        skill_version: Path to the skill folder (e.g., "skills/v1"), or empty string for no skills
         skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
 
     Returns:
         Rollout version string (e.g., "v0", "v1_all", "v1_agent")
 
     Examples:
-        >>> generate_rollout_version(None, "all_loaded")
+        >>> generate_rollout_version("", "all_loaded")
         'v0'
         >>> generate_rollout_version("skills/v1", "all_loaded")
         'v1_all'
@@ -32,7 +32,7 @@ def generate_rollout_version(
         'v1_agent'
     """
     # If no skills, always return v0
-    if skill_version is None:
+    if skill_version == "" or skill_version is None:
         return "v0"
 
     skill_version_name = Path(skill_version).name

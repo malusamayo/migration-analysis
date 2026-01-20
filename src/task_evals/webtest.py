@@ -21,16 +21,6 @@ def _count_test_functions(test_files: List[Path], test_function_pattern: re.Patt
     return total
 
 
-def _check_main_blocks(test_files: List[Path], test_function_pattern: re.Pattern, main_block_pattern: re.Pattern) -> None:
-    """Warn about test files that don't have __main__ blocks."""
-    for test_file in test_files:
-        with open(test_file, 'r') as f:
-            content = f.read()
-            test_functions = test_function_pattern.findall(content)
-            if test_functions and not main_block_pattern.search(content):
-                print(f"  Warning: {test_file.name} has test functions but no __main__ block to execute them")
-
-
 def _calculate_score(tests_passed: int, tests_total: int, expected_tests: int) -> Tuple[float, float]:
     """
     Calculate score and pass rate based on test results.
@@ -80,115 +70,43 @@ def _run_file_with_pytest(
     Returns:
         Tuple of (tests_passed, tests_failed, result) if successful, None otherwise.
     """
-    try:
-        print(f"    Running pytest in Docker for {test_file}...")
+    print(f"    Running pytest in Docker for {test_file}...")
 
-        # Build Docker command
-        docker_cmd = [
-            "docker", "run", "--rm",
-            "--entrypoint", "/workspace/.venv/bin/python",
-            "-v", f"{workspace_path.absolute()}:/workspace/project:ro",
-            "-w", "/workspace/project",
-            "migration-analysis:latest",
-            "-m", "pytest",
-            "-v", "--tb=short", f"--timeout={timeout}",
-            str(test_file)
-        ]
+    # Build Docker command
+    docker_cmd = [
+        "docker", "run", "--rm",
+        "--entrypoint", "/workspace/.venv/bin/python",
+        "-v", f"{workspace_path.absolute()}:/workspace/project:ro",
+        "-w", "/workspace/project",
+        "migration-analysis:latest",
+        "-m", "pytest",
+        "-v", "--tb=short",
+        str(test_file)
+    ]
 
-        pytest_result = subprocess.run(
-            docker_cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout + 10,  # Extra buffer for Docker overhead
-        )
+    pytest_result = subprocess.run(
+        docker_cmd,
+        capture_output=True,
+        text=True,
+        timeout=timeout*2,  # Extra buffer for Docker overhead
+    )
 
-        print(f"    Docker pytest stdout:\n{pytest_result.stdout}")
-        print(f"    Docker pytest return code: {pytest_result.returncode}")
+    print(f"    Docker pytest stdout:\n{pytest_result.stdout}")
+    print(f"    Docker pytest return code: {pytest_result.returncode}")
 
-        # Parse output to count test results (same logic as before)
-        combined_output = f"{pytest_result.stdout}\n{pytest_result.stderr}"
-        passed_pattern = re.compile(r"::(\w*test\w*)\s+PASSED", re.IGNORECASE)
-        failed_pattern = re.compile(r"::(\w*test\w*)\s+FAILED", re.IGNORECASE)
+    # Parse output to count test results (same logic as before)
+    combined_output = f"{pytest_result.stdout}\n{pytest_result.stderr}"
+    passed_pattern = re.compile(r"::(\w*test\w*)\s+PASSED", re.IGNORECASE)
+    failed_pattern = re.compile(r"::(\w*test\w*)\s+FAILED", re.IGNORECASE)
 
-        tests_passed = len(passed_pattern.findall(combined_output))
-        tests_failed = len(failed_pattern.findall(combined_output))
+    tests_passed = len(passed_pattern.findall(combined_output))
+    tests_failed = len(failed_pattern.findall(combined_output))
 
-        # If pytest detected tests, return the results
-        if tests_passed + tests_failed > 0:
-            return (tests_passed, tests_failed, pytest_result)
+    # If pytest detected tests, return the results
+    if tests_passed + tests_failed > 0:
+        return (tests_passed, tests_failed, pytest_result)
 
-        return None
-    except subprocess.TimeoutExpired:
-        print(f"    Docker pytest execution timed out after {timeout + 10}s")
-        return None
-    except Exception as e:
-        print(f"    Docker pytest execution failed: {e}")
-        return None
-
-def _run_file_with_python(
-    test_file: Path,
-    workspace_path: Path,
-    test_function_names: List[str],
-    has_main_block: bool,
-    timeout: int = 60
-) -> subprocess.CompletedProcess:
-    """
-    Run a single test file directly using Python inside Docker container.
-
-    If the file has no __main__ block, creates a wrapper script to call test functions.
-
-    Args:
-        test_file: Path to the test file
-        workspace_path: Path to the workspace directory
-        test_function_names: List of test function names found in the file
-        has_main_block: Whether the file has a __main__ block
-        timeout: Timeout in seconds for this individual file (default: 60)
-
-    Returns:
-        CompletedProcess result from subprocess.run
-    """
-    relative_path = test_file.relative_to(workspace_path)
-
-    if len(test_function_names) > 0 and not has_main_block:
-        # Create a wrapper script that imports and calls the test functions
-        wrapper_script = f"""
-import sys
-sys.path.insert(0, '/workspace/project')
-from {test_file.stem} import {', '.join(test_function_names)}
-
-if __name__ == '__main__':
-    {'; '.join([f'{name}()' for name in test_function_names])}
-"""
-        # Run wrapper script in Docker
-        return subprocess.run(
-            [
-                "docker", "run", "--rm",
-                "--entrypoint", "/workspace/.venv/bin/python",
-                "-v", f"{workspace_path.absolute()}:/workspace/project:ro",
-                "-w", "/workspace/project",
-                "migration-analysis:latest",
-                "-c", wrapper_script
-            ],
-            capture_output=True,
-            text=True,
-            timeout=timeout + 10,
-        )
-    else:
-        # Run the file directly in Docker
-        return subprocess.run(
-            [
-                "docker", "run", "--rm",
-                "--entrypoint", "/workspace/.venv/bin/python",
-                "-v", f"{workspace_path.absolute()}:/workspace/project:ro",
-                "-w", "/workspace/project",
-                "migration-analysis:latest",
-                str(relative_path)
-            ],
-            capture_output=True,
-            text=True,
-            timeout=timeout + 10,
-        )
-
+    return None
 
 def _run_tests_batch(
     workspace_path: Path,
@@ -243,7 +161,7 @@ def _run_tests_batch(
         relative_path = test_file.relative_to(workspace_path)
         print(f"  Running {relative_path}...")
 
-        execution_method = None
+        execution_method = "pytest"
         result = None
         status = None
         test_functions_in_file = 0
@@ -259,32 +177,18 @@ def _run_tests_batch(
             # Try pytest first if available
             if pytest_available:
                 pytest_result = _run_file_with_pytest(relative_path, workspace_path, timeout_per_file)
-                if pytest_result is not None:
-                    file_passed, file_failed, result = pytest_result
-                    execution_method = "pytest"
-                    tests_passed += file_passed
-                    tests_failed += file_failed
-                    status = "passed" if file_failed == 0 else "failed"
-
-            # Fallback to direct python3 execution
-            if execution_method is None:
-                execution_method = "python3"
-                result = _run_file_with_python(test_file, workspace_path, test_function_names, has_main_block, timeout_per_file)
-
-                # All functions in file pass or fail together
-                if result.returncode == 0:
-                    tests_passed += test_functions_in_file
-                    status = "passed"
-                else:
-                    tests_failed += test_functions_in_file
-                    status = "failed"
-
+                if pytest_result is None:
+                    raise RuntimeError("Failed to parse pytest output or no tests detected.")
+                file_passed, file_failed, result = pytest_result
+                tests_passed += file_passed
+                tests_failed += file_failed
+                status = "passed" if file_failed == 0 else "failed"
+                                    
         except subprocess.TimeoutExpired:
             # Handle timeout for this specific file
             print(f"    ⚠️  Test file timed out after {timeout_per_file}s")
             tests_failed += test_functions_in_file
             status = "timeout"
-            execution_method = execution_method or "python3"
             result = type('obj', (object,), {
                 'returncode': -1,
                 'stdout': '',
@@ -296,7 +200,6 @@ def _run_tests_batch(
             print(f"    ⚠️  Test file failed with error: {str(e)}")
             tests_failed += test_functions_in_file
             status = "error"
-            execution_method = execution_method or "unknown"
             result = type('obj', (object,), {
                 'returncode': -1,
                 'stdout': '',
@@ -392,6 +295,15 @@ def run_single_instance_eval(
             [],
             f"Workspace directory does not exist: {workspace_dir}"
         )
+    
+    # Check trace file presence
+    trace_files = list(workspace_path.glob("trace_*.md"))
+    if not trace_files:
+        return _create_error_result(
+            workspace_dir,
+            [],
+            f"No trace_*.md files found in: {workspace_dir}. The execution was incomplete."
+        )
 
     # Discover test files
     test_files = list(workspace_path.glob("**/*test*.py"))
@@ -399,7 +311,7 @@ def run_single_instance_eval(
         return _create_error_result(
             workspace_dir,
             [],
-            f"No test files (test_*.py) found in: {workspace_dir}"
+            f"No test files (test_*.py) found in: {workspace_dir}. The execution was incomplete."
         )
 
     test_file_names = [str(f.relative_to(workspace_path)) for f in test_files]
@@ -413,7 +325,6 @@ def run_single_instance_eval(
     try:
         # Count test functions and check for missing __main__ blocks
         total_test_functions = _count_test_functions(test_files, test_function_pattern)
-        _check_main_blocks(test_files, test_function_pattern, main_block_pattern)
         print(f"Found {total_test_functions} test function(s) across {len(test_files)} file(s)")
     except Exception as e:
         # Handle errors during file scanning/parsing (before running tests)

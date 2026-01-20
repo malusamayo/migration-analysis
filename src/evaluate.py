@@ -1,4 +1,5 @@
 import json
+import yaml
 import os
 import argparse
 from typing import Optional
@@ -64,7 +65,7 @@ def run_task_eval(
     )
 
     workspace_base_dir = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}"
-    output_path = os.path.join(workspace_base_dir, "eval_results.json")
+    output_path = os.path.join(workspace_base_dir, "eval_results.yaml")
 
     # Load existing results if resuming
     if resume:
@@ -92,7 +93,7 @@ def run_task_eval(
 
         # Write partial results after each batch
         with open(output_path, "w") as f:
-            json.dump(results, f, indent=2)
+            yaml.dump(results, f, indent=2, allow_unicode=True)
         print(f"💾 Saved partial results ({len(results)}/{len(data_loader)} completed)")
 
 if __name__ == "__main__":
