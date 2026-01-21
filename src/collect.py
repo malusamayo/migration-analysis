@@ -2,6 +2,7 @@ import pandas as pd
 import dspy
 import json
 import os
+import shutil
 import platform
 import litellm
 from datasets import load_dataset, concatenate_datasets
@@ -31,6 +32,8 @@ from openhands.sdk.context import (
     Skill,
 )
 from openhands.workspace import DockerWorkspace
+
+from .debug_utils import patch_llm_for_debugging
 
 def detect_platform() -> str:
     """Detects the correct platform string for container images."""
@@ -142,18 +145,28 @@ def run_single_instance(
 
 def save_conversation_trace(conversation: Conversation, workspace: str) -> str:
     events = [event.model_dump() for event in conversation.state.events]
+
+    raw_event_path = os.path.join(workspace, f"raw_trace_{conversation.id}.json")
+    with open(raw_event_path, "w") as raw_file:
+        json.dump(events, raw_file, indent=2)
+
     events = [e for e in events if e["kind"] != "ConversationStateUpdateEvent"]
     if events[-1]["kind"] == "ObservationEvent":
         final_message = events[-1]["observation"]["content"][0]["text"]
     elif events[-1]["kind"] == "MessageEvent":
         final_message = events[-1]["llm_message"]["content"][0]["text"]
     else:
-        assert False, f"Unexpected final event type {events[-1]['kind']}"
+        print(events[-1])
+        print(f"Unexpected final event type {events[-1]['kind']}")
+
+    # export cost and total tokens
+    metrics = conversation.conversation_stats.get_combined_metrics().get()
     
     conversation_data = {
         "conversation_id": str(conversation.id),
         "eval_output": final_message,
         "events": events,
+        "metrics": metrics,
     }
     
     trace_path = os.path.join(workspace, f"trace_{conversation.id}.json")
@@ -167,7 +180,7 @@ def save_conversation_trace(conversation: Conversation, workspace: str) -> str:
     
     return conversation_data
 
-def construct_docker_workspace(workspace_dir, system_prompt_path):
+def construct_docker_workspace(workspace_dir, system_prompt_path, skills):
     """
     Construct Docker workspace configuration with volumes and environment variables.
 
@@ -192,6 +205,12 @@ def construct_docker_workspace(workspace_dir, system_prompt_path):
 
     docker_volumes.append(f"{os.path.abspath('.vertex-ai.json')}:/workspace/.vertex-ai.json:ro")
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/workspace/.vertex-ai.json"
+
+    for skill in skills:
+        skill_dir = os.path.dirname(os.path.abspath(skill.source))
+        docker_skill_dir = f"/workspace/skills/{os.path.basename(skill_dir)}"
+        docker_volumes.append(f"{skill_dir}:{docker_skill_dir}:ro")
+        skill.source = os.path.join(docker_skill_dir, "SKILL.md")
 
     return (docker_workspace_path, docker_system_prompt_path, docker_volumes, forward_env, workspace_dir)
 
@@ -244,11 +263,8 @@ def _run_agentic_conversation(
 
 def _setup_workspace(task_id, workspace_dir: str, example: dict):
     # clean up previous contents
-    for root, dirs, files in os.walk(workspace_dir):
-        for file in files:
-            os.remove(os.path.join(root, file))
-        for dir in dirs:
-            os.rmdir(os.path.join(root, dir))
+    shutil.rmtree(workspace_dir)
+    os.makedirs(workspace_dir, exist_ok=True)
 
     # set up workspace files
     if task_id == "webtest":
@@ -262,7 +278,7 @@ def run_single_instance_agentic(
         workspace: str,
         seed: int,
         task_id: str,
-        skills: Optional[List[Skill]] = None,
+        skills: List[Skill] = [],
         skill_mode: str = "",
         use_docker: bool = True,
     ):
@@ -297,7 +313,24 @@ def run_single_instance_agentic(
 
     llm = LLM(model=lm.model)
     system_prompt_path = os.path.abspath(system_prompt_path)
-    agent_context = AgentContext(skills=skills or [])
+
+    # Check if workspace already has trace*.md file - if so, skip execution
+    workspace_path = Path(workspace)
+    if workspace_path.exists():
+        existing_traces = list(workspace_path.glob("trace*.md"))
+        if existing_traces:
+            print(f"⏭️  Skipping execution - workspace already has trace file: {existing_traces[0].name}")
+            # Return example with existing trace data if available
+            trace_json_files = list(workspace_path.glob("trace*.json"))
+            if trace_json_files:
+                try:
+                    with open(trace_json_files[0], 'r') as f:
+                        existing_data = json.load(f)
+                        example["eval_result"] = existing_data
+                        return example
+                except Exception as e:
+                    print(f"⚠️  Warning: Could not load existing trace data: {e}")
+            return example
 
     _setup_workspace(task_id, workspace, example)
 
@@ -308,8 +341,9 @@ def run_single_instance_agentic(
             docker_system_prompt_path,
             docker_volumes,
             forward_env,
-            workspace_dir) = construct_docker_workspace(workspace_dir, system_prompt_path)
+            workspace_dir) = construct_docker_workspace(workspace_dir, system_prompt_path, skills)
 
+        agent_context = AgentContext(skills=skills or [])
         agent = Agent(
             llm=llm,
             tools=tools,
@@ -332,7 +366,8 @@ def run_single_instance_agentic(
                 skill_mode=skill_mode,
             )
     else:
-        # Local execution path
+        patch_llm_for_debugging(Path(workspace))
+        agent_context = AgentContext(skills=skills or [])
         agent = Agent(
             llm=llm,
             tools=tools,

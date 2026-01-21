@@ -408,3 +408,7 @@ class CollectDataLoader(BaseDataLoader):
         """
         batch_end = min(batch_start + batch_size, len(self.data))
         return self.data[batch_start:batch_end]
+    
+    def __getitem__(self, index: int) -> dict:
+        """Get a single item by index."""
+        return self.data[index]
