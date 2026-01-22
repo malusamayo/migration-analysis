@@ -34,12 +34,34 @@ def use_lm(lm, n=1):
         return wrapper
     return decorator
 
-def batch_inference(program, args_list, use_process=False, max_workers=32) -> List[Any]:
+def batch_inference(
+    program,
+    args_list,
+    use_process=False,
+    max_workers=32,
+    on_batch_complete=None,
+    batch_size=None,
+) -> List[Any]:
+    """
+    Execute inference on a list of arguments in parallel.
+
+    Args:
+        program: Function to execute
+        args_list: List of argument dictionaries
+        use_process: Whether to use ProcessPoolExecutor (True) or ThreadPoolExecutor (False)
+        max_workers: Maximum number of concurrent workers
+        on_batch_complete: Optional callback function(completed_results, total_count) called every batch_size completions
+        batch_size: Number of completions between callback invocations. If None, callback is never invoked.
+
+    Returns:
+        List of results in the same order as args_list
+    """
     futures = {}
     results = [None] * len(args_list)
+    completed_count = 0
 
     executor_class = ProcessPoolExecutor if use_process else ThreadPoolExecutor
-    
+
     with executor_class(max_workers=max_workers) as executor:
         for i, args in enumerate(args_list):
             future = executor.submit(
@@ -52,6 +74,14 @@ def batch_inference(program, args_list, use_process=False, max_workers=32) -> Li
             result = future.result()
             index = futures[future]
             results[index] = result
+            completed_count += 1
+
+            # Invoke callback every completion
+            if on_batch_complete:
+                # Filter out None values (incomplete results)
+                completed_results = [r for r in results if r is not None]
+                on_batch_complete(completed_results, len(args_list))
+
     return results
 
 def load_lmdict(yaml_path: str):
