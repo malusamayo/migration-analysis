@@ -7,8 +7,27 @@ running playwright-based tests and calculating scores.
 
 import subprocess
 import re
+import os
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Tuple
+import dspy
+from dotenv import dotenv_values
+
+class ShortenMessageSignature(dspy.Signature):
+    """Shorten an error message to a single line within a max length."""
+    message = dspy.InputField(desc="Error or failure message to shorten.")
+    max_length = dspy.InputField(desc="Maximum length in characters.")
+    shortened = dspy.OutputField(desc="Shortened single-line message within max_length.")
+
+
+class ShortenMessage(dspy.Module):
+    """DSPy module to shorten error messages."""
+    def __init__(self):
+        super().__init__()
+        self.shorten = dspy.Predict(ShortenMessageSignature)
+
+    def forward(self, message: str, max_length: int):
+        return self.shorten(message=message, max_length=max_length)
 
 def _count_test_functions(test_files: List[Path], test_function_pattern: re.Pattern) -> int:
     """Count total test functions across all files."""
@@ -38,6 +57,73 @@ def _calculate_score(tests_passed: int, tests_total: int, expected_tests: int) -
     score = min(score, 1.0)
     return score, pass_rate
 
+def _shorten_message(
+    lm: dspy.LM,
+    failure_list: List[str],
+    max_length: int = 160,
+) -> str:
+    """Return a single-line, shortened message with LM."""
+    combined = "\n".join(failure_list).strip()
+    if len(combined) <= max_length:
+        return combined
+    with dspy.context(lm=lm):
+        predictor = ShortenMessage()
+        shortened = predictor(message=combined, max_length=max_length).shortened
+    return shortened
+
+def _extract_failure_reason(
+    file_results: List[Dict[str, Any]],
+    lm: dspy.LM,
+) -> Optional[str]:
+    """Extract a short failure reason from test output."""
+    failure_list = []
+    for result in file_results:
+        if result.get("status") in {"failed", "error", "timeout"}:
+            failure_list.append(result.get("stderr", "").strip())
+            failure_list.append(result.get("stdout", "").strip())
+    if failure_list:
+        return _shorten_message(lm, failure_list=failure_list)
+    return ""
+
+def _build_feedback(
+    lm: dspy.LM,
+    error_msg: Optional[str],
+    tests_passed: int,
+    tests_failed: int,
+    tests_total: int,
+    expected_tests: int,
+    score: float,
+    file_results: Optional[List[Dict[str, Any]]] = None,
+) -> Optional[str]:
+    """Build a natural language feedback string based on results."""
+    if error_msg:
+        return error_msg
+
+    if score >= 1.0:
+        return "All tests passed successfully!"
+
+    if tests_total > 0:
+        base = (
+            f"{tests_total} tests detected, {tests_failed} failed "
+            f"({tests_passed}/{tests_total} passed)."
+        )
+    else:
+        base = f"{tests_total} tests detected (0/{tests_total} passed)."
+
+    reason_parts = []
+    if tests_total < expected_tests:
+        reason_parts.append(
+            f"Expected {expected_tests} tests, found {tests_total}."
+        )
+    if tests_failed > 0 and file_results is not None:
+        failure_reason = _extract_failure_reason(file_results, lm)
+        if failure_reason:
+            reason_parts.append(f"Reason: {failure_reason}")
+
+    if reason_parts:
+        return f"{base} " + " ".join(reason_parts)
+    return base
+
 
 def _create_error_result(workspace_dir: str, test_files: List[str], error_msg: str) -> Dict[str, Any]:
     """Create a standardized error result dictionary."""
@@ -45,6 +131,7 @@ def _create_error_result(workspace_dir: str, test_files: List[str], error_msg: s
         "workspace_dir": str(workspace_dir),
         "test_files": test_files,
         "error": error_msg,
+        "feedback": error_msg,
         "success": False,
         "score": 0.0,
         "pass_rate": 0.0,
@@ -72,17 +159,31 @@ def _run_file_with_pytest(
     """
     print(f"    Running pytest in Docker for {test_file}...")
 
+    all_envs = os.environ.copy()
+    env_config = dotenv_values(".env")
+    forward_env = [key for key in env_config.keys() if key in all_envs]
+
+    docker_volumes = []
+    docker_volumes.append(f"{workspace_path.absolute()}:/workspace/project:ro")
+    docker_volumes.append(f"{os.path.abspath('.vertex-ai.json')}:/workspace/.vertex-ai.json:ro")
+
     # Build Docker command
     docker_cmd = [
         "docker", "run", "--rm",
         "--entrypoint", "/workspace/.venv/bin/python",
-        "-v", f"{workspace_path.absolute()}:/workspace/project:ro",
         "-w", "/workspace/project",
+        "-e", "GOOGLE_APPLICATION_CREDENTIALS=/workspace/.vertex-ai.json",
+    ]
+    for volume in docker_volumes:
+        docker_cmd.extend(["-v", volume])
+    for key in forward_env:
+        docker_cmd.extend(["-e", f"{key}={all_envs[key]}"])
+    docker_cmd.extend([
         "migration-analysis:latest",
         "-m", "pytest",
         "-v", "--tb=short",
         str(test_file)
-    ]
+    ])
 
     pytest_result = subprocess.run(
         docker_cmd,
@@ -109,13 +210,14 @@ def _run_file_with_pytest(
     return None
 
 def _run_tests_batch(
+    lm: dspy.LM,
     workspace_path: Path,
     test_files: List[Path],
     test_file_names: List[str],
     test_function_pattern: re.Pattern,
     main_block_pattern: re.Pattern,
     expected_tests: int,
-    timeout_per_file: int = 60
+    timeout_per_file: int = 60,
 ) -> Dict[str, Any]:
     """
     Run multiple test files, trying pytest first for each, then falling back to python3.
@@ -219,6 +321,16 @@ def _run_tests_batch(
     tests_total = tests_passed + tests_failed
     score, pass_rate = _calculate_score(tests_passed, tests_total, expected_tests)
     success = (tests_failed == 0 and tests_total > 0)
+    feedback = _build_feedback(
+        lm,
+        None,
+        tests_passed,
+        tests_failed,
+        tests_total,
+        expected_tests,
+        score,
+        file_results,
+    )
 
     print(f"Tests completed: {tests_passed}/{tests_total} test functions passed")
     print(f"Pass rate: {pass_rate:.1%}")
@@ -233,11 +345,13 @@ def _run_tests_batch(
         "score": score,
         "pass_rate": pass_rate,
         "success": success,
+        "feedback": feedback,
         "test_output": file_results,
     }
 
 
 def run_single_instance_eval(
+    lm: dspy.LM,
     workspace_dir: str,
     example: Optional[dict] = None,
     expected_tests: int = 5,
@@ -263,6 +377,7 @@ def run_single_instance_eval(
         expected_tests: Expected number of test FUNCTIONS (default: 5)
         score_per_test: Deprecated, kept for backwards compatibility
         timeout_per_file: Timeout in seconds for each individual test file (default: 60)
+        lm: DSPy LM for feedback message shortening
 
     Returns:
         Dictionary containing evaluation results with the following keys:
@@ -274,6 +389,7 @@ def run_single_instance_eval(
             - score: Calculated score based on pass rate and test count, clipped at 1.0
             - pass_rate: Percentage of tests that passed (0.0 to 1.0)
             - success: Whether all tests passed
+            - feedback: Natural language feedback summary
             - test_output: Full test execution output
             - error: Error message if execution failed
 
@@ -293,7 +409,7 @@ def run_single_instance_eval(
         return _create_error_result(
             workspace_dir,
             [],
-            f"Workspace directory does not exist: {workspace_dir}"
+            f"Workspace directory does not exist!"
         )
     
     # Check trace file presence
@@ -302,7 +418,7 @@ def run_single_instance_eval(
         return _create_error_result(
             workspace_dir,
             [],
-            f"No trace_*.md files found in: {workspace_dir}. The execution was incomplete."
+            f"No trace_*.md files found. The execution was incomplete."
         )
 
     # Discover test files
@@ -311,7 +427,7 @@ def run_single_instance_eval(
         return _create_error_result(
             workspace_dir,
             [],
-            f"No test files (test_*.py) found in: {workspace_dir}. The execution was incomplete."
+            f"No test files found. The execution was incomplete."
         )
 
     test_file_names = [str(f.relative_to(workspace_path)) for f in test_files]
@@ -337,11 +453,12 @@ def run_single_instance_eval(
     # Run all test files (tries pytest per file, falls back to python3)
     # Errors and timeouts are now handled per file within _run_tests_batch
     return _run_tests_batch(
+        lm,
         workspace_path,
         test_files,
         test_file_names,
         test_function_pattern,
         main_block_pattern,
         expected_tests,
-        timeout_per_file
+        timeout_per_file,
     )
