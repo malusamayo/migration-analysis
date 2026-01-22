@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import platform
+import traceback
 import litellm
 from datasets import load_dataset, concatenate_datasets
 from functools import partial
@@ -11,7 +12,7 @@ from copy import deepcopy
 from typing import List, Any, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .utils import LM_DICT, batch_inference, use_lm
-from .dataloader import CollectDataLoader, load_and_validate_results
+from .dataloader import CollectDataLoader
 from .review.trajectory_loader import convert_json_to_markdown
 
 import os
@@ -143,7 +144,9 @@ def run_single_instance(
 
     return example
 
-def save_conversation_trace(conversation: Conversation, workspace: str) -> str:
+def save_conversation_trace(conversation: Conversation, 
+                            workspace: str,
+                            error: Optional[Exception] = None) -> str:
     events = [event.model_dump() for event in conversation.state.events]
 
     raw_event_path = os.path.join(workspace, f"raw_trace_{conversation.id}.json")
@@ -158,6 +161,7 @@ def save_conversation_trace(conversation: Conversation, workspace: str) -> str:
     else:
         print(events[-1])
         print(f"Unexpected final event type {events[-1]['kind']}")
+        final_message = ""
 
     # export cost and total tokens
     metrics = conversation.conversation_stats.get_combined_metrics().get()
@@ -167,6 +171,7 @@ def save_conversation_trace(conversation: Conversation, workspace: str) -> str:
         "eval_output": final_message,
         "events": events,
         "metrics": metrics,
+        "error": str(error) if error else None,
     }
     
     trace_path = os.path.join(workspace, f"trace_{conversation.id}.json")
@@ -235,6 +240,7 @@ def _run_agentic_conversation(
         dict: Example with added 'eval_result' field containing evaluation output and scores
     """
     conversation = None
+    error = None
     try:
         conversation = Conversation(agent=agent, workspace=workspace_obj)
         instruction = example['prompt']
@@ -243,21 +249,25 @@ def _run_agentic_conversation(
             instruction += "\n\n### Hints\nThere are also some provided skills listed above. Please read the markdown file for more details when you find any skills relevant to your current context."
 
         conversation.send_message(instruction)
-        conversation.run()
-
-        conversation_data = save_conversation_trace(conversation, workspace_dir)
-        example["eval_result"] = copy.deepcopy(conversation_data)
+        conversation.run(timeout=1200) # 20 minutes timeout
 
         return example
 
+    except TimeoutError as e:
+        print(f"⏰ Conversation timed out: {e}")
+        error = e
     except Exception as e:
         print(f"Error during agentic execution: {e}")
-        import traceback
+        error = e
+        
         traceback.print_exc()
         return example
 
     finally:
         if conversation:
+            conversation_data = save_conversation_trace(conversation, workspace_dir, error)
+            example["run_result"] = copy.deepcopy(conversation_data)
+            
             print("🧹 Cleaning up conversation...")
             conversation.close()
 
@@ -276,7 +286,6 @@ def run_single_instance_agentic(
         system_prompt_path: str,
         example: dict,
         workspace: str,
-        seed: int,
         task_id: str,
         skills: List[Skill] = [],
         skill_mode: str = "",
@@ -290,7 +299,6 @@ def run_single_instance_agentic(
         system_prompt_path: Path to the system prompt file
         example: Example data dictionary containing 'prompt' field
         workspace: Workspace directory for the agent
-        seed: Random seed for reproducibility
         skills: Optional list of pre-loaded Skill objects
         skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
         use_docker: If True, use DockerWorkspace for containerized execution
@@ -313,24 +321,6 @@ def run_single_instance_agentic(
 
     llm = LLM(model=lm.model)
     system_prompt_path = os.path.abspath(system_prompt_path)
-
-    # Check if workspace already has trace*.md file - if so, skip execution
-    workspace_path = Path(workspace)
-    if workspace_path.exists():
-        existing_traces = list(workspace_path.glob("trace*.md"))
-        if existing_traces:
-            print(f"⏭️  Skipping execution - workspace already has trace file: {existing_traces[0].name}")
-            # Return example with existing trace data if available
-            trace_json_files = list(workspace_path.glob("trace*.json"))
-            if trace_json_files:
-                try:
-                    with open(trace_json_files[0], 'r') as f:
-                        existing_data = json.load(f)
-                        example["eval_result"] = existing_data
-                        return example
-                except Exception as e:
-                    print(f"⚠️  Warning: Could not load existing trace data: {e}")
-            return example
 
     _setup_workspace(task_id, workspace, example)
 
@@ -451,16 +441,15 @@ def run_task(
         rollout_version=rollout_version,
         skill_version=skill_version,
         skill_mode=skill_mode,
+        resume=resume,
     )
 
     output_path = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}/run.json"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    # Load existing results if resuming
-    if resume:
-        results, start_idx = load_and_validate_results(output_path, data_loader)
-    else:
-        results, start_idx = [], 0
+    # Get completed and pending tasks from data loader
+    results = data_loader.get_completed_results()
+    args_list = data_loader.get_pending_args()
 
     # Determine which function to use
     if is_agentic:
@@ -472,32 +461,36 @@ def run_task(
         use_process = False
         max_workers = 32
 
-    # Process remaining data in batches
-    for i in range(start_idx, len(data_loader), batch_size):
-        # Get batch arguments from data loader
-        args_list = data_loader.get_batch_args(
-            batch_start=i,
-            batch_size=batch_size
-        )
+    # Add skills to agentic args
+    if is_agentic and skills:
+        for args in args_list:
+            args["skills"] = skills
+            args["skill_mode"] = skill_mode
 
-        # Add skills to agentic args
-        if is_agentic and skills:
-            for args in args_list:
-                args["skills"] = skills
-                args["skill_mode"] = skill_mode
+    # Define callback to save partial results
+    def write_partial_results(completed_results, total_count):
+        # Combine already-completed results with new completions
+        all_results = results + completed_results
+        with open(output_path, "w") as f:
+            json.dump(all_results, f, indent=2)
+        print(f"💾 Saved partial results ({len(all_results)}/{len(data_loader)} completed)")
 
+    # Process remaining data with periodic callbacks
+    if args_list:
         batch_results = batch_inference(
             run_function,
             args_list,
             use_process=use_process,
             max_workers=max_workers,
+            on_batch_complete=write_partial_results,
+            batch_size=batch_size,
         )
         results.extend(batch_results)
 
-        # Write partial results after each batch
-        with open(output_path, "w") as f:
-            json.dump(results, f, indent=2)
-        print(f"💾 Saved partial results ({len(results)}/{len(data_loader)} completed)")
+    # Write final results
+    with open(output_path, "w") as f:
+        json.dump(results, f, indent=2)
+    print(f"✅ Completed all {len(results)}/{len(data_loader)} examples")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run task with specified model and prompt.")

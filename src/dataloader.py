@@ -122,44 +122,6 @@ def prepare_task(
             os.makedirs(workspace, exist_ok=True)
     return data, task_prompt, eval_prompt
 
-def load_and_validate_results(
-        output_path: str,
-        data_loader: 'BaseDataLoader'
-    ) -> tuple[List[dict], int]:
-    """
-    Load existing results and validate they match the data loader's configuration.
-
-    Args:
-        output_path: Path to the results file
-        data_loader: DataLoader instance to validate against
-
-    Returns:
-        tuple: (results, start_idx) where results is the list of existing results
-               and start_idx is the index to resume from (0 if starting fresh)
-    """
-    if not os.path.exists(output_path):
-        return [], 0
-
-    try:
-        with open(output_path, "r") as f:
-            results = json.load(f)
-    except json.JSONDecodeError:
-        print("⚠️  Could not parse existing results file, starting fresh")
-        return [], 0
-
-    # Calculate expected total results
-    expected_total = len(data_loader)
-
-    # Validate that existing results don't exceed expected
-    if len(results) > expected_total:
-        print(f"⚠️  Existing results ({len(results)}) exceed expected total ({expected_total}), starting fresh")
-        return [], 0
-
-    # Each item gets one result
-    start_idx = len(results)
-    print(f"🔄 Resuming from {start_idx}/{len(data_loader)} completed items")
-    return results, start_idx
-
 
 class BaseDataLoader:
     """Base class for data loaders."""
@@ -187,6 +149,8 @@ class EvalDataLoader(BaseDataLoader):
         n_responses: int = 1,
         skill_version: Optional[str] = None,
         skill_mode: str = "all_loaded",
+        resume: bool = True,
+        output_path: Optional[str] = None,
     ):
         """
         Initialize the data loader by loading task data and constructing workspace mappings.
@@ -200,7 +164,12 @@ class EvalDataLoader(BaseDataLoader):
             n_responses: Number of rollouts per example
             skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
             skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+            resume: Whether to skip already-evaluated tasks
+            output_path: Path to output file for resume checking (optional)
         """
+
+        self.resume = resume
+        self.output_path = output_path
 
         # Load task data using prepare_task
         examples, _, _ = prepare_task(
@@ -217,6 +186,11 @@ class EvalDataLoader(BaseDataLoader):
         # Construct workspace data
         workspace_base_dir = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}"
         self.data = self._construct_workspace_data(workspace_base_dir, examples, n_responses)
+
+        # Separate completed and pending tasks
+        self.completed_results = []
+        self.pending_data = []
+        self._filter_completed_tasks()
 
     def _construct_workspace_data(
         self,
@@ -268,6 +242,73 @@ class EvalDataLoader(BaseDataLoader):
         print(f"Found {len(workspace_data)} workspaces in {workspace_base_dir}")
         return workspace_data
 
+    def _filter_completed_tasks(self):
+        """
+        Filter out already-evaluated tasks by loading from output file.
+        Only applies when resume=True and output_path is provided.
+        """
+        if not self.resume or not self.output_path:
+            self.pending_data = self.data
+            self.completed_results = []
+            return
+
+        if not os.path.exists(self.output_path):
+            self.pending_data = self.data
+            self.completed_results = []
+            return
+
+        try:
+            import yaml
+            with open(self.output_path, "r") as f:
+                existing_results = yaml.safe_load(f) or []
+
+            # Build set of completed workspace directories
+            completed_workspaces = set()
+            for result in existing_results:
+                if isinstance(result, dict) and "workspace_dir" in result:
+                    completed_workspaces.add(result["workspace_dir"])
+
+            # Split data into completed and pending based on workspace_dir
+            self.completed_results = existing_results
+            self.pending_data = []
+
+            for item in self.data:
+                workspace_dir = item["workspace_dir"]
+                if workspace_dir not in completed_workspaces:
+                    self.pending_data.append(item)
+
+            print(f"📊 Found {len(self.completed_results)} completed evaluations, {len(self.pending_data)} pending")
+
+        except Exception as e:
+            print(f"⚠️  Could not load existing results from {self.output_path}: {e}")
+            print("Starting fresh")
+            self.pending_data = self.data
+            self.completed_results = []
+
+    def get_pending_args(self) -> List[dict]:
+        """
+        Get all pending task arguments.
+
+        Returns:
+            List of argument dictionaries for tasks that need to be evaluated
+        """
+        return [
+            {
+                "workspace_dir": item["workspace_dir"],
+                "example": item["example"],
+            }
+            for item in self.pending_data
+        ]
+
+    def get_completed_results(self) -> List[dict]:
+        """
+        Get results from already-completed evaluations.
+
+        Returns:
+            List of completed results loaded from output file
+        """
+        return self.completed_results
+
     def get_batch_args(self, batch_start: int, batch_size: int) -> List[dict]:
         """
         Get arguments for a specific batch.
@@ -312,6 +353,7 @@ class CollectDataLoader(BaseDataLoader):
         n_responses: int = 1,
         skill_version: Optional[str] = None,
         skill_mode: str = "all_loaded",
+        resume: bool = True,
     ):
         """
         Initialize the data loader by loading task data.
@@ -326,6 +368,7 @@ class CollectDataLoader(BaseDataLoader):
             n_responses: Number of rollouts per example
             skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
             skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+            resume: Whether to skip already-completed tasks
         """
 
         self.task_id = task_id
@@ -334,6 +377,7 @@ class CollectDataLoader(BaseDataLoader):
         self.is_agentic = is_agentic
         self.n_responses = n_responses
         self.rollout_version = rollout_version
+        self.resume = resume
 
         # Load task data using prepare_task
         examples, task_prompt, _ = prepare_task(
@@ -352,6 +396,11 @@ class CollectDataLoader(BaseDataLoader):
         # Construct collection data
         self.data = self._construct_collection_data(examples)
 
+        # Separate completed and pending tasks
+        self.completed_results = []
+        self.pending_data = []
+        self._filter_completed_tasks()
+
     def _construct_collection_data(self, examples: List[dict]) -> List[dict]:
         """
         Construct collection data for all examples and rollouts.
@@ -369,12 +418,14 @@ class CollectDataLoader(BaseDataLoader):
             for example_id, example in enumerate(examples):
                 for rollout_id in range(self.n_responses):
                     workspace = f"results/{self.task_id}/{self.model_name}_{self.prompt_name}/rollouts/{self.rollout_version}/example{example_id}_rollout{rollout_id}/"
+                    example = example.copy()
+                    example["example_id"] = example_id
+                    example["rollout_id"] = rollout_id
                     collection_data.append({
                         "lm": self.lm,
                         "system_prompt_path": f"data/{self.task_id}/prompts/{self.prompt_name}.md",
                         "example": example,
                         "workspace": workspace,
-                        "seed": rollout_id,
                         "task_id": self.task_id,
                     })
         else:
@@ -395,6 +446,61 @@ class CollectDataLoader(BaseDataLoader):
         print(f"Constructed {len(collection_data)} collection items")
         return collection_data
 
+    def _filter_completed_tasks(self):
+        """
+        Filter out already-completed tasks and load their results.
+        Only applies to agentic mode when resume=True.
+        """
+        import copy
+
+        if not self.resume or not self.is_agentic:
+            self.pending_data = self.data
+            self.completed_results = []
+            return
+
+        for args in self.data:
+            workspace_path = Path(args["workspace"])
+            existing_traces = list(workspace_path.glob("trace*.md")) if workspace_path.exists() else []
+
+            if existing_traces:
+                # Load existing result if available
+                trace_json_files = list(workspace_path.glob("trace*.json"))
+                if trace_json_files:
+                    try:
+                        with open(trace_json_files[0], 'r') as f:
+                            existing_data = json.load(f)
+                            result = copy.deepcopy(args["example"])
+                            result["run_result"] = existing_data
+                            self.completed_results.append(result)
+                    except Exception as e:
+                        print(f"⚠️  Warning: Could not load existing trace from {workspace_path}: {e}")
+                        self.pending_data.append(args)
+                else:
+                    # Has .md but no .json - re-run
+                    self.pending_data.append(args)
+            else:
+                self.pending_data.append(args)
+
+        print(f"📊 Found {len(self.completed_results)} completed tasks, {len(self.pending_data)} pending")
+
+    def get_pending_args(self) -> List[dict]:
+        """
+        Get all pending task arguments.
+
+        Returns:
+            List of argument dictionaries for tasks that need to be run
+        """
+        return self.pending_data
+
+    def get_completed_results(self) -> List[dict]:
+        """
+        Get results from already-completed tasks.
+
+        Returns:
+            List of completed results loaded from existing trace files
+        """
+        return self.completed_results
+
     def get_batch_args(self, batch_start: int, batch_size: int) -> List[dict]:
         """
         Get arguments for a specific batch.
@@ -408,7 +514,7 @@ class CollectDataLoader(BaseDataLoader):
         """
         batch_end = min(batch_start + batch_size, len(self.data))
         return self.data[batch_start:batch_end]
-    
+
     def __getitem__(self, index: int) -> dict:
         """Get a single item by index."""
         return self.data[index]
