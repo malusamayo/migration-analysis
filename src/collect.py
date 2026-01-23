@@ -13,7 +13,7 @@ from typing import List, Any, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .utils import LM_DICT, batch_inference, use_lm
 from .dataloader import CollectDataLoader
-from .review.trajectory_loader import convert_json_to_markdown
+from .review.trajectory_utils import convert_json_to_markdown
 
 import os
 import numpy as np
