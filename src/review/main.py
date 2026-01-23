@@ -19,11 +19,7 @@ from .patch_generation import (
     generate_universal_patches,
     edit_patch_with_feedback
 )
-from .skill_generation import (
-    generate_skills_batch,
-    merge_skills,
-    write_skills_to_files,
-)
+from .skill_generation import build_skills
 
 
 def main():
@@ -302,10 +298,7 @@ def main():
         print("SKILL GENERATION")
         print(f"{'='*80}\n")
 
-        # Step 1: Generate skills from each comparison (in parallel)
-        print(f"Step 1: Generating skills from {len(successful)} comparisons...")
-
-        # Prepare comparison results for batch generation
+        # Prepare comparison results for skill generation
         comparison_results = []
         for result in successful:
             comparison_results.append({
@@ -315,48 +308,17 @@ def main():
                 "example_id": result["example_id"],
             })
 
-        # Use batch skill generation (saves as YAML)
-        skill_results = generate_skills_batch(
+        # Use build_skills to generate and deduplicate skills in one step
+        skills_dir = output_dir / "skills"
+        build_skills(
             comparison_results=comparison_results,
+            output_dir=skills_dir,
             model_name=args.comparison_model,
-            output_dir=output_dir,
+            embedder_model="openai/text-embedding-3-small",
+            similarity_threshold=0.6,
             random_seed=args.random_seed,
             max_workers=args.max_workers,
         )
-
-        # Filter out failed results
-        valid_skill_results = [r for r in skill_results if r and r.get("num_skills", 0) > 0]
-
-        if not valid_skill_results:
-            print("❌ No skills generated. Skipping skill deduplication and file writing.")
-        else:
-            # Step 2: Deduplicate skills (remove redundancy while keeping skills atomic)
-            print(f"\nStep 2: Deduplicating {len(valid_skill_results)} skill sets...")
-            task_description = successful[0].get("task_description", "")
-            merged_result = merge_skills(
-                skill_results=valid_skill_results,
-                task_description=task_description,
-                model_name=args.comparison_model,
-                output_path=output_dir / "deduplicated_skills.yaml",
-                random_seed=args.random_seed,
-            )
-            print(f"  ✅ Redundancy removed: {merged_result['num_merged_skills']} unique skills remaining")
-
-            # Step 3: Write skill files to disk
-            print(f"\nStep 3: Writing skill files...")
-            skills_dir = output_dir / "skills"
-            generation_info = write_skills_to_files(
-                merged_result=merged_result,
-                output_dir=skills_dir,
-            )
-
-            print(f"\n{'='*80}")
-            print("SKILL GENERATION COMPLETE")
-            print(f"{'='*80}")
-            print(f"Comparisons processed: {len(valid_skill_results)}")
-            print(f"Atomic skills generated (after deduplication): {generation_info['num_skills']}")
-            print(f"Skills directory: {skills_dir}")
-            print(f"{'='*80}")
         
     # Patch generation mode
     elif args.mode == "generate-patches":

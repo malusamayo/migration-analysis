@@ -8,6 +8,7 @@ This module provides DSPy-based components for:
 """
 
 import json
+import tqdm
 import yaml
 import shutil
 import dspy
@@ -81,68 +82,6 @@ class GenerateSkills(dspy.Module):
             task_description=task_description,
             comparison_analysis=comparison_analysis,
             insight_extracted=insight_extracted,
-            config=config
-        )
-
-
-class SkillDeduplication(dspy.Signature):
-    """Deduplicate and refine skills from multiple comparisons by removing redundancy.
-
-    Analyze all skills and:
-    1) Identify duplicate or highly overlapping skills
-    2) Keep the best version of each unique skill concept
-    3) Preserve atomic, focused skills (do NOT merge distinct skills into larger ones)
-    4) Eliminate true redundancies while maintaining skill diversity
-    5) Track how many input skills contributed to each output skill (duplicate_count)
-
-    IMPORTANT: Keep skills small and atomic. Only remove skills that are truly redundant.
-    If two skills address different aspects or concerns, keep both even if they seem related.
-
-    For each output skill, set 'duplicate_count' to the number of input skills it represents
-    (e.g., if 5 similar skills were consolidated into one, duplicate_count = 5).
-
-    Each output skill MUST have:
-    - 'skill_name' (short identifier like 'error-recovery')
-    - 'skill_description' (clear description of what the skill does)
-    - 'skill_trigger' (when to use the skill - clear and specific)
-    - 'skill_body' (markdown content with detailed instructions and examples)
-    - 'duplicate_count' (integer count of how many input skills this represents)
-    """
-
-    task_description = dspy.InputField(
-        desc="The original task/request that agents were trying to complete"
-    )
-    all_skills: List[Skill] = dspy.InputField(
-        desc="All skills from multiple comparisons that need to be deduplicated"
-    )
-    deduplicated_skills: List[Skill] = dspy.OutputField(
-        desc="Deduplicated list of atomic skills with redundancies removed. Each MUST include: skill_name, skill_description, skill_trigger, skill_body, and duplicate_count (number of input skills consolidated). Keep skills focused and atomic."
-    )
-
-
-class DeduplicateSkills(dspy.Module):
-    """Module for deduplicating skills from multiple comparisons by removing redundancy."""
-
-    def __init__(self):
-        super().__init__()
-        self.deduplicate = dspy.ChainOfThought(SkillDeduplication)
-
-    def forward(self, task_description: str, all_skills: List[Skill], config=None):
-        """Deduplicate skills by removing redundancies.
-
-        Args:
-            task_description: The original task description
-            all_skills: All skills from multiple comparisons (list of Skill objects)
-            config: Optional configuration dict
-
-        Returns:
-            DSPy prediction with deduplicated skills
-        """
-        if config is None:
-            config = {}
-        return self.deduplicate(
-            task_description=task_description,
-            all_skills=all_skills,
             config=config
         )
 
@@ -240,95 +179,6 @@ def generate_skills_from_comparison(
     return skill_result
 
 
-def merge_skills(
-    skill_results: List[Dict[str, Any]],
-    task_description: str,
-    model_name: str = "gemini-2.5-flash",
-    output_path: Path = None,
-    random_seed: int = 0,
-) -> Dict[str, Any]:
-    """
-    Deduplicate skills from multiple generation results by removing redundancy.
-
-    This function does NOT merge distinct skills into larger ones. Instead, it:
-    - Identifies and removes duplicate skills
-    - Keeps the best version of each unique skill
-    - Preserves atomic, focused skills
-
-    Args:
-        skill_results: List of skill results from generate_skills_from_comparison
-        task_description: The task description
-        model_name: Model to use for deduplication
-        output_path: Optional path to save deduplicated skills
-        random_seed: Random seed for reproducibility
-
-    Returns:
-        Dictionary containing deduplicated skills (atomic Skill objects with redundancy removed)
-    """
-    # Combine all skills into a list of Skill objects
-    all_skills = []
-    for result in skill_results:
-        skills = result.get("skills", [])
-        for skill_data in skills:
-            all_skills.append(Skill(
-                skill_name=skill_data['skill_name'],
-                skill_description=skill_data['skill_description'],
-                skill_trigger=skill_data['skill_trigger'],
-                skill_body=skill_data['skill_body']
-            ))
-
-    # Get LLM for deduplication
-    lm = LM_DICT[model_name]
-
-    print(f"Deduplicating {len(all_skills)} skills from {len(skill_results)} skill sets using {model_name} (seed={random_seed})...")
-    with dspy.context(lm=lm):
-        deduplicator = DeduplicateSkills()
-        result = deduplicator(
-            task_description=task_description,
-            all_skills=all_skills,
-            config={"rollout_id": random_seed},
-        )
-
-    # Convert deduplicated skills to serializable format
-    deduplicated_skills_data = [
-        {
-            "skill_name": skill.skill_name,
-            "skill_description": skill.skill_description,
-            "skill_trigger": skill.skill_trigger,
-            "skill_body": skill.skill_body,
-            "duplicate_count": skill.duplicate_count,
-        }
-        for skill in result.deduplicated_skills
-    ]
-
-    # Prepare output (keep field names as merged_skills for backward compatibility)
-    merged_result = {
-        "model": model_name,
-        "task_description": task_description,
-        "num_skill_sets": len(skill_results),
-        "merged_skills": deduplicated_skills_data,  # Keep this name for compatibility
-        "num_merged_skills": len(deduplicated_skills_data),
-    }
-
-    # Save to file if output path provided
-    if output_path:
-        output_path = Path(output_path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-        if output_path.suffix == ".json":
-            with open(output_path, 'w', encoding='utf-8') as f:
-                json.dump(merged_result, f, indent=2, ensure_ascii=False)
-        elif output_path.suffix in [".yaml", ".yml"]:
-            with open(output_path, 'w', encoding='utf-8') as f:
-                yaml.dump(merged_result, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
-        else:
-           assert False, "Output path must be .json or .yaml/.yml for merged skills."
-
-        print(f"Deduplicated skills saved to: {output_path}")
-
-    return merged_result
-
-
 def generate_skills_batch(
     comparison_results: List[Dict[str, Any]],
     model_name: str = "gemini-2.5-flash",
@@ -386,131 +236,103 @@ def generate_skills_batch(
     return skill_results
 
 
-def write_skills_to_files(
-    merged_result: Dict[str, Any],
+def build_skills(
+    comparison_results: List[Dict[str, Any]],
     output_dir: Path,
+    model_name: str = "gemini-2.5-flash",
+    embedder_model: str = "openai/text-embedding-3-small",
+    similarity_threshold: float = 0.85,
+    random_seed: int = 0,
+    max_workers: int = 8,
 ) -> Dict[str, Any]:
     """
-    Write deduplicated atomic skills to disk as skill files.
+    Build skills from comparison results with automatic deduplication.
+
+    This function:
+    1. Generates skills from all comparison results using generate_skills_batch
+    2. Creates a SkillManager
+    3. Iteratively adds each skill to the manager (with embedding-based duplicate detection)
+    4. Writes the final deduplicated skills to disk
 
     Args:
-        merged_result: Result from merge_skills containing deduplicated atomic skills
-        output_dir: Directory to save skill files (each skill in its own subdirectory)
+        comparison_results: List of comparison results
+        output_dir: Directory to save final skills
+        model_name: Model for skill generation and duplicate detection
+        embedder_model: Model for embeddings
+        similarity_threshold: Threshold for similarity detection
+        random_seed: Random seed for reproducibility
+        max_workers: Maximum parallel workers for skill generation
 
     Returns:
-        Dictionary containing generation results with skill metadata
+        Dictionary containing generation info
     """
-    task_description = merged_result["task_description"]
-    merged_skills = merged_result["merged_skills"]  # List of skill dicts
+    from .skill_manager import SkillManager
 
-    output_dir.mkdir(parents=True, exist_ok=True)
+    # Step 1: Generate skills from all comparisons
+    print("\n" + "="*80)
+    print("STEP 1: Generating skills from comparisons")
+    print("="*80)
+    skill_results = generate_skills_batch(
+        comparison_results=comparison_results,
+        model_name=model_name,
+        random_seed=random_seed,
+        max_workers=max_workers,
+    )
 
-    print(f"Writing {len(merged_skills)} skill files to {output_dir}...")
+    # Filter out failed results
+    valid_skill_results = [r for r in skill_results if r and r.get("num_skills", 0) > 0]
+    print(f"\n✅ Generated skills from {len(valid_skill_results)}/{len(skill_results)} comparisons")
 
-    # Save each skill to its own directory
-    saved_skills = []
-    for skill_data in merged_skills:
-        skill_name = skill_data["skill_name"]
-        skill_description = skill_data["skill_description"]
-        skill_trigger = skill_data["skill_trigger"]
-        skill_body = skill_data["skill_body"]
-        duplicate_count = skill_data.get("duplicate_count", 1)
+    # Flatten skill data for easier iteration
+    all_skill_data = [
+        skill_data
+        for skill_result in valid_skill_results
+        for skill_data in skill_result.get("skills", [])
+    ]
 
-        # Create skill directory
-        skill_dir = output_dir / skill_name
-        skill_dir.mkdir(parents=True, exist_ok=True)
+    # Step 2: Create SkillManager and add skills iteratively
+    print("\n" + "="*80)
+    print("STEP 2: Adding skills to manager with duplicate detection")
+    print("="*80)
+    manager = SkillManager(
+        embedder_model=embedder_model,
+        similarity_threshold=similarity_threshold,
+        lm_name=model_name,
+    )
 
-        # Create skill file using format_skill_file
-        skill_file_content = format_skill_file(
-            skill_name=skill_name,
-            skill_description=skill_description,
-            skill_body=skill_body,
-            skill_trigger=skill_trigger
+    total_skills_generated = 0
+    for skill_data in tqdm.tqdm(all_skill_data):
+        skill = Skill(
+            skill_name=skill_data["skill_name"],
+            skill_description=skill_data["skill_description"],
+            skill_trigger=skill_data["skill_trigger"],
+            skill_body=skill_data["skill_body"],
         )
+        manager.add_skill(skill)
+        total_skills_generated += 1
 
-        skill_path = skill_dir / "SKILL.md"
-        with open(skill_path, 'w', encoding='utf-8') as f:
-            f.write(skill_file_content)
+    print(f"\n📊 Skill Manager Stats:")
+    stats = manager.get_stats()
+    print(f"  Total skills generated: {total_skills_generated}")
+    print(f"  Unique skills after deduplication: {stats['num_skills']}")
+    print(f"  Duplicates merged: {stats['total_duplicates_merged']}")
 
-        skill_metadata = {
-            "name": skill_name,
-            "description": skill_description,
-            "path": f"{skill_name}/SKILL.md",
-            "duplicate_count": duplicate_count,
-        }
-        if skill_trigger:
-            skill_metadata["trigger"] = skill_trigger
+    # Step 3: Write skills to disk
+    print("\n" + "="*80)
+    print("STEP 3: Writing skills to disk")
+    print("="*80)
+    generation_info = manager.save_skills(output_dir)
 
-        saved_skills.append(skill_metadata)
-        print(f"✅ Saved skill: {skill_path}")
-
-    # sort saved skills by count
-    saved_skills.sort(key=lambda x: x.get("duplicate_count", 1), reverse=True)
-
-    # Save metadata.yaml
-    metadata_path = output_dir / "metadata.yaml"
-    with open(metadata_path, 'w', encoding='utf-8') as f:
-        yaml.dump({
-            'skills': saved_skills
-        }, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
-
-    print(f"📋 Skill metadata saved to: {metadata_path}")
-
-    # Save detailed generation info as JSON
-    generation_info = {
-        "output_dir": str(output_dir),
-        "num_skills": len(saved_skills),
-        "skills": saved_skills,
-        "task_description": task_description,
-    }
-
-    generation_info_path = output_dir / "generation_info.json"
-    with open(generation_info_path, 'w', encoding='utf-8') as f:
-        json.dump(generation_info, f, indent=2, ensure_ascii=False)
-
-    print(f"📋 Generation info saved to: {generation_info_path}")
+    print("\n" + "="*80)
+    print("SKILL BUILDING COMPLETE")
+    print("="*80)
+    print(f"Skills directory: {output_dir}")
+    print(f"Unique skills: {stats['num_skills']}")
+    print(f"Total duplicates merged: {stats['total_duplicates_merged']}")
+    print("="*80)
 
     return generation_info
 
-
-# =============================================================================
-# Skill File Formatting and Management
-# =============================================================================
-
-def format_skill_file(
-    skill_name: str,
-    skill_description: str,
-    skill_body: str,
-    skill_trigger: str = None
-) -> str:
-    """
-    Format a skill file with proper YAML frontmatter and markdown body.
-
-    Args:
-        skill_name: Name of the skill (used in frontmatter)
-        skill_description: Description of what the skill does and when to use it
-        skill_body: The markdown body with instructions and guidance
-        skill_trigger: Natural language description of when the skill should be triggered
-
-    Returns:
-        Formatted skill file content as a string
-    """
-    # Build YAML frontmatter
-    frontmatter = {
-        'name': skill_name,
-        'description': skill_description
-    }
-
-    if skill_trigger:
-        frontmatter['trigger'] = skill_trigger
-
-    # Combine frontmatter and body
-    skill_content = "---\n"
-    skill_content += yaml.dump(frontmatter, default_flow_style=False, allow_unicode=True)
-    skill_content += "---\n\n"
-    skill_content += skill_body.strip() + "\n"
-
-    return skill_content
 
 def copy_existing_skills(
     existing_skills_folder: Path,

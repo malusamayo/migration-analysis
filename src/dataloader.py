@@ -35,7 +35,7 @@ def generate_rollout_version(
     if skill_version == "" or skill_version is None:
         return "v0"
 
-    skill_version_name = Path(skill_version).name
+    skill_version_name = Path(skill_version).parent.name
 
     # Map skill_mode to short name
     mode_map = {
