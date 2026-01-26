@@ -52,42 +52,51 @@ def detect_platform() -> str:
     return "linux/amd64"
 
 def discover_skills(
-    skill_version: Optional[str] = None,
+    skill_path: Optional[str] = None,
     skill_mode: str = "all_loaded",
     subset_mode: str = "all",
     subset_k: Optional[int] = None,
     subset_seed: Optional[int] = None,
 ) -> List[Skill]:
     """
-    Discover and load skills for a given rollout version.
+    Discover and load skills based on metadata file.
 
     Args:
-        skill_version: Full relative path to skill folder (e.g., "results/webtest/model_default/skills/v1"), or None for no skills
+        skill_path: Path to metadata.yaml file or directory containing it (e.g., "results/webtest/model_default/skills/v1/metadata.yaml"), or None for no skills
         skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
         subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
         subset_k: Number of skills to select when subset_mode is "top_k" or "random"
         subset_seed: Random seed for reproducibility when subset_mode is "random"
 
     Returns:
-        List of loaded Skill objects (empty list if skill_version is None)
+        List of loaded Skill objects (empty list if skill_path is None)
     """
-    # If no skill_version specified, no skills to load
-    if skill_version is None:
+    # If no skill_path specified, no skills to load
+    if skill_path is None:
         return []
 
-    # skill_version is now the full relative path
-    skill_dir = Path(skill_version)
+    # Convert to Path and determine metadata file path
+    skill_path = Path(skill_path)
+
+    # If skill_path is a directory, look for metadata.yaml inside it
+    if skill_path.is_dir():
+        metadata_path = skill_path / "metadata.yaml"
+        base_dir = skill_path
+    else:
+        # Assume skill_path points directly to metadata.yaml
+        metadata_path = skill_path
+        base_dir = skill_path.parent
 
     skills = []
 
-    if not skill_dir.exists():
-        print(f"⚠️  Warning: Skill directory not found: {skill_dir}")
+    if not metadata_path.exists():
+        print(f"⚠️  Warning: Metadata file not found: {metadata_path}")
         return skills
 
     # Step 1: Use SkillManager to load skills and get subset
-    print(f"Loading skills from {skill_dir}...")
+    print(f"Loading skills from {metadata_path}...")
     manager = SkillManager()
-    manager.load_skills(skill_dir)
+    manager.load_skills(metadata_path)
 
     # Step 2: Select skill subset based on mode
     if subset_mode == "all":
@@ -108,7 +117,7 @@ def discover_skills(
 
     # Step 3: Load selected skills as openhands Skill objects
     for skill in selected_skills:
-        skill_file = skill_dir / skill.skill_name / "SKILL.md"
+        skill_file = base_dir / skill.skill_name / "SKILL.md"
         if skill_file.exists():
             try:
                 openhands_skill = Skill.load(path=str(skill_file), strict=False)
@@ -360,7 +369,7 @@ def run_single_instance_agentic(
         Tool(name=FileEditorTool.name),
     ]
 
-    llm = LLM(model=lm.model)
+    llm = LLM(model=lm.model, temperature=lm.kwargs.get("temperature"))
     system_prompt_path = os.path.abspath(system_prompt_path)
 
     _setup_workspace(task_id, workspace, example)
@@ -423,7 +432,7 @@ def run_task(
         n_responses: int = 1,
         batch_size: int = 16,
         resume: bool = True,
-        skill_version: Optional[str] = None,
+        skill_path: Optional[str] = None,
         skill_mode: str = "all_loaded",
         subset_mode: str = "all",
         subset_k: Optional[int] = None,
@@ -441,7 +450,7 @@ def run_task(
         n_responses: Number of responses to generate per example
         batch_size: Batch size for collection
         resume: Whether to resume from existing results
-        skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
+        skill_path: Path to skill folder containing metadata.yaml (e.g., "skills/v1"), or None for no skills
         skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
         subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
         subset_k: Number of skills to select when subset_mode is "top_k" or "random"
@@ -456,7 +465,7 @@ def run_task(
 
     # Auto-generate rollout_version
     rollout_version = generate_rollout_version(
-        skill_version=skill_version,
+        skill_version=skill_path,
         skill_mode=skill_mode,
         subset_mode=subset_mode,
         subset_k=subset_k,
@@ -464,19 +473,23 @@ def run_task(
     )
     print(f"📦 Auto-generated rollout version: {rollout_version}")
 
-    # Construct full skill path if skill_version is provided
-    full_skill_path = None
-    if skill_version:
-        # If skill_version already starts with "results/", use it as-is
-        if skill_version.startswith("results/"):
-            full_skill_path = skill_version
+    # Construct full skill metadata path if skill_path is provided
+    skill_metadata_path = None
+    if skill_path:
+        # If skill_path already starts with "results/", use it as-is
+        if skill_path.startswith("results/"):
+            skill_metadata_path = skill_path
         else:
             # Otherwise, construct the full path
-            full_skill_path = f"results/{task_id}/{model_name}_{prompt_name}/{skill_version}"
+            skill_metadata_path = f"results/{task_id}/{model_name}_{prompt_name}/{skill_path}"
+
+        # Append metadata.yaml if not already included
+        if not skill_metadata_path.endswith(".yaml"):
+            skill_metadata_path = f"{skill_metadata_path}/metadata.yaml"
 
     # Discover and load skills for this rollout version
     skills = discover_skills(
-        skill_version=full_skill_path,
+        skill_path=skill_metadata_path,
         skill_mode=skill_mode,
         subset_mode=subset_mode,
         subset_k=subset_k,
@@ -492,7 +505,7 @@ def run_task(
         max_examples=max_examples,
         n_responses=n_responses,
         rollout_version=rollout_version,
-        skill_version=skill_version,
+        skill_version=skill_path,
         skill_mode=skill_mode,
         subset_mode=subset_mode,
         subset_k=subset_k,
@@ -565,8 +578,8 @@ if __name__ == "__main__":
     parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results.")
 
     # Parameters for automatic rollout versioning
-    parser.add_argument("--skill_version", type=str, default=None,
-                        help="Path to skill folder (e.g., 'skills/v1'), or None for no skills")
+    parser.add_argument("--skill_path", type=str, default=None,
+                        help="Path to skill folder containing metadata.yaml (e.g., 'skills/v1'), or None for no skills")
     parser.add_argument("--skill_mode", type=str, default=None,
                         choices=["all_loaded", "agent_decided", "monitor_decided"],
                         help="Skill mode: all_loaded, agent_decided, or monitor_decided")
@@ -597,7 +610,7 @@ if __name__ == "__main__":
     max_examples = args.max_examples if args.max_examples is not None else config.get("max_examples")
     n_responses = args.n_responses if args.n_responses is not None else config.get("n_responses", 1)
     batch_size = args.batch_size if args.batch_size is not None else config.get("batch_size", 16)
-    skill_version = args.skill_version if args.skill_version is not None else config.get("skill_version")
+    skill_path = args.skill_path if args.skill_path is not None else config.get("skill_path", config.get("skill_version"))
     skill_mode = args.skill_mode if args.skill_mode is not None else config.get("skill_mode", "all_loaded")
     subset_mode = args.subset_mode if args.subset_mode is not None else config.get("subset_mode", "all")
     subset_k = args.subset_k if args.subset_k is not None else config.get("subset_k")
@@ -622,7 +635,7 @@ if __name__ == "__main__":
         n_responses=n_responses,
         batch_size=batch_size,
         resume=resume,
-        skill_version=skill_version,
+        skill_path=skill_path,
         skill_mode=skill_mode,
         subset_mode=subset_mode,
         subset_k=subset_k,

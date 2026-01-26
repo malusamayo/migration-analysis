@@ -527,37 +527,51 @@ class SkillManager:
 
         return generation_info
 
-    def load_skills(self, skill_dir: Path) -> None:
-        """Load skills from disk into memory.
+    def load_skills(self, skill_metadata_path: Path) -> None:
+        """Load skills from disk into memory based on metadata file.
 
-        Reads all SKILL.md files from subdirectories and loads them into
-        the manager, computing embeddings for each. Reads duplicate_count
-        from metadata.yaml.
+        Reads the metadata.yaml file and loads only the skills specified in it,
+        computing embeddings for each.
 
         Args:
-            skill_dir: Directory containing skill subdirectories
+            skill_metadata_path: Path to the metadata.yaml file
         """
-        skill_dir = Path(skill_dir)
+        skill_metadata_path = Path(skill_metadata_path)
 
-        if not skill_dir.exists():
-            raise FileNotFoundError(f"Skill directory not found: {skill_dir}")
+        if not skill_metadata_path.exists():
+            raise FileNotFoundError(f"Metadata file not found: {skill_metadata_path}")
 
-        # Load metadata.yaml to get duplicate_count for each skill
-        metadata_path = skill_dir / "metadata.yaml"
-        duplicate_counts = {}
-        if metadata_path.exists():
-            with open(metadata_path, 'r', encoding='utf-8') as f:
-                metadata = yaml.safe_load(f)
-                for skill_meta in metadata.get('skills', []):
-                    skill_name = skill_meta.get('name')
-                    if skill_name:
-                        duplicate_counts[skill_name] = skill_meta.get('duplicate_count', 1)
+        # Get the base directory (parent of metadata.yaml)
+        base_dir = skill_metadata_path.parent
 
-        # Find all SKILL.md files
-        skill_files = list(skill_dir.rglob("SKILL.md"))
+        # Load metadata.yaml to get the list of skills to load
+        with open(skill_metadata_path, 'r', encoding='utf-8') as f:
+            metadata = yaml.safe_load(f)
+
+        skills_metadata = metadata.get('skills', [])
+        if not skills_metadata:
+            print(f"⚠️  No skills found in metadata: {skill_metadata_path}")
+            self.skills = []
+            self.embeddings = None
+            return
 
         loaded_skills = []
-        for skill_file in skill_files:
+        for skill_meta in skills_metadata:
+            skill_name = skill_meta.get('name')
+            skill_path = skill_meta.get('path')
+            duplicate_count = skill_meta.get('duplicate_count', 1)
+
+            if not skill_name or not skill_path:
+                print(f"⚠️  Skipping invalid skill entry: {skill_meta}")
+                continue
+
+            # Construct full path to SKILL.md file
+            skill_file = base_dir / skill_path
+
+            if not skill_file.exists():
+                print(f"⚠️  Skill file not found: {skill_file}")
+                continue
+
             try:
                 with open(skill_file, 'r', encoding='utf-8') as f:
                     content = f.read()
@@ -575,15 +589,11 @@ class SkillManager:
                 frontmatter = yaml.safe_load(parts[1])
                 skill_body = parts[2].strip()
 
-                # Get skill name and look up duplicate_count from metadata
-                skill_name = frontmatter.get('name', skill_file.parent.name)
-                duplicate_count = duplicate_counts.get(skill_name, 1)
-
-                # Create Skill object
+                # Create Skill object using metadata and file content
                 skill = Skill(
                     skill_name=skill_name,
-                    skill_description=frontmatter.get('description', ''),
-                    skill_trigger=frontmatter.get('trigger', ''),
+                    skill_description=frontmatter.get('description', skill_meta.get('description', '')),
+                    skill_trigger=frontmatter.get('trigger', skill_meta.get('trigger', '')),
                     skill_body=skill_body,
                     duplicate_count=duplicate_count
                 )
@@ -604,7 +614,7 @@ class SkillManager:
         else:
             self.embeddings = None
 
-        print(f"✅ Loaded {len(self.skills)} skills from {skill_dir}")
+        print(f"✅ Loaded {len(self.skills)} skills from {skill_metadata_path}")
 
     def get_stats(self) -> Dict[str, Any]:
         """Get statistics about the skill collection.

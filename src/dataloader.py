@@ -20,20 +20,24 @@ def generate_rollout_version(
     Generate a rollout version name based on configuration parameters.
 
     Args:
-        skill_version: Path to the skill folder (e.g., "skills/v1"), or empty string for no skills
+        skill_version: Path to the skill folder or metadata file (e.g., "skills/v1" or "skills/v1/metadata_filtered.yaml"), or empty string for no skills
         skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
         subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
         subset_k: Number of skills to select when subset_mode is "top_k" or "random"
         subset_seed: Random seed for reproducibility when subset_mode is "random"
 
     Returns:
-        Rollout version string (e.g., "v0", "v1_all", "v1_agent_top5", "v1_all_rand10s42")
+        Rollout version string (e.g., "v0", "v1_all", "v1_filtered_all", "v1_agent_top5", "v1_all_rand10s42")
 
     Examples:
         >>> generate_rollout_version("", "all_loaded")
         'v0'
         >>> generate_rollout_version("skills/v1", "all_loaded")
         'v1_all'
+        >>> generate_rollout_version("skills/v1/metadata.yaml", "all_loaded")
+        'v1_all'
+        >>> generate_rollout_version("skills/v1/metadata_filtered.yaml", "all_loaded")
+        'v1_filtered_all'
         >>> generate_rollout_version("skills/v1", "agent_decided")
         'v1_agent'
         >>> generate_rollout_version("skills/v1", "all_loaded", "top_k", 5)
@@ -45,7 +49,23 @@ def generate_rollout_version(
     if skill_version == "" or skill_version is None:
         return "v0"
 
-    skill_version_name = Path(skill_version).parent.name
+    skill_path = Path(skill_version)
+
+    # Check if skill_version points to a file with pattern metadata_{id}.yaml
+    metadata_id = None
+    if skill_path.suffix in ['.yaml', '.yml']:
+        # Extract filename
+        filename = skill_path.stem  # e.g., "metadata" or "metadata_filtered"
+        # Check for pattern metadata_{id}
+        match = re.match(r'metadata_(.+)', filename)
+        if match:
+            metadata_id = match.group(1)
+
+        # Use parent directory name as base version
+        skill_version_name = skill_path.parent.parent.name
+    else:
+        # It's a directory path
+        skill_version_name = skill_path.parent.name
 
     # Map skill_mode to short name
     mode_map = {
@@ -60,7 +80,11 @@ def generate_rollout_version(
     mode_short = mode_map[skill_mode]
 
     # Base version string
-    version_str = f"{skill_version_name}_{mode_short}"
+    if metadata_id:
+        # Include metadata ID in version string (e.g., "v1_filtered_all")
+        version_str = f"{skill_version_name}_{metadata_id}_{mode_short}"
+    else:
+        version_str = f"{skill_version_name}_{mode_short}"
 
     # Add subset information if not using all skills
     if subset_mode == "top_k" and subset_k is not None:
