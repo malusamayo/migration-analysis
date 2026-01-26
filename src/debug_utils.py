@@ -59,16 +59,14 @@ def replay_messages(path: str, replay_n: int = 1):
 
     model = data['model']
     messages = data['messages']
-    # for msg in messages:
-    #     if 'content' not in msg:
-    #         msg['content'] = ""
-    tools = eval(data['kwargs']['tools'])
+    for k in data['kwargs']:
+        data['kwargs'][k] = eval(data['kwargs'][k])
 
-    def batch_inference_wrapper(model, messages, tools):
+    def batch_inference_wrapper(model, messages, kwargs):
         response = litellm.completion(
             model=model,
             messages=messages,
-            tools=tools,
+            **kwargs
         )
         print("\n✅ SUCCESS!")
         print(f"Response: {response.choices[0].message.content}")
@@ -80,7 +78,7 @@ def replay_messages(path: str, replay_n: int = 1):
         args_list=[{
             "model": model,
             "messages": messages,
-            "tools": tools
+            "kwargs": data['kwargs'],
         } for _ in range(replay_n)],
     )
 

@@ -353,13 +353,16 @@ def generate_universal_patches(
     output_dir: Path = None
 ) -> Dict[str, Any]:
     """
-    Generate universal patches from aggregated analysis.
+    DEPRECATED: This function is deprecated as aggregation is no longer part of the workflow.
 
-    Instead of generating patches per-example, this creates patches that address
-    common patterns identified across all examples in the aggregated analysis.
+    The new workflow should generate patches directly from individual comparison results,
+    not from aggregated analyses.
+
+    Old description (for reference):
+    Generate universal patches from aggregated analysis (common patterns and improvements).
 
     Args:
-        aggregated_analysis: Result from aggregate_comparison_analyses()
+        aggregated_analysis: DEPRECATED - Result from old aggregate_comparison_analyses()
         model_name: Model to use for patch generation (default: "gemini-2.5-flash")
         output_dir: Directory to save patch files
 
