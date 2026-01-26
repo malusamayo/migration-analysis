@@ -1,6 +1,7 @@
 import pandas as pd
 import dspy
 import json
+import yaml
 import os
 import shutil
 import platform
@@ -11,6 +12,8 @@ from functools import partial
 from copy import deepcopy
 from typing import List, Any, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from openhands.sdk.context.agent_context import AgentContext
 from .utils import LM_DICT, batch_inference, use_lm
 from .dataloader import CollectDataLoader
 from .review.trajectory_utils import convert_json_to_markdown
@@ -26,7 +29,11 @@ import re
 from pathlib import Path
 from dotenv import dotenv_values
 
-from openhands.sdk import LLM, Agent, Conversation, Tool, AgentContext
+from openhands.sdk import (
+    LLM, Agent, 
+    Conversation, RemoteConversation,
+    Tool, AgentContext
+)
 from openhands.tools.file_editor import FileEditorTool
 from openhands.tools.terminal import TerminalTool
 from openhands.sdk.context import (
@@ -35,6 +42,7 @@ from openhands.sdk.context import (
 from openhands.workspace import DockerWorkspace
 
 from .debug_utils import patch_llm_for_debugging
+from .review.skill_manager import SkillManager
 
 def detect_platform() -> str:
     """Detects the correct platform string for container images."""
@@ -46,16 +54,19 @@ def detect_platform() -> str:
 def discover_skills(
     skill_version: Optional[str] = None,
     skill_mode: str = "all_loaded",
+    subset_mode: str = "all",
+    subset_k: Optional[int] = None,
+    subset_seed: Optional[int] = None,
 ) -> List[Skill]:
     """
     Discover and load skills for a given rollout version.
 
     Args:
-        task_id: Task identifier (not used when skill_version contains full path)
-        model_name: Model name (not used when skill_version contains full path)
-        prompt_name: Prompt name (not used when skill_version contains full path)
         skill_version: Full relative path to skill folder (e.g., "results/webtest/model_default/skills/v1"), or None for no skills
         skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+        subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
+        subset_k: Number of skills to select when subset_mode is "top_k" or "random"
+        subset_seed: Random seed for reproducibility when subset_mode is "random"
 
     Returns:
         List of loaded Skill objects (empty list if skill_version is None)
@@ -69,25 +80,47 @@ def discover_skills(
 
     skills = []
 
-    if skill_dir.exists():
-        # Load all SKILL.md files from skill_dir subdirectories
-        skill_paths = []
-        for skill_folder in skill_dir.iterdir():
-            if skill_folder.is_dir():
-                skill_file = skill_folder / "SKILL.md"
-                if skill_file.exists():
-                    try:
-                        skills.append(Skill.load(path=str(skill_file), strict=False))
-                        if skill_mode == "all_loaded":
-                            skills[-1].is_agentskills_format = False
-                        skill_paths.append(str(skill_file))
-                    except Exception as e:
-                        print(f"⚠️  Failed to load skill from {skill_file}: {e}")
-
-        print(f"✅ Found {len(skills)} skills in {skill_dir}")
-
-    else:
+    if not skill_dir.exists():
         print(f"⚠️  Warning: Skill directory not found: {skill_dir}")
+        return skills
+
+    # Step 1: Use SkillManager to load skills and get subset
+    print(f"Loading skills from {skill_dir}...")
+    manager = SkillManager()
+    manager.load_skills(skill_dir)
+
+    # Step 2: Select skill subset based on mode
+    if subset_mode == "all":
+        selected_skills = manager.skills
+        print(f"Using all {len(selected_skills)} skills")
+    elif subset_mode == "top_k":
+        if subset_k is None:
+            raise ValueError("subset_k must be specified when subset_mode='top_k'")
+        selected_skills = manager.get_top_k_skills(subset_k)
+        print(f"Selected top {len(selected_skills)} skills by duplicate count")
+    elif subset_mode == "random":
+        if subset_k is None:
+            raise ValueError("subset_k must be specified when subset_mode='random'")
+        selected_skills = manager.get_random_skills(subset_k, seed=subset_seed)
+        print(f"Selected {len(selected_skills)} random skills (seed={subset_seed})")
+    else:
+        raise ValueError(f"Invalid subset_mode: {subset_mode}. Must be one of ['all', 'top_k', 'random']")
+
+    # Step 3: Load selected skills as openhands Skill objects
+    for skill in selected_skills:
+        skill_file = skill_dir / skill.skill_name / "SKILL.md"
+        if skill_file.exists():
+            try:
+                openhands_skill = Skill.load(path=str(skill_file), strict=False)
+                if skill_mode == "all_loaded":
+                    openhands_skill.is_agentskills_format = False
+                skills.append(openhands_skill)
+            except Exception as e:
+                print(f"⚠️  Failed to load skill from {skill_file}: {e}")
+        else:
+            print(f"⚠️  Warning: Skill file not found: {skill_file}")
+
+    print(f"✅ Loaded {len(skills)}/{len(selected_skills)} skills")
 
     return skills
 
@@ -178,10 +211,13 @@ def save_conversation_trace(conversation: Conversation,
     with open(trace_path, "w") as trace_file:
         json.dump(conversation_data, trace_file, indent=2)
     
-    markdown_content = convert_json_to_markdown(conversation_data)
-    markdown_path = os.path.join(workspace, f"trace_{conversation.id}.md")
-    with open(markdown_path, "w") as md_file:
-        md_file.write(markdown_content)
+    try:
+        markdown_content = convert_json_to_markdown(conversation_data)
+        markdown_path = os.path.join(workspace, f"trace_{conversation.id}.md")
+        with open(markdown_path, "w") as md_file:
+            md_file.write(markdown_content)
+    except Exception as e:
+        print(f"Error converting JSON to markdown: {e}")
     
     return conversation_data
 
@@ -249,7 +285,12 @@ def _run_agentic_conversation(
             instruction += "\n\n### Hints\nThere are also some provided skills listed above. Please read the markdown file for more details when you find any skills relevant to your current context."
 
         conversation.send_message(instruction)
-        conversation.run(timeout=1200) # 20 minutes timeout
+
+        kwargs = {}
+        if isinstance(conversation, RemoteConversation):
+            kwargs["timeout"] = 1200  # seconds
+        
+        conversation.run(**kwargs)
 
         return example
 
@@ -384,6 +425,9 @@ def run_task(
         resume: bool = True,
         skill_version: Optional[str] = None,
         skill_mode: str = "all_loaded",
+        subset_mode: str = "all",
+        subset_k: Optional[int] = None,
+        subset_seed: Optional[int] = None,
     ):
     """
     Run a task with specified model and prompt.
@@ -399,6 +443,9 @@ def run_task(
         resume: Whether to resume from existing results
         skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
         skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+        subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
+        subset_k: Number of skills to select when subset_mode is "top_k" or "random"
+        subset_seed: Random seed for reproducibility when subset_mode is "random"
 
     Note:
         For agentic execution, volume mounts are automatically inferred from:
@@ -411,6 +458,9 @@ def run_task(
     rollout_version = generate_rollout_version(
         skill_version=skill_version,
         skill_mode=skill_mode,
+        subset_mode=subset_mode,
+        subset_k=subset_k,
+        subset_seed=subset_seed,
     )
     print(f"📦 Auto-generated rollout version: {rollout_version}")
 
@@ -428,6 +478,9 @@ def run_task(
     skills = discover_skills(
         skill_version=full_skill_path,
         skill_mode=skill_mode,
+        subset_mode=subset_mode,
+        subset_k=subset_k,
+        subset_seed=subset_seed,
     )
 
     # Initialize data loader
@@ -441,6 +494,9 @@ def run_task(
         rollout_version=rollout_version,
         skill_version=skill_version,
         skill_mode=skill_mode,
+        subset_mode=subset_mode,
+        subset_k=subset_k,
+        subset_seed=subset_seed,
         resume=resume,
     )
 
@@ -494,33 +550,81 @@ def run_task(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run task with specified model and prompt.")
-    parser.add_argument("--model", type=str, required=True, help="Model name to use.")
-    parser.add_argument("--task_id", type=str, required=True, help="Task ID to run.")
-    parser.add_argument("--prompt_name", type=str, default="default", help="Prompt name to use.")
+
+    # Config file support
+    parser.add_argument("--config", type=str, default=None,
+                        help="Path to JSON config file with default arguments")
+
+    parser.add_argument("--model_name", type=str, help="Model name to use.")
+    parser.add_argument("--task_id", type=str, help="Task ID to run.")
+    parser.add_argument("--prompt_name", type=str, default=None, help="Prompt name to use.")
     parser.add_argument("--max_examples", type=int, default=None, help="Maximum number of examples to process.")
-    parser.add_argument("--n_responses", type=int, default=1, help="Number of responses to generate per example.")
+    parser.add_argument("--n_responses", type=int, default=None, help="Number of responses to generate per example.")
     parser.add_argument("--is_agentic", action="store_true", help="Whether to use agentic execution.")
-    parser.add_argument("--batch_size", type=int, default=16, help="Batch size for collection.")
+    parser.add_argument("--batch_size", type=int, default=None, help="Batch size for collection.")
     parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results.")
 
-    # New parameters for automatic rollout versioning
+    # Parameters for automatic rollout versioning
     parser.add_argument("--skill_version", type=str, default=None,
                         help="Path to skill folder (e.g., 'skills/v1'), or None for no skills")
-    parser.add_argument("--skill_mode", type=str, default="all_loaded",
+    parser.add_argument("--skill_mode", type=str, default=None,
                         choices=["all_loaded", "agent_decided", "monitor_decided"],
                         help="Skill mode: all_loaded, agent_decided, or monitor_decided")
 
+    # Parameters for skill subset selection
+    parser.add_argument("--subset_mode", type=str, default=None,
+                        choices=["all", "top_k", "random"],
+                        help="Skill subset mode: all, top_k, or random")
+    parser.add_argument("--subset_k", type=int, default=None,
+                        help="Number of skills to select when subset_mode is 'top_k' or 'random'")
+    parser.add_argument("--subset_seed", type=int, default=None,
+                        help="Random seed for reproducibility when subset_mode is 'random'")
+
     args = parser.parse_args()
 
+    # Load config file if provided
+    config = {}
+    if args.config:
+        with open(args.config, 'r') as f:
+            config = yaml.safe_load(f)
+        print(f"📋 Loaded config from {args.config}")
+
+    # Merge config file with command line arguments (command line takes precedence)
+    # Set defaults from config
+    model_name = args.model_name if args.model_name is not None else config.get("model_name")
+    task_id = args.task_id if args.task_id is not None else config.get("task_id")
+    prompt_name = args.prompt_name if args.prompt_name is not None else config.get("prompt_name", "default")
+    max_examples = args.max_examples if args.max_examples is not None else config.get("max_examples")
+    n_responses = args.n_responses if args.n_responses is not None else config.get("n_responses", 1)
+    batch_size = args.batch_size if args.batch_size is not None else config.get("batch_size", 16)
+    skill_version = args.skill_version if args.skill_version is not None else config.get("skill_version")
+    skill_mode = args.skill_mode if args.skill_mode is not None else config.get("skill_mode", "all_loaded")
+    subset_mode = args.subset_mode if args.subset_mode is not None else config.get("subset_mode", "all")
+    subset_k = args.subset_k if args.subset_k is not None else config.get("subset_k")
+    subset_seed = args.subset_seed if args.subset_seed is not None else config.get("subset_seed")
+
+    # Handle boolean flags specially
+    is_agentic = args.is_agentic or config.get("is_agentic", False)
+    resume = args.resume if args.resume else config.get("resume", True)
+
+    # Validate required arguments
+    if not model_name:
+        parser.error("--model_name is required (either via command line or config file)")
+    if not task_id:
+        parser.error("--task_id is required (either via command line or config file)")
+
     run_task(
-        task_id=args.task_id,
-        model_name=args.model,
-        prompt_name=args.prompt_name,
-        is_agentic=args.is_agentic,
-        max_examples=args.max_examples,
-        n_responses=args.n_responses,
-        batch_size=args.batch_size,
-        resume=args.resume,
-        skill_version=args.skill_version,
-        skill_mode=args.skill_mode,
+        task_id=task_id,
+        model_name=model_name,
+        prompt_name=prompt_name,
+        is_agentic=is_agentic,
+        max_examples=max_examples,
+        n_responses=n_responses,
+        batch_size=batch_size,
+        resume=resume,
+        skill_version=skill_version,
+        skill_mode=skill_mode,
+        subset_mode=subset_mode,
+        subset_k=subset_k,
+        subset_seed=subset_seed,
     )

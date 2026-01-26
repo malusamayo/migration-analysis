@@ -13,6 +13,7 @@ import json
 import yaml
 import dspy
 import numpy as np
+import random
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 
@@ -618,3 +619,55 @@ class SkillManager:
             ),
             "skill_names": [skill.skill_name for skill in self.skills],
         }
+
+    def get_top_k_skills(self, k: int) -> List[Skill]:
+        """Get top-k skills by duplicate count.
+
+        Args:
+            k: Number of top skills to return
+
+        Returns:
+            List of top-k Skill objects sorted by duplicate_count (descending)
+        """
+        if not self.skills:
+            return []
+
+        # Sort by duplicate_count (descending) and take top k
+        sorted_skills = sorted(
+            self.skills,
+            key=lambda s: s.duplicate_count or 1,
+            reverse=True
+        )
+        return sorted_skills[:k]
+
+    def get_random_skills(self, k: int, seed: Optional[int] = None) -> List[Skill]:
+        """Get k random skills from the collection.
+
+        Args:
+            k: Number of random skills to return
+            seed: Optional random seed for reproducibility
+
+        Returns:
+            List of k randomly selected Skill objects
+        """
+        if not self.skills:
+            return []
+
+        if seed is not None:
+            random.seed(seed)
+
+        # Return min(k, num_skills) to handle case where k > len(self.skills)
+        sample_size = min(k, len(self.skills))
+        return random.sample(self.skills, sample_size)
+
+    def get_skills_by_names(self, skill_names: List[str]) -> List[Skill]:
+        """Get skills by their names.
+
+        Args:
+            skill_names: List of skill names to retrieve
+
+        Returns:
+            List of Skill objects matching the given names (in order)
+        """
+        name_to_skill = {skill.skill_name: skill for skill in self.skills}
+        return [name_to_skill[name] for name in skill_names if name in name_to_skill]

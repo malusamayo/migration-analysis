@@ -102,9 +102,9 @@ def generate_comparison_output_dir(
 
     Example:
         >>> paths = ["results/webtest/qwen3-coder-30b-a3b_static/rollouts/v0",
-        ...          "results/webtest/other-model/rollouts/v1"]
+        ...          "results/webtest/gemini-3-flash-preview_static/rollouts/v1"]
         >>> generate_comparison_output_dir(paths, random_seed=42)
-        Path('results/webtest/qwen3-coder-30b-a3b_static/comparisons/vs_v1_seed42')
+        Path('results/webtest/qwen3-coder-30b-a3b_static/comparisons/v0_vs_gemini-3-flash-preview_static-v1_seed42')
     """
     assert paths, "At least one path must be specified"
 
@@ -125,12 +125,18 @@ def generate_comparison_output_dir(
 
     # Create comparison subdirectory name
     if len(paths) > 1:
-        # Include info about other paths being compared
-        other_path_names = [Path(p).name for p in paths[1:]]
-        paths_str = "_".join(other_path_names[:2])  # Use first 2 other paths
-        if len(other_path_names) > 2:
-            paths_str += f"_and_{len(other_path_names)-2}_more"
-        output_dir = base_dir / "comparisons" / f"vs_{paths_str}_seed{random_seed}"
+        # Include model+prompt+rollout info from other paths being compared
+        other_path_info = []
+        for p in paths[1:]:
+            path_obj = Path(p)
+            model_prompt = path_obj.parent.parent.name  # e.g., "gemini-3-flash-preview_static"
+            rollout_version = path_obj.name  # e.g., "v0"
+            other_path_info.append(f"{model_prompt}-{rollout_version}")
+
+        paths_str = "_".join(other_path_info[:2])  # Use first 2 other paths
+        if len(other_path_info) > 2:
+            paths_str += f"_and_{len(other_path_info)-2}_more"
+        output_dir = base_dir / "comparisons" / f"{rollout_id}_vs_{paths_str}_seed{random_seed}"
     else:
         # Single path comparison
         output_dir = base_dir / "comparisons" / f"{rollout_id}_seed{random_seed}"

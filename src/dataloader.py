@@ -12,6 +12,9 @@ from .utils import LM_DICT
 def generate_rollout_version(
     skill_version: str = "",
     skill_mode: str = "all_loaded",
+    subset_mode: str = "all",
+    subset_k: Optional[int] = None,
+    subset_seed: Optional[int] = None,
 ) -> str:
     """
     Generate a rollout version name based on configuration parameters.
@@ -19,9 +22,12 @@ def generate_rollout_version(
     Args:
         skill_version: Path to the skill folder (e.g., "skills/v1"), or empty string for no skills
         skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+        subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
+        subset_k: Number of skills to select when subset_mode is "top_k" or "random"
+        subset_seed: Random seed for reproducibility when subset_mode is "random"
 
     Returns:
-        Rollout version string (e.g., "v0", "v1_all", "v1_agent")
+        Rollout version string (e.g., "v0", "v1_all", "v1_agent_top5", "v1_all_rand10s42")
 
     Examples:
         >>> generate_rollout_version("", "all_loaded")
@@ -30,6 +36,10 @@ def generate_rollout_version(
         'v1_all'
         >>> generate_rollout_version("skills/v1", "agent_decided")
         'v1_agent'
+        >>> generate_rollout_version("skills/v1", "all_loaded", "top_k", 5)
+        'v1_all_top5'
+        >>> generate_rollout_version("skills/v1", "all_loaded", "random", 10, 42)
+        'v1_all_rand10s42'
     """
     # If no skills, always return v0
     if skill_version == "" or skill_version is None:
@@ -49,8 +59,18 @@ def generate_rollout_version(
 
     mode_short = mode_map[skill_mode]
 
-    # Generate version string
-    return f"{skill_version_name}_{mode_short}"
+    # Base version string
+    version_str = f"{skill_version_name}_{mode_short}"
+
+    # Add subset information if not using all skills
+    if subset_mode == "top_k" and subset_k is not None:
+        version_str += f"_top{subset_k}"
+    elif subset_mode == "random" and subset_k is not None:
+        version_str += f"_rand{subset_k}"
+        if subset_seed is not None:
+            version_str += f"s{subset_seed}"
+
+    return version_str
 
 def prepare_task(
         task_id: str,
@@ -61,6 +81,9 @@ def prepare_task(
         max_examples: Optional[int] = None,
         skill_version: Optional[str] = None,
         skill_mode: str = "all_loaded",
+        subset_mode: str = "all",
+        subset_k: Optional[int] = None,
+        subset_seed: Optional[int] = None,
     ):
     """
     Prepare task data and create workspace directories.
@@ -74,6 +97,9 @@ def prepare_task(
         max_examples: Maximum number of examples to process
         skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
         skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+        subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
+        subset_k: Number of skills to select when subset_mode is "top_k" or "random"
+        subset_seed: Random seed for reproducibility when subset_mode is "random"
 
     Returns:
         Tuple of (data, task_prompt, eval_prompt)
@@ -108,6 +134,9 @@ def prepare_task(
             "rollout_version": rollout_version,
             "skill_version": skill_version,
             "skill_mode": skill_mode,
+            "subset_mode": subset_mode,
+            "subset_k": subset_k,
+            "subset_seed": subset_seed,
             "timestamp": datetime.now().isoformat(),
             "max_examples": max_examples,
             "n_responses": n_responses
@@ -149,6 +178,9 @@ class EvalDataLoader(BaseDataLoader):
         n_responses: int = 1,
         skill_version: Optional[str] = None,
         skill_mode: str = "all_loaded",
+        subset_mode: str = "all",
+        subset_k: Optional[int] = None,
+        subset_seed: Optional[int] = None,
         resume: bool = True,
         output_path: Optional[str] = None,
     ):
@@ -164,6 +196,9 @@ class EvalDataLoader(BaseDataLoader):
             n_responses: Number of rollouts per example
             skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
             skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+            subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
+            subset_k: Number of skills to select when subset_mode is "top_k" or "random"
+            subset_seed: Random seed for reproducibility when subset_mode is "random"
             resume: Whether to skip already-evaluated tasks
             output_path: Path to output file for resume checking (optional)
         """
@@ -181,6 +216,9 @@ class EvalDataLoader(BaseDataLoader):
             n_responses=n_responses,
             skill_version=skill_version,
             skill_mode=skill_mode,
+            subset_mode=subset_mode,
+            subset_k=subset_k,
+            subset_seed=subset_seed,
         )
 
         # Construct workspace data
@@ -353,6 +391,9 @@ class CollectDataLoader(BaseDataLoader):
         n_responses: int = 1,
         skill_version: Optional[str] = None,
         skill_mode: str = "all_loaded",
+        subset_mode: str = "all",
+        subset_k: Optional[int] = None,
+        subset_seed: Optional[int] = None,
         resume: bool = True,
     ):
         """
@@ -368,6 +409,9 @@ class CollectDataLoader(BaseDataLoader):
             n_responses: Number of rollouts per example
             skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
             skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+            subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
+            subset_k: Number of skills to select when subset_mode is "top_k" or "random"
+            subset_seed: Random seed for reproducibility when subset_mode is "random"
             resume: Whether to skip already-completed tasks
         """
 
@@ -389,6 +433,9 @@ class CollectDataLoader(BaseDataLoader):
             n_responses=n_responses,
             skill_version=skill_version,
             skill_mode=skill_mode,
+            subset_mode=subset_mode,
+            subset_k=subset_k,
+            subset_seed=subset_seed,
         )
         self.lm = LM_DICT[model_name]
         self.task_prompt = task_prompt
