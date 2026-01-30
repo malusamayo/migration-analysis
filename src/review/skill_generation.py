@@ -244,6 +244,7 @@ def build_skills(
     similarity_threshold: float = 0.85,
     random_seed: int = 0,
     max_workers: int = 8,
+    existing_skill_metadata: Optional[Path] = None,
 ) -> Dict[str, Any]:
     """
     Build skills from comparison results with automatic deduplication.
@@ -251,8 +252,9 @@ def build_skills(
     This function:
     1. Generates skills from all comparison results using generate_skills_batch
     2. Creates a SkillManager
-    3. Iteratively adds each skill to the manager (with embedding-based duplicate detection)
-    4. Writes the final deduplicated skills to disk
+    3. Optionally loads existing skills from metadata file
+    4. Iteratively adds each skill to the manager (with embedding-based duplicate detection)
+    5. Writes the final deduplicated skills to disk
 
     Args:
         comparison_results: List of comparison results
@@ -262,6 +264,7 @@ def build_skills(
         similarity_threshold: Threshold for similarity detection
         random_seed: Random seed for reproducibility
         max_workers: Maximum parallel workers for skill generation
+        existing_skill_metadata: Optional path to existing skills metadata.yaml file to load
 
     Returns:
         Dictionary containing generation info
@@ -299,6 +302,17 @@ def build_skills(
         similarity_threshold=similarity_threshold,
         lm_name=model_name,
     )
+
+    # Load existing skills if metadata path provided
+    if existing_skill_metadata:
+        existing_skill_metadata_path = Path(existing_skill_metadata)
+        if existing_skill_metadata_path.exists():
+            print(f"\nLoading existing skills from: {existing_skill_metadata_path}")
+            manager.load_skills(existing_skill_metadata_path)
+            print(f"✅ Loaded {len(manager.skills)} existing skill(s)")
+        else:
+            print(f"⚠️  Warning: Existing skill metadata file not found: {existing_skill_metadata_path}")
+            print("   Continuing without loading existing skills...")
 
     total_skills_generated = 0
     for skill_data in tqdm.tqdm(all_skill_data):

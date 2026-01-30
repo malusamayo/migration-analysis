@@ -89,9 +89,7 @@ def discover_skills(
 
     skills = []
 
-    if not metadata_path.exists():
-        print(f"⚠️  Warning: Metadata file not found: {metadata_path}")
-        return skills
+    assert metadata_path.exists(), f"Metadata file not found: {metadata_path}"
 
     # Step 1: Use SkillManager to load skills and get subset
     print(f"Loading skills from {metadata_path}...")
@@ -369,7 +367,7 @@ def run_single_instance_agentic(
         Tool(name=FileEditorTool.name),
     ]
 
-    llm = LLM(model=lm.model, temperature=lm.kwargs.get("temperature"))
+    llm = LLM(model=lm.model) #, temperature=lm.kwargs.get("temperature"))
     system_prompt_path = os.path.abspath(system_prompt_path)
 
     _setup_workspace(task_id, workspace, example)

@@ -90,6 +90,12 @@ def main():
         help="Maximum number of traces to compare per example (default: 3)"
     )
 
+    analyze_parser.add_argument(
+        "--existing_skill_metadata",
+        type=str,
+        help="Path to existing skills metadata.yaml file to load and merge with new skills"
+    )
+
     # Patch generation mode (unified)
     patch_parser = subparsers.add_parser("generate-patches", help="Generate patches from comparison results")
 
@@ -318,6 +324,7 @@ def main():
             similarity_threshold=0.6,
             random_seed=args.random_seed,
             max_workers=args.max_workers,
+            existing_skill_metadata=Path(args.existing_skill_metadata) if args.existing_skill_metadata else None,
         )
         
     # Patch generation mode
