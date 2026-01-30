@@ -376,10 +376,10 @@ class SkillManager:
 
                     # Update duplicate count
                     merged_skill = Skill(
-                        skill_name=merged_skill_result.skill_name,
-                        skill_description=merged_skill_result.skill_description,
-                        skill_trigger=merged_skill_result.skill_trigger,
-                        skill_body=merged_skill_result.skill_body,
+                        skill_name=existing_skill.skill_name,
+                        skill_description=existing_skill.skill_description,
+                        skill_trigger=existing_skill.skill_trigger,
+                        skill_body=existing_skill.skill_body,
                         duplicate_count=existing_skill.duplicate_count + 1
                     )
 
