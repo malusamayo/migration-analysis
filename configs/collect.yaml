@@ -1,20 +1,32 @@
 # Configuration using top 10 skills by duplicate count
 
 task_id: "webtest"
-model_name: "qwen3-coder-30b-a3b"
+# model_name: "qwen3-coder-30b-a3b"
+# model_name: "gemini-3-flash-preview"
+# model_name: "gemini-3-pro-preview"
+model_name: "claude-sonnet-4-5"
 prompt_name: "static"
 
-skill_version: "results/webtest/qwen3-coder-30b-a3b_static/comparisons/v0_seed0_filtered/skills"
-skill_mode: "all_loaded"
+skill_version: ""
+# skill_version: "results/webtest/qwen3-coder-30b-a3b_static/comparisons/v0_seed0/skills/metadata.yaml"
+# skill_version: "results/webtest/qwen3-coder-30b-a3b_static/comparisons/v0_vs_gemini-3-flash-preview_static-v0_seed0/skills/metadata.yaml"
+# skill_version: "results/webtest/qwen3-coder-30b-a3b_static/comparisons/v0_seed0/skills/metadata_top10.yaml"
+# skill_version: "results/webtest/qwen3-coder-30b-a3b_static/comparisons/v0_seed0/skills/metadata_filtered.yaml"
+# skill_version: "results/webtest/qwen3-coder-30b-a3b_static/comparisons/v0_seed0/skills/metadata_manual_filtered.yaml"
+# skill_version: "results/webtest/qwen3-coder-30b-a3b_static/comparisons/v0_seed0/skills/metadata_optimized.yaml"
+# skill_version: "results/webtest/qwen3-coder-30b-a3b_static/comparisons/v0_vs_gemini-3-flash-preview_static-v0_seed0/skills/metadata_top9.yaml"
+# skill_version: "results/webtest/qwen3-coder-30b-a3b_static/comparisons/mixed/skills/metadata_matched.yaml"
+# skill_version: "results/webtest/qwen3-coder-30b-a3b_static/comparisons/v0_vs_gemini-3-pro-preview_static-v0_seed0/skills/metadata_filtered.yaml"
+# skill_mode: "all_loaded"
 
 # # Select top 10 skills
 # subset_mode: "top_k"
 # subset_k: 10
 
-max_examples: 10
+max_examples: 3
 n_responses: 3
 batch_size: 32
 is_agentic: true
-resume: true
+resume: false
 
 eval_lm: "gemini-3-flash-preview"
