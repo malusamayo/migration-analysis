@@ -115,9 +115,6 @@ class UCBSkillSelector:
                 )
                 ucb_scores[name] = exploitation + exploration + duplicate_bonus
 
-        print(self.total_pulls, ucb_scores)
-        exit(0)
-
         return ucb_scores
 
     def select_subset(self, k: int) -> List[str]:
@@ -476,7 +473,6 @@ class SkillOptimizer:
                 skill_mode="all_loaded",
                 subset_mode="all",
                 max_examples=self.max_examples,
-                # resume=False
             )
 
             # Run evaluation
@@ -487,7 +483,6 @@ class SkillOptimizer:
                 eval_lm_name=self.eval_lm_name,
                 prompt_name=self.prompt_name,
                 rollout_version=rollout_version,
-                # resume=False
             )
 
             # Load and analyze results
@@ -765,18 +760,22 @@ def main():
             "model_name, task_id, skill_dir, baseline_path"
         )
 
-    # Optional arguments (CLI > config > default)
-    prompt_name = args.prompt_name or config.get("prompt_name")
-    output_path = args.output_path or config.get("output_path")
-    max_rounds = args.max_rounds if args.max_rounds != 20 else config.get("max_rounds", 20)
-    subset_sizes = args.subset_sizes if args.subset_sizes != [3, 5, 10] else config.get("subset_sizes", [3, 5, 10])
-    exploration_param = args.exploration_param if args.exploration_param != 1.0 else config.get("exploration_param", 1.0)
-    duplicate_bonus_weight = args.duplicate_bonus_weight if args.duplicate_bonus_weight != 0.1 else config.get("duplicate_bonus_weight", 0.1)
-    eval_lm = args.eval_lm or config.get("eval_lm")
-    max_examples = args.max_examples or config.get("max_examples")
-    seed = args.seed if args.seed is not None else config.get("seed")
-    is_agentic = args.is_agentic if hasattr(args, 'is_agentic') else config.get("is_agentic", True)
-    resume = args.resume if hasattr(args, 'resume') else config.get("resume", True)
+    # Helper: prioritize CLI > config > code default
+    def get_value(cli_val, config_key, default):
+        return cli_val if cli_val is not None else config.get(config_key, default)
+
+    # Optional arguments (clean priority: CLI > config > code default)
+    prompt_name = get_value(args.prompt_name, "prompt_name", "default")
+    output_path = get_value(args.output_path, "output_path", None)
+    max_rounds = get_value(args.max_rounds, "max_rounds", 20)
+    subset_sizes = get_value(args.subset_sizes, "subset_sizes", [3, 5, 10])
+    exploration_param = get_value(args.exploration_param, "exploration_param", 1.0)
+    duplicate_bonus_weight = get_value(args.duplicate_bonus_weight, "duplicate_bonus_weight", 0.1)
+    eval_lm = get_value(args.eval_lm, "eval_lm", None)
+    max_examples = get_value(args.max_examples, "max_examples", None)
+    seed = get_value(args.seed, "seed", None)
+    is_agentic = get_value(args.is_agentic, "is_agentic", True)
+    resume = get_value(args.resume, "resume", True)
 
     # Create optimizer
     optimizer = SkillOptimizer(
