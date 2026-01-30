@@ -201,7 +201,7 @@ def save_conversation_trace(conversation: Conversation,
     else:
         print(events[-1])
         print(f"Unexpected final event type {events[-1]['kind']}")
-        final_message = ""
+        return None
 
     # export cost and total tokens
     metrics = conversation.conversation_stats.get_combined_metrics().get()
