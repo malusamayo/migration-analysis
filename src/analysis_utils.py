@@ -65,6 +65,11 @@ def build_summary_dataframe(
         scores = [e['score'] for e in data]
         avg_score = np.mean(scores)
 
+        # Coverage metrics (from V8 precise coverage, when available)
+        cov_metrics = [e.get('coverage_metrics') for e in data if e.get('coverage_metrics')]
+        avg_func_cov = np.mean([cm['function_coverage'] for cm in cov_metrics]) if cov_metrics else None
+        avg_byte_cov = np.mean([cm['byte_coverage'] for cm in cov_metrics]) if cov_metrics else None
+
         row = {
             'prompt_name': prompt_name,
             'model_name': model_name,
@@ -73,6 +78,8 @@ def build_summary_dataframe(
             'num_examples': len(data),
             'avg_score': avg_score,
             'scores': scores,
+            'avg_function_coverage': avg_func_cov,
+            'avg_byte_coverage': avg_byte_cov,
         }
 
         # Add trajectory metrics if requested
@@ -269,7 +276,8 @@ def compare_models(
             'num_examples', 'avg_score', 'avg_cost', 'total_cost',
             'avg_prompt_tokens', 'avg_completion_tokens', 'avg_total_tokens',
             'avg_tokens_per_turn', 'avg_steps', 'avg_agent_steps',
-            'avg_num_skills', 'min_num_skills', 'max_num_skills'
+            'avg_num_skills', 'min_num_skills', 'max_num_skills',
+            'avg_function_coverage', 'avg_byte_coverage',
         ]
 
     # Filter to available metrics

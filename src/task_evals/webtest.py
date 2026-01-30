@@ -5,6 +5,8 @@ This module provides evaluation functions for webtest workspace directories,
 running playwright-based tests and calculating scores.
 """
 
+import json
+import shutil
 import subprocess
 import re
 import os
@@ -28,6 +30,159 @@ class ShortenMessage(dspy.Module):
 
     def forward(self, message: str, max_length: int):
         return self.shorten(message=message, max_length=max_length)
+
+
+# ---------------------------------------------------------------------------
+# V8 coverage conftest – injected into the workspace before running tests
+# ---------------------------------------------------------------------------
+_COVERAGE_CONFTEST = "" #open(Path(__file__).parent / "conftest.py", "r", encoding="utf-8").read()
+
+def _prepare_coverage_conftest(workspace_path: Path) -> Optional[str]:
+    """
+    Write a coverage-instrumented conftest.py directly into the workspace.
+
+    If the workspace already has a root-level conftest.py, the coverage code is
+    prepended so both coexist.  Returns the original file content (so the caller
+    can restore it later) or ``None`` if there was no pre-existing conftest.
+    """
+    conftest_file = workspace_path / "conftest.py"
+
+    if conftest_file.exists():
+        original = conftest_file.read_text(encoding="utf-8")
+        content = _COVERAGE_CONFTEST + "\n\n# --- original conftest.py ---\n\n" + original
+    else:
+        original = None
+        content = _COVERAGE_CONFTEST
+
+    conftest_file.write_text(content, encoding="utf-8")
+    return original
+
+
+def _restore_conftest(workspace_path: Path, original: Optional[str]) -> None:
+    """Undo what ``_prepare_coverage_conftest`` did."""
+    conftest_file = workspace_path / "conftest.py"
+    if original is not None:
+        conftest_file.write_text(original, encoding="utf-8")
+    else:
+        conftest_file.unlink(missing_ok=True)
+
+
+def _compute_coverage_metrics(coverage_dir: Path) -> Dict[str, Any]:
+    """
+    Parse V8 precise-coverage JSON files and return aggregate metrics.
+
+    Returns a dict with:
+        scripts            – number of distinct script URLs
+        functions_total    – total JS functions seen
+        functions_covered  – functions executed at least once
+        bytes_total        – total source bytes across all functions
+        bytes_covered      – source bytes covered (block-level when available)
+        function_coverage  – ratio (0-1)
+        byte_coverage      – ratio (0-1)
+        per_script         – {url: {same keys minus per_script}} breakdown
+    """
+    empty: Dict[str, Any] = {
+        "scripts": 0,
+        "functions_total": 0,
+        "functions_covered": 0,
+        "bytes_total": 0,
+        "bytes_covered": 0,
+        "function_coverage": 0.0,
+        "byte_coverage": 0.0,
+        "per_script": {},
+    }
+
+    if not coverage_dir.is_dir():
+        return empty
+
+    json_files = sorted(coverage_dir.glob("*.precise.json"))
+    if not json_files:
+        return empty
+
+    # Merge coverage entries across files, keyed by script URL
+    scripts: Dict[str, list] = {}
+    for jf in json_files:
+        with open(jf, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        for entry in data.get("result", []):
+            url = entry.get("url", "")
+            # keep only application scripts (http(s) / file)
+            if not url or not url.startswith(("http://", "https://", "file://")):
+                continue
+            scripts.setdefault(url, []).extend(entry.get("functions", []))
+
+    if not scripts:
+        return empty
+
+    total_funcs = 0
+    covered_funcs = 0
+    total_bytes = 0
+    covered_bytes = 0
+    per_script: Dict[str, Any] = {}
+
+    for url, functions in scripts.items():
+        sf = sc = sb = scb = 0
+        for func in functions:
+            ranges = func.get("ranges", [])
+            if not ranges:
+                continue
+            root = ranges[0]
+            func_size = root["endOffset"] - root["startOffset"]
+            if func_size <= 0:
+                continue
+
+            sf += 1
+            if root["count"] > 0:
+                sc += 1
+
+            sb += func_size
+            if func.get("isBlockCoverage", False) and len(ranges) > 1:
+                # Sweep-line: boundaries split into segments; innermost
+                # range (last match, since V8 lists outer-to-inner) wins.
+                boundaries = sorted(
+                    {r["startOffset"] for r in ranges}
+                    | {r["endOffset"] for r in ranges}
+                )
+                seg_covered = 0
+                for i in range(len(boundaries) - 1):
+                    pos = boundaries[i]
+                    seg_len = boundaries[i + 1] - pos
+                    count = 0
+                    for r in ranges:
+                        if r["startOffset"] <= pos < r["endOffset"]:
+                            count = r["count"]
+                    if count > 0:
+                        seg_covered += seg_len
+                scb += seg_covered
+            else:
+                # No block detail – fall back to function-level
+                if root["count"] > 0:
+                    scb += func_size
+
+        total_funcs += sf
+        covered_funcs += sc
+        total_bytes += sb
+        covered_bytes += scb
+        per_script[url] = {
+            "functions_total": sf,
+            "functions_covered": sc,
+            "bytes_total": sb,
+            "bytes_covered": scb,
+            "function_coverage": round(sc / sf, 4) if sf else 0.0,
+            "byte_coverage": round(scb / sb, 4) if sb else 0.0,
+        }
+
+    return {
+        "scripts": len(scripts),
+        "functions_total": total_funcs,
+        "functions_covered": covered_funcs,
+        "bytes_total": total_bytes,
+        "bytes_covered": covered_bytes,
+        "function_coverage": round(covered_funcs / total_funcs, 4) if total_funcs else 0.0,
+        "byte_coverage": round(covered_bytes / total_bytes, 4) if total_bytes else 0.0,
+        "per_script": per_script,
+    }
+
 
 def _count_test_functions(test_files: List[Path], test_function_pattern: re.Pattern) -> int:
     """Count total test functions across all files."""
@@ -144,7 +299,7 @@ def _create_error_result(workspace_dir: str, test_files: List[str], error_msg: s
 def _run_file_with_pytest(
     test_file: Path,
     workspace_path: Path,
-    timeout: int = 60
+    timeout: int = 60,
 ) -> Optional[Tuple[int, int, subprocess.CompletedProcess]]:
     """
     Run a single test file with pytest inside Docker container.
@@ -164,7 +319,7 @@ def _run_file_with_pytest(
     forward_env = [key for key in env_config.keys() if key in all_envs]
 
     docker_volumes = []
-    docker_volumes.append(f"{workspace_path.absolute()}:/workspace/project:ro")
+    docker_volumes.append(f"{workspace_path.absolute()}:/workspace/project")
     docker_volumes.append(f"{os.path.abspath('.vertex-ai.json')}:/workspace/.vertex-ai.json:ro")
 
     # Build Docker command
@@ -184,6 +339,8 @@ def _run_file_with_pytest(
         "-v", "--tb=short",
         str(test_file)
     ])
+
+    # print(f"    Docker command: {' '.join(docker_cmd)}")
 
     pytest_result = subprocess.run(
         docker_cmd,
@@ -259,6 +416,10 @@ def _run_tests_batch(
 
     pytest_available = True  # Always true in Docker
 
+    # Set up V8 coverage collection – write conftest.py into workspace
+    original_conftest = _prepare_coverage_conftest(workspace_path)
+    print(f"  V8 coverage enabled (output: {workspace_path / 'coverage-raw'})")
+
     for test_file in test_files:
         relative_path = test_file.relative_to(workspace_path)
         print(f"  Running {relative_path}...")
@@ -278,7 +439,9 @@ def _run_tests_batch(
 
             # Try pytest first if available
             if pytest_available:
-                pytest_result = _run_file_with_pytest(relative_path, workspace_path, timeout_per_file)
+                pytest_result = _run_file_with_pytest(
+                    relative_path, workspace_path, timeout_per_file,
+                )
                 if pytest_result is None:
                     raise RuntimeError("Failed to parse pytest output or no tests detected.")
                 file_passed, file_failed, result = pytest_result
@@ -336,7 +499,25 @@ def _run_tests_batch(
     print(f"Pass rate: {pass_rate:.1%}")
     print(f"Score: {score:.2f} (expected {expected_tests} tests, found {tests_total})")
 
+    # Collect V8 coverage files and compute metrics
+    cov_dir = workspace_path / "coverage-raw"
+    coverage_metrics = _compute_coverage_metrics(cov_dir)
+    if coverage_metrics["scripts"] > 0:
+        print(
+            f"  Coverage: {coverage_metrics['byte_coverage']:.1%} bytes, "
+            f"{coverage_metrics['function_coverage']:.1%} functions "
+            f"({coverage_metrics['scripts']} scripts)"
+        )
+
+    # Clean up coverage-raw directory
+    if cov_dir.is_dir():
+        shutil.rmtree(cov_dir, ignore_errors=True)
+
+    # Restore original conftest (or remove the one we injected)
+    _restore_conftest(workspace_path, original_conftest)
+
     return {
+        "feedback": feedback,
         "workspace_dir": str(workspace_path),
         "test_files": test_file_names,
         "tests_passed": tests_passed,
@@ -345,8 +526,8 @@ def _run_tests_batch(
         "score": score,
         "pass_rate": pass_rate,
         "success": success,
-        "feedback": feedback,
         "test_output": file_results,
+        "coverage_metrics": coverage_metrics,
     }
 
 
@@ -392,6 +573,7 @@ def run_single_instance_eval(
             - feedback: Natural language feedback summary
             - test_output: Full test execution output
             - error: Error message if execution failed
+            - coverage_metrics: Dictionary containing coverage metrics (byte_coverage, function_coverage, scripts)
 
     Example:
         >>> result = run_single_instance_eval(
