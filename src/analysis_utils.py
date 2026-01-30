@@ -77,7 +77,7 @@ def build_summary_dataframe(
 
         # Add trajectory metrics if requested
         if include_trajectories:
-            traj_metrics = _extract_trajectory_metrics(data)
+            metrics_df, traj_metrics = _extract_trajectory_metrics(data)
             row.update(traj_metrics)
 
         # Calculate scores by rollout if structure allows
@@ -131,6 +131,7 @@ def _extract_trajectory_metrics(data: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Extract trajectory metrics from evaluation data."""
     trajs = []
     missing_traces = []
+    skill_counts = []
 
     for e in data:
         workspace_dir = e.get('workspace_dir', '')
@@ -140,10 +141,12 @@ def _extract_trajectory_metrics(data: List[Dict[str, Any]]) -> Dict[str, Any]:
 
         # Find trace file
         trace_file = None
+        raw_trace_file = None
         for file in os.listdir(workspace_dir):
-            if file.startswith("trace_") and file.endswith(".json"):
+            if file.startswith("trace_") and file.endswith(".json") and not file.startswith("raw_trace_"):
                 trace_file = os.path.join(workspace_dir, file)
-                break
+            elif file.startswith("raw_trace_") and file.endswith(".json"):
+                raw_trace_file = os.path.join(workspace_dir, file)
 
         if trace_file:
             with open(trace_file) as f:
@@ -151,12 +154,34 @@ def _extract_trajectory_metrics(data: List[Dict[str, Any]]) -> Dict[str, Any]:
         else:
             missing_traces.append(workspace_dir)
 
+        # Extract skill count from raw_trace file
+        if raw_trace_file:
+            try:
+                with open(raw_trace_file) as f:
+                    raw_trace_data = json.load(f)
+                    # Find the first event with agent_context
+                    # It's usually in a ConversationStateUpdateEvent with source='environment'
+                    # nested at event['value']['agent']['agent_context']
+                    for event in raw_trace_data:
+                        if event.get("source") == "environment" and "value" in event:
+                            value = event["value"]
+                            if isinstance(value, dict) and "agent" in value:
+                                agent = value["agent"]
+                                if isinstance(agent, dict) and "agent_context" in agent:
+                                    skills = agent["agent_context"].get("skills", [])
+                                    skill_counts.append(len(skills))
+                                    break
+            except Exception as e:
+                # If we can't read the raw trace, skip skill counting for this example
+                pass
+
     if not trajs:
         return {
             'avg_cost': None,
             'avg_tokens_per_turn': None,
             'avg_steps': None,
             'num_missing_traces': len(missing_traces),
+            'avg_num_skills': None,
         }
 
     # Extract metrics
@@ -199,7 +224,19 @@ def _extract_trajectory_metrics(data: List[Dict[str, Any]]) -> Dict[str, Any]:
     ]
     result['avg_agent_steps'] = np.mean(num_steps) if num_steps else None
 
-    return result
+    # Add skill count metrics
+    if skill_counts:
+        result['avg_num_skills'] = np.mean(skill_counts)
+        result['min_num_skills'] = np.min(skill_counts)
+        result['max_num_skills'] = np.max(skill_counts)
+        result['total_num_skills'] = np.sum(skill_counts)
+    else:
+        result['avg_num_skills'] = None
+        result['min_num_skills'] = None
+        result['max_num_skills'] = None
+        result['total_num_skills'] = None
+
+    return metrics_df, result
 
 
 def compare_models(
@@ -231,7 +268,8 @@ def compare_models(
         metrics = [
             'num_examples', 'avg_score', 'avg_cost', 'total_cost',
             'avg_prompt_tokens', 'avg_completion_tokens', 'avg_total_tokens',
-            'avg_tokens_per_turn', 'avg_steps', 'avg_agent_steps'
+            'avg_tokens_per_turn', 'avg_steps', 'avg_agent_steps',
+            'avg_num_skills', 'min_num_skills', 'max_num_skills'
         ]
 
     # Filter to available metrics
@@ -273,7 +311,7 @@ def load_scores_detailed(path: Union[str, Path]) -> Dict[str, Any]:
     scores = [e['score'] for e in data]
 
     # Extract trajectory data
-    traj_metrics = _extract_trajectory_metrics(data)
+    metrics_df, traj_metrics = _extract_trajectory_metrics(data)
 
     # Build workspace to result mapping
     data_dict = {e['workspace_dir']: e for e in data}
@@ -323,6 +361,13 @@ def load_scores_detailed(path: Union[str, Path]) -> Dict[str, Any]:
         print(f"Avg tokens/turn: {result['avg_tokens_per_turn']:.1f}")
     if result.get('avg_steps'):
         print(f"Avg steps: {result['avg_steps']:.1f}")
+
+    if result.get('avg_num_skills') is not None:
+        print(f"Avg num skills: {result['avg_num_skills']:.1f}")
+    if result.get('min_num_skills') is not None:
+        print(f"Min num skills: {result['min_num_skills']:.0f}")
+    if result.get('max_num_skills') is not None:
+        print(f"Max num skills: {result['max_num_skills']:.0f}")
 
     if 'scores_by_rollout' in result:
         print(f"Scores by rollout: {result['scores_by_rollout']}")
