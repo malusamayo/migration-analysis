@@ -16,7 +16,7 @@ ENV VIRTUAL_ENV=/workspace/.venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY pyproject.toml uv.lock ./
-COPY --chown=openhands:openhands software-agent-sdk /software-agent-sdk
+COPY software-agent-sdk /software-agent-sdk
 RUN uv sync --frozen --no-dev --active
 
 # Install playwright browsers (required for playwright)
