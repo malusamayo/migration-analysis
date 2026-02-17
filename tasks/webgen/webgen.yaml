@@ -1,6 +1,7 @@
 # Configuration using top 10 skills by duplicate count
 
 task_id: "webgen"
+data_path: "data/webgen.csv"
 model_name: "gemini-3-pro-preview"
 prompt_name: "cursor"
 

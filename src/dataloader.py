@@ -108,6 +108,7 @@ def prepare_task(
         subset_mode: str = "all",
         subset_k: Optional[int] = None,
         subset_seed: Optional[int] = None,
+        data_path: Optional[str] = None,
     ):
     """
     Prepare task data and create workspace directories.
@@ -130,7 +131,8 @@ def prepare_task(
     """
     assert task_id in ["webgen", "webtest"], "Unsupported task_id"
 
-    data_path = f"data/{task_id}.csv"
+    if data_path is None:
+        data_path = f"data/{task_id}.csv"
     data = pd.read_csv(data_path)
     print(f"Loaded {len(data)} examples from {data_path}, keeping max_examples={max_examples}")
     data = data.to_dict(orient="records")[:max_examples]
@@ -207,6 +209,7 @@ class EvalDataLoader(BaseDataLoader):
         subset_seed: Optional[int] = None,
         resume: bool = True,
         output_path: Optional[str] = None,
+        data_path: Optional[str] = None,
     ):
         """
         Initialize the data loader by loading task data and constructing workspace mappings.
@@ -243,6 +246,7 @@ class EvalDataLoader(BaseDataLoader):
             subset_mode=subset_mode,
             subset_k=subset_k,
             subset_seed=subset_seed,
+            data_path=data_path,
         )
 
         # Construct workspace data
@@ -419,6 +423,7 @@ class CollectDataLoader(BaseDataLoader):
         subset_k: Optional[int] = None,
         subset_seed: Optional[int] = None,
         resume: bool = True,
+        data_path: Optional[str] = None,
     ):
         """
         Initialize the data loader by loading task data.
@@ -437,6 +442,7 @@ class CollectDataLoader(BaseDataLoader):
             subset_k: Number of skills to select when subset_mode is "top_k" or "random"
             subset_seed: Random seed for reproducibility when subset_mode is "random"
             resume: Whether to skip already-completed tasks
+            data_path: Path to the CSV data file (default: data/{task_id}.csv)
         """
 
         self.task_id = task_id
@@ -460,6 +466,7 @@ class CollectDataLoader(BaseDataLoader):
             subset_mode=subset_mode,
             subset_k=subset_k,
             subset_seed=subset_seed,
+            data_path=data_path,
         )
         self.lm = LM_DICT[model_name]
         self.task_prompt = task_prompt

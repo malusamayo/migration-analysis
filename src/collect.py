@@ -438,6 +438,7 @@ def run_task(
         subset_seed: Optional[int] = None,
         use_docker: bool = True,
         server_image: str = "migration-analysis:latest",
+        data_path: Optional[str] = None,
     ):
     """
     Run a task with specified model and prompt.
@@ -512,6 +513,7 @@ def run_task(
         subset_k=subset_k,
         subset_seed=subset_seed,
         resume=resume,
+        data_path=data_path,
     )
 
     output_path = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}/run.json"
@@ -625,6 +627,7 @@ if __name__ == "__main__":
     resume = args.resume if args.resume else config.get("resume", True)
     use_docker = config.get("use_docker", False)
     server_image = config.get("server_image", "migration-analysis:latest")
+    data_path = config.get("data_path")
 
     # Validate required arguments
     if not model_name:
@@ -648,4 +651,5 @@ if __name__ == "__main__":
         subset_seed=subset_seed,
         use_docker=use_docker,
         server_image=server_image,
+        data_path=data_path,
     )

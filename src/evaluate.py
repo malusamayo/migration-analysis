@@ -43,6 +43,7 @@ def run_task_eval(
         subset_mode: str = "all",
         subset_k: Optional[int] = None,
         subset_seed: Optional[int] = None,
+        data_path: Optional[str] = None,
     ):
     """
     Run evaluation on a task.
@@ -79,6 +80,7 @@ def run_task_eval(
         subset_seed=subset_seed,
         resume=resume,
         output_path=output_path,
+        data_path=data_path,
     )
 
     # Get completed and pending tasks from data loader
@@ -176,6 +178,7 @@ if __name__ == "__main__":
 
     # Handle boolean flag specially
     resume = args.resume if args.resume else config.get("resume", True)
+    data_path = config.get("data_path")
 
     # Validate required arguments
     if not task_id:
@@ -206,4 +209,5 @@ if __name__ == "__main__":
         subset_mode=subset_mode,
         subset_k=subset_k,
         subset_seed=subset_seed,
+        data_path=data_path,
     )
