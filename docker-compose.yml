@@ -1,0 +1,6 @@
+services:
+  webtest:
+    image: webtest:latest
+    build:
+      context: .
+      dockerfile: tasks/webtest/Dockerfile
