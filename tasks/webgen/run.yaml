@@ -13,12 +13,12 @@ skill_version: ""
 # subset_k: 10
 
 max_examples: 1
-n_responses: 1
+n_responses: 2
 batch_size: 32
 resume: true
 
 is_agentic: true
-use_docker: true
+use_docker: false
 server_image: "webgen:latest"
 
 eval_lm: "gemini-3-flash-preview"
