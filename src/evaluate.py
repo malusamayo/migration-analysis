@@ -44,6 +44,7 @@ def run_task_eval(
         subset_k: Optional[int] = None,
         subset_seed: Optional[int] = None,
         data_path: Optional[str] = None,
+        docker_image: Optional[str] = None,
     ):
     """
     Run evaluation on a task.
@@ -61,6 +62,7 @@ def run_task_eval(
         subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
         subset_k: Number of skills to select when subset_mode is "top_k" or "random"
         subset_seed: Random seed for reproducibility when subset_mode is "random"
+        docker_image: Docker image to use for evaluation (if applicable)
     """
     config = get_config(task_id)
 
@@ -95,6 +97,10 @@ def run_task_eval(
             raise ValueError(f"Unknown eval_lm_name: {eval_lm_name}. Check configs/models.yaml.")
         eval_lm = LM_DICT[eval_lm_name]
         args_list = [{**args, "lm": eval_lm} for args in args_list]
+    
+    # Add docker_image to args if available
+    if docker_image:
+        args_list = [{**args, "docker_image": docker_image} for args in args_list]
 
     # Define callback to save partial results
     def write_partial_results(completed_results, total_count):
@@ -179,6 +185,7 @@ if __name__ == "__main__":
     # Handle boolean flag specially
     resume = args.resume if args.resume else config.get("resume", True)
     data_path = config.get("data_path")
+    docker_image = config.get("docker_image")
 
     # Validate required arguments
     if not task_id:
@@ -210,4 +217,5 @@ if __name__ == "__main__":
         subset_k=subset_k,
         subset_seed=subset_seed,
         data_path=data_path,
+        docker_image=docker_image,
     )
