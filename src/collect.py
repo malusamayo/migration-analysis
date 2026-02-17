@@ -337,7 +337,8 @@ def run_single_instance_agentic(
         task_id: str,
         skills: List[Skill] = [],
         skill_mode: str = "",
-        use_docker: bool = True,
+        use_docker: bool = False,
+        server_image: str = "",
     ):
     """
     Run a single instance using OpenHands agents.
@@ -391,7 +392,7 @@ def run_single_instance_agentic(
 
         with DockerWorkspace(
             working_dir=docker_workspace_path,
-            server_image="migration-analysis:latest",
+            server_image=server_image,
             platform=detect_platform(),
             volumes=docker_volumes,
             forward_env=forward_env,
@@ -435,6 +436,8 @@ def run_task(
         subset_mode: str = "all",
         subset_k: Optional[int] = None,
         subset_seed: Optional[int] = None,
+        use_docker: bool = True,
+        server_image: str = "migration-analysis:latest",
     ):
     """
     Run a task with specified model and prompt.
@@ -528,11 +531,14 @@ def run_task(
         use_process = False
         max_workers = 32
 
-    # Add skills to agentic args
-    if is_agentic and skills:
+    # Add skills and docker settings to agentic args
+    if is_agentic:
         for args in args_list:
-            args["skills"] = skills
-            args["skill_mode"] = skill_mode
+            if skills:
+                args["skills"] = skills
+                args["skill_mode"] = skill_mode
+            args["use_docker"] = use_docker
+            args["server_image"] = server_image
 
     # Define callback to save partial results
     def write_partial_results(completed_results, total_count):
@@ -617,6 +623,8 @@ if __name__ == "__main__":
     # Handle boolean flags specially
     is_agentic = args.is_agentic or config.get("is_agentic", False)
     resume = args.resume if args.resume else config.get("resume", True)
+    use_docker = config.get("use_docker", False)
+    server_image = config.get("server_image", "migration-analysis:latest")
 
     # Validate required arguments
     if not model_name:
@@ -638,4 +646,6 @@ if __name__ == "__main__":
         subset_mode=subset_mode,
         subset_k=subset_k,
         subset_seed=subset_seed,
+        use_docker=use_docker,
+        server_image=server_image,
     )

@@ -1,0 +1,145 @@
+{
+  "v2": {
+    "output_file": "data/webtest/prompts/SKILL_v1_v2.md",
+    "base_prompt": "data/webtest/prompts/SKILL_v1.md",
+    "patches_applied": [
+      {
+        "patch_file": "01_prioritize_dynamic_testing.patch",
+        "patch_name": "01_prioritize_dynamic_testing.patch",
+        "patch_type": "constraint",
+        "rationale": ""
+      },
+      {
+        "patch_file": "02_guide_with_server_usage.patch",
+        "patch_name": "02_guide_with_server_usage.patch",
+        "patch_type": "clarification",
+        "rationale": ""
+      },
+      {
+        "patch_file": "03_standardize_script_execution.patch",
+        "patch_name": "03_standardize_script_execution.patch",
+        "patch_type": "clarification",
+        "rationale": ""
+      },
+      {
+        "patch_file": "04_enhance_playwright_debugging.patch",
+        "patch_name": "04_enhance_playwright_debugging.patch",
+        "patch_type": "error_handling",
+        "rationale": ""
+      }
+    ],
+    "num_patches": 4
+  },
+  "v1": {
+    "output_file": "data/webtest/prompts/SKILL_v1_v1.md",
+    "base_prompt": "data/webtest/prompts/SKILL_v1.md",
+    "patches_applied": [
+      {
+        "patch_file": "01_prioritize_dynamic_testing.patch",
+        "patch_name": "01_prioritize_dynamic_testing.patch",
+        "patch_type": "constraint",
+        "rationale": ""
+      },
+      {
+        "patch_file": "02_guide_with_server_usage.patch",
+        "patch_name": "02_guide_with_server_usage.patch",
+        "patch_type": "clarification",
+        "rationale": ""
+      },
+      {
+        "patch_file": "03_standardize_script_execution.patch",
+        "patch_name": "03_standardize_script_execution.patch",
+        "patch_type": "clarification",
+        "rationale": ""
+      },
+      {
+        "patch_file": "04_enhance_playwright_debugging.patch",
+        "patch_name": "04_enhance_playwright_debugging.patch",
+        "patch_type": "error_handling",
+        "rationale": ""
+      }
+    ],
+    "num_patches": 4
+  },
+  "v3": {
+    "output_file": "data/webtest/prompts/SKILL_v1_v3.md",
+    "base_prompt": "data/webtest/prompts/SKILL_v1.md",
+    "patches_applied": [
+      {
+        "patch_file": "01_prioritize_dynamic_testing.patch",
+        "patch_name": "01_prioritize_dynamic_testing.patch",
+        "patch_type": "constraint",
+        "rationale": ""
+      },
+      {
+        "patch_file": "02_guide_with_server_usage.patch",
+        "patch_name": "02_guide_with_server_usage.patch",
+        "patch_type": "clarification",
+        "rationale": ""
+      },
+      {
+        "patch_file": "03_standardize_script_execution.patch",
+        "patch_name": "03_standardize_script_execution.patch",
+        "patch_type": "clarification",
+        "rationale": ""
+      },
+      {
+        "patch_file": "04_enhance_playwright_debugging.patch",
+        "patch_name": "04_enhance_playwright_debugging.patch",
+        "patch_type": "error_handling",
+        "rationale": ""
+      }
+    ],
+    "num_patches": 4
+  },
+  "v4": {
+    "output_file": "data/webtest/prompts/SKILL_v1_v4.md",
+    "base_prompt": "data/webtest/prompts/SKILL_v1.md",
+    "patches_applied": [
+      {
+        "patch_file": "01_prioritize_dynamic_testing.patch",
+        "patch_name": "01_prioritize_dynamic_testing.patch",
+        "patch_type": "constraint",
+        "rationale": ""
+      },
+      {
+        "patch_file": "02_guide_with_server_usage.patch",
+        "patch_name": "02_guide_with_server_usage.patch",
+        "patch_type": "clarification",
+        "rationale": ""
+      },
+      {
+        "patch_file": "03_standardize_script_execution.patch",
+        "patch_name": "03_standardize_script_execution.patch",
+        "patch_type": "clarification",
+        "rationale": ""
+      },
+      {
+        "patch_file": "04_enhance_playwright_debugging.patch",
+        "patch_name": "04_enhance_playwright_debugging.patch",
+        "patch_type": "error_handling",
+        "rationale": ""
+      }
+    ],
+    "num_patches": 4
+  },
+  "v5": {
+    "output_file": "data/webtest/prompts/SKILL_v5.md",
+    "base_prompt": "data/webtest/prompts/SKILL.md",
+    "patches_applied": [
+      {
+        "patch_file": "01_add_filepath_error_handling.patch",
+        "patch_name": "01_add_filepath_error_handling.patch",
+        "patch_type": "error_handling",
+        "rationale": ""
+      },
+      {
+        "patch_file": "02_clarify_evaluation_strategy.patch",
+        "patch_name": "02_clarify_evaluation_strategy.patch",
+        "patch_type": "clarification",
+        "rationale": ""
+      }
+    ],
+    "num_patches": 2
+  }
+}

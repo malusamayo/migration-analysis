@@ -130,16 +130,16 @@ def prepare_task(
     """
     assert task_id in ["webgen", "webtest"], "Unsupported task_id"
 
-    data_path = f"data/{task_id}/{task_id}.csv"
+    data_path = f"data/{task_id}.csv"
     data = pd.read_csv(data_path)
     print(f"Loaded {len(data)} examples from {data_path}, keeping max_examples={max_examples}")
     data = data.to_dict(orient="records")[:max_examples]
 
-    task_prompt_path = f"data/{task_id}/prompts/{prompt_name}.md"
+    task_prompt_path = f"tasks/{task_id}/prompts/{prompt_name}.md"
     with open(task_prompt_path, "r") as f:
         task_prompt = f.read()
 
-    eval_prompt_path = f"data/{task_id}/eval.md"
+    eval_prompt_path = f"tasks/{task_id}/eval.md"
     with open(eval_prompt_path, "r") as f:
         eval_prompt = f.read()
 
@@ -494,7 +494,7 @@ class CollectDataLoader(BaseDataLoader):
                     example["rollout_id"] = rollout_id
                     collection_data.append({
                         "lm": self.lm,
-                        "system_prompt_path": f"data/{self.task_id}/prompts/{self.prompt_name}.md",
+                        "system_prompt_path": f"tasks/{self.task_id}/prompts/{self.prompt_name}.md",
                         "example": example,
                         "workspace": workspace,
                         "task_id": self.task_id,

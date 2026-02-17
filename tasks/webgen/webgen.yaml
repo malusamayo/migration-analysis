@@ -1,0 +1,23 @@
+# Configuration using top 10 skills by duplicate count
+
+task_id: "webgen"
+model_name: "gemini-3-pro-preview"
+prompt_name: "cursor"
+
+skill_version: ""
+# skill_mode: "all_loaded"
+
+# # Select top 10 skills
+# subset_mode: "top_k"
+# subset_k: 10
+
+max_examples: 1
+n_responses: 1
+batch_size: 32
+resume: true
+
+is_agentic: true
+use_docker: true
+server_image: "webgen:latest"
+
+eval_lm: "gemini-3-flash-preview"

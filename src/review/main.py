@@ -225,7 +225,7 @@ def main():
     edit_parser.add_argument(
         "--prompt_name",
         type=str,
-        help="Prompt name (e.g., 'default') - will be resolved to data/{task_id}/prompts/{prompt}.md"
+        help="Prompt name (e.g., 'default') - will be resolved to tasks/{task_id}/prompts/{prompt}.md"
     )
 
     edit_parser.add_argument(
@@ -401,7 +401,7 @@ def main():
             if not args.task_id:
                 print("❌ Error: --task_id is required when using --prompt_name")
                 return
-            base_prompt = Path(f"data/{args.task_id}/prompts/{args.prompt_name}.md")
+            base_prompt = Path(f"tasks/{args.task_id}/prompts/{args.prompt_name}.md")
             if not base_prompt.exists():
                 print(f"⚠️  Warning: Base prompt file not found: {base_prompt}")
                 print("   Continuing without base prompt context...")
@@ -434,7 +434,7 @@ def main():
     # Apply patches mode
     elif args.mode == "apply-patches":
         # Set base prompt path
-        base_prompt = Path(f"data/{args.task_id}/prompts/{args.prompt_name}.md")
+        base_prompt = Path(f"tasks/{args.task_id}/prompts/{args.prompt_name}.md")
 
         # Determine patch directory
         if args.patch_dir:
@@ -446,7 +446,7 @@ def main():
             return
 
         # Auto-infer version number by checking existing files
-        prompts_dir = Path(f"data/{args.task_id}/prompts")
+        prompts_dir = Path(f"tasks/{args.task_id}/prompts")
         version = "v1"
 
         if prompts_dir.exists():
@@ -468,7 +468,7 @@ def main():
             output_path = Path(args.output)
         else:
             # Save versioned prompt to data directory
-            output_path = Path(f"data/{args.task_id}/prompts/{args.prompt_name}_{version}.md")
+            output_path = Path(f"tasks/{args.task_id}/prompts/{args.prompt_name}_{version}.md")
 
         # Apply patches using the unified function
         patch_files = None
