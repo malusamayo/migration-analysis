@@ -507,9 +507,6 @@ class CollectDataLoader(BaseDataLoader):
                         "task_id": self.task_id,
                     })
         else:
-            # For non-agentic mode: each (example, seed) pair becomes one item
-            from .task_evals.webgen import validate_webpage, generate_retry_function_webpage
-
             for example in examples:
                 for seed in range(self.n_responses):
                     collection_data.append({
@@ -517,8 +514,6 @@ class CollectDataLoader(BaseDataLoader):
                         "system_prompt": self.task_prompt,
                         "example": example,
                         "seed": seed,
-                        "validation_fn": validate_webpage,
-                        "retry_gen_fn": generate_retry_function_webpage,
                     })
 
         print(f"Constructed {len(collection_data)} collection items")
