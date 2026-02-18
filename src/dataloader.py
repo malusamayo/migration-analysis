@@ -533,11 +533,12 @@ class CollectDataLoader(BaseDataLoader):
 
         for args in self.data:
             workspace_path = Path(args["workspace"])
-            existing_traces = list(workspace_path.glob("trace*.md")) if workspace_path.exists() else []
+            log_path = workspace_path.parent / f"{workspace_path.name}_logs"
+            existing_traces = list(log_path.glob("trace*.md")) if log_path.exists() else []
 
             if existing_traces:
                 # Load existing result if available
-                trace_json_files = list(workspace_path.glob("trace*.json"))
+                trace_json_files = list(log_path.glob("trace*.json"))
                 if trace_json_files:
                     try:
                         with open(trace_json_files[0], 'r') as f:
@@ -546,7 +547,7 @@ class CollectDataLoader(BaseDataLoader):
                             result["run_result"] = existing_data
                             self.completed_results.append(result)
                     except Exception as e:
-                        print(f"⚠️  Warning: Could not load existing trace from {workspace_path}: {e}")
+                        print(f"⚠️  Warning: Could not load existing trace from {log_path}: {e}")
                         self.pending_data.append(args)
                 else:
                     # Has .md but no .json - re-run

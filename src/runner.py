@@ -176,10 +176,17 @@ def _run_agentic_conversation(
             print("🧹 Cleaning up conversation...")
             conversation.close()
 
-def _setup_workspace(task_id, workspace_dir: str, example: dict):
+def _setup_workspace(
+        task_id, 
+        workspace_dir: str, 
+        log_dir: str,
+        example: dict):
     # clean up previous contents
     shutil.rmtree(workspace_dir)
     os.makedirs(workspace_dir, exist_ok=True)
+
+    shutil.rmtree(log_dir)
+    os.makedirs(log_dir, exist_ok=True)
 
     # set up workspace files
     if task_id == "webtest":
@@ -232,10 +239,10 @@ def run_single_instance_agentic(
     llm = LLM(model=lm.model) #, temperature=lm.kwargs.get("temperature"))
     system_prompt_path = os.path.abspath(system_prompt_path)
 
-    if task_id:
-        _setup_workspace(task_id, workspace, example)
     workspace_dir = Path(workspace)
     log_dir = workspace_dir.parent / f"{workspace_dir.name}_logs"
+    if task_id:
+        _setup_workspace(task_id, workspace, log_dir, example)
 
     if use_docker:
         # Docker execution path
@@ -259,6 +266,7 @@ def run_single_instance_agentic(
             platform=detect_platform(),
             volumes=docker_volumes,
             forward_env=forward_env,
+            user=f"{os.getuid()}:{os.getgid()}",
         ) as docker_workspace:
             for cmd in setup_commands:
                 docker_workspace.execute_command(cmd)

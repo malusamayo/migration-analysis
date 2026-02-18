@@ -326,6 +326,7 @@ def _run_file_with_pytest(
     # Build Docker command
     docker_cmd = [
         "docker", "run", "--rm",
+        "--user", f"{os.getuid()}:{os.getgid()}",
         "--entrypoint", "/workspace/.venv/bin/python",
         "-w", "/workspace/project",
         "-e", "GOOGLE_APPLICATION_CREDENTIALS=/workspace/.vertex-ai.json",

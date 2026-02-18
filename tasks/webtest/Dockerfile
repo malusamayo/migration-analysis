@@ -25,6 +25,9 @@ RUN playwright install --with-deps chromium
 # Optional: Copy your source code if needed by the agent
 # COPY src /workspace/src
 
+# Make workspace writable for non-root users
+RUN chmod -R 777 /workspace
+
 # Set working directory
 WORKDIR /workspace
 
