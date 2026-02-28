@@ -4,3 +4,8 @@ services:
     build:
       context: .
       dockerfile: tasks/webtest/Dockerfile
+  webgen:
+    image: webgen:latest
+    build:
+      context: .
+      dockerfile: tasks/webgen/Dockerfile

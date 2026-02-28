@@ -180,12 +180,14 @@ def _setup_workspace(
         task_id, 
         workspace_dir: str, 
         log_dir: str,
-        example: dict):
+        example: dict):  
     # clean up previous contents
-    shutil.rmtree(workspace_dir)
+    if os.path.exists(workspace_dir):
+        shutil.rmtree(workspace_dir)
     os.makedirs(workspace_dir, exist_ok=True)
 
-    shutil.rmtree(log_dir)
+    if os.path.exists(log_dir):
+        shutil.rmtree(log_dir)
     os.makedirs(log_dir, exist_ok=True)
 
     # set up workspace files
@@ -269,7 +271,7 @@ def run_single_instance_agentic(
             user=f"{os.getuid()}:{os.getgid()}",
         ) as docker_workspace:
             for cmd in setup_commands:
-                docker_workspace.execute_command(cmd)
+                docker_workspace.execute_command(cmd, timeout=90.0)
 
             if workspace_fn:
                 return workspace_fn(

@@ -1,11 +1,11 @@
 FROM python:3.14-slim
 
-# Install additional Python dependencies needed for your project
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates \
     gcc g++ make \
     python3-dev \
+    nodejs npm \
+    chromium \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=ghcr.io/astral-sh/uv:0.9.2 /uv /bin/
@@ -22,9 +22,6 @@ RUN uv sync --frozen --no-dev --active
 
 # Install playwright browsers (required for playwright)
 RUN playwright install --with-deps chromium
-
-# Optional: Copy your source code if needed by the agent
-# COPY src /workspace/src
 
 # Make workspace writable for non-root users
 RUN chmod -R 777 /workspace
