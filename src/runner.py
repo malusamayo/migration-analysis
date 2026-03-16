@@ -85,25 +85,37 @@ def save_conversation_trace(conversation: Conversation,
         json.dump(events, raw_file, indent=2)
 
     events = [e for e in events if e["kind"] != "ConversationStateUpdateEvent"]
-    if events[-1]["kind"] == "ObservationEvent":
-        final_message = events[-1]["observation"]["content"][0]["text"]
-    elif events[-1]["kind"] == "MessageEvent":
-        final_message = events[-1]["llm_message"]["content"][0]["text"]
-    else:
-        print(events[-1])
-        print(f"Unexpected final event type {events[-1]['kind']}")
-        return None
 
-    # export cost and total tokens
-    metrics = conversation.conversation_stats.get_combined_metrics().get()
-    
-    conversation_data = {
-        "conversation_id": str(conversation.id),
-        "eval_output": final_message,
-        "events": events,
-        "metrics": metrics,
-        "error": str(error) if error else None,
-    }
+    # Handle empty events (e.g., conversation failed during initialization)
+    if not events:
+        print(f"Warning: No events captured in conversation {conversation.id}")
+        conversation_data = {
+            "conversation_id": str(conversation.id),
+            "eval_output": "",
+            "events": [],
+            "metrics": {},
+            "error": str(error) if error else "No events captured",
+        }
+    else:
+        if events[-1]["kind"] == "ObservationEvent":
+            final_message = events[-1]["observation"]["content"][0]["text"]
+        elif events[-1]["kind"] == "MessageEvent":
+            final_message = events[-1]["llm_message"]["content"][0]["text"]
+        else:
+            print(events[-1])
+            print(f"Unexpected final event type {events[-1]['kind']}")
+            return None
+
+        # export cost and total tokens
+        metrics = conversation.conversation_stats.get_combined_metrics().get()
+
+        conversation_data = {
+            "conversation_id": str(conversation.id),
+            "eval_output": final_message,
+            "events": events,
+            "metrics": metrics,
+            "error": str(error) if error else None,
+        }
     
     trace_path = os.path.join(log_dir, f"trace_{conversation.id}.json")
     with open(trace_path, "w") as trace_file:

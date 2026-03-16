@@ -129,8 +129,6 @@ def prepare_task(
     Returns:
         Tuple of (data, task_prompt, eval_prompt)
     """
-    assert task_id in ["webgen", "webtest"], "Unsupported task_id"
-
     if data_path is None:
         data_path = f"data/{task_id}.csv"
     data = pd.read_csv(data_path)
