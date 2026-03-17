@@ -6,35 +6,7 @@ from typing import Optional
 from .utils import batch_inference
 from .utils import LM_DICT
 from .dataloader import EvalDataLoader, generate_rollout_version
-
-def get_config(task_id: str):
-    if task_id == "webgen":
-        from .task_evals.webgen import run_single_instance_eval
-        return {
-            "eval_function": run_single_instance_eval,
-            "use_process": True,
-            "max_workers": 4,
-        }
-    elif task_id == "webtest":
-        from .task_evals.webtest import run_single_instance_eval
-        return {
-            "eval_function": run_single_instance_eval,
-            "use_process": True,
-            "max_workers": 32,
-        }
-    elif task_id == "webarena":
-        from .task_evals.webarena import run_single_instance_eval
-        return {
-            "eval_function": run_single_instance_eval,
-            "use_process": False,
-            "max_workers": 32,
-        }
-    else:
-        return {
-            "eval_function": run_single_instance_eval,
-            "use_process": False,
-            "max_workers": 32,
-        }
+from .task_setups import get_eval_config, requires_eval_lm
 
 
 def run_task_eval(
@@ -71,7 +43,7 @@ def run_task_eval(
         subset_seed: Random seed for reproducibility when subset_mode is "random"
         docker_image: Docker image to use for evaluation (if applicable)
     """
-    config = get_config(task_id)
+    config = get_eval_config(task_id)
 
     workspace_base_dir = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}"
     output_path = os.path.join(workspace_base_dir, "eval_results.yaml")
@@ -97,8 +69,8 @@ def run_task_eval(
     args_list = data_loader.get_pending_args()
 
     eval_function = config["eval_function"]
-    if task_id == "webtest" and not eval_lm_name:
-        raise ValueError("eval_lm_name is required for webtest evaluation.")
+    if requires_eval_lm(task_id) and not eval_lm_name:
+        raise ValueError(f"eval_lm_name is required for {task_id} evaluation.")
     if eval_lm_name:
         if eval_lm_name not in LM_DICT:
             raise ValueError(f"Unknown eval_lm_name: {eval_lm_name}. Check configs/models.yaml.")

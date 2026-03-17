@@ -25,20 +25,12 @@ import argparse
 import re
 from pathlib import Path
 
-from openhands.sdk import Tool
 from openhands.sdk.context import (
     Skill,
 )
-from openhands.tools.browser_use import BrowserToolSet
 from .review.skill_manager import SkillManager
 from .runner import run_single_instance_agentic
-from .task_setups.webarena_servers import (
-    collect_required_sites,
-    set_default_webarena_urls,
-    start_webarena_servers,
-    stop_webarena_servers,
-    replace_url_placeholders,
-)
+from .task_setups import preprocess_example, get_tools, setup_servers, teardown_servers
 
 def discover_skills(
     skill_path: Optional[str] = None,
@@ -293,24 +285,13 @@ def run_task(
                 args["skill_mode"] = skill_mode
             args["use_docker"] = use_docker
             args["server_image"] = server_image
-            if task_id == "webarena":
-                args["tools"] = [Tool(name=BrowserToolSet.name)]
+            args["tools"] = get_tools(task_id, args.get("workspace"))
 
-    # Start webarena servers if requested and replace URL placeholders in prompts
-    servers_started = []
-    if task_id == "webarena" and is_agentic:
-        required_sites = collect_required_sites(args_list)
-        set_default_webarena_urls(required_sites)
-        if start_servers:
-            servers_started = start_webarena_servers(
-                sites=required_sites,
-                timeout=server_start_timeout,
-            )
-        for args in args_list:
-            example = args["example"].copy()
-            start_url = replace_url_placeholders(str(example.get("start_url", "")))
-            example["prompt"] = f"{example['intent']}\n\nStarting URL: {start_url}"
-            args["example"] = example
+    servers_started = setup_servers(
+        task_id, args_list, start_servers=start_servers, timeout=server_start_timeout
+    )
+    for args in args_list:
+        args["example"] = preprocess_example(task_id, args["example"])
 
     # Define callback to save partial results
     def write_partial_results(completed_results, total_count):
@@ -332,8 +313,7 @@ def run_task(
             )
             results.extend(batch_results)
     finally:
-        if servers_started:
-            stop_webarena_servers(list(servers_started))
+        teardown_servers(task_id, servers_started)
 
     # Write final results
     with open(output_path, "w") as f:

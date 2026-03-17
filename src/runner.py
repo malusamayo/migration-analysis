@@ -3,7 +3,6 @@ import dspy
 import json
 import yaml
 import os
-import shutil
 import platform
 import traceback
 from functools import partial
@@ -35,6 +34,7 @@ from openhands.sdk.context import (
 from openhands.workspace import DockerWorkspace
 
 from .debug_utils import patch_llm_for_debugging
+from .task_setups import setup_workspace
 
 
 def run_with_agent(
@@ -61,7 +61,7 @@ def run_with_agent(
     log_dir = workspace_dir.parent / f"{workspace_dir.name}_logs"
 
     if task_id:
-        _setup_workspace(task_id, workspace, log_dir, example)
+        setup_workspace(task_id, workspace, log_dir, example)
 
     # Deploy workspace scripts if provided
     if workspace_scripts:
@@ -230,25 +230,6 @@ def _run_agentic_conversation(
             print("🧹 Cleaning up conversation...")
             conversation.close()
 
-def _setup_workspace(
-        task_id, 
-        workspace_dir: str, 
-        log_dir: str,
-        example: dict):  
-    # clean up previous contents
-    if os.path.exists(workspace_dir):
-        shutil.rmtree(workspace_dir)
-    os.makedirs(workspace_dir, exist_ok=True)
-
-    if os.path.exists(log_dir):
-        shutil.rmtree(log_dir)
-    os.makedirs(log_dir, exist_ok=True)
-
-    # set up workspace files
-    if task_id == "webtest":
-        with open(os.path.join(workspace_dir, "index.html"), "w") as f:
-            f.write(example["html_content"])
-
 def run_single_instance_agentic(
         lm: dspy.LM,
         system_prompt_path: str,
@@ -298,7 +279,7 @@ def run_single_instance_agentic(
     workspace_dir = Path(workspace)
     log_dir = workspace_dir.parent / f"{workspace_dir.name}_logs"
     if task_id:
-        _setup_workspace(task_id, workspace, log_dir, example)
+        setup_workspace(task_id, workspace, log_dir, example)
 
     if use_docker:
         # Docker execution path

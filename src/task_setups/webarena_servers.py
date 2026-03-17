@@ -259,3 +259,11 @@ def replace_url_placeholders(text: str) -> str:
         if url:
             text = text.replace(placeholder, url)
     return text
+
+
+def preprocess_example(example: dict) -> dict:
+    """Preprocess a webarena example: replace URL placeholders and append start URL to prompt."""
+    example = example.copy()
+    start_url = replace_url_placeholders(str(example.get("start_url", "")))
+    example["prompt"] = f"{example['prompt']}\n\nStarting URL: {start_url}"
+    return example

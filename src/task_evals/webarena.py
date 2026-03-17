@@ -14,11 +14,35 @@ from typing import Any, Dict, Optional
 import dspy
 
 
-def _extract_answer(eval_output: str) -> str | None:
+def _extract_answer(eval_output: str) -> str:
+    """Extract the answer from the agent's output.
+
+    Tries in order:
+    1. Explicit ``ANSWER: <text>`` prefix (original format)
+    2. ``retrieved_data`` field inside a fenced JSON block
+    3. Full output text (allows must_include / fuzzy_match to work on natural-language answers)
+    """
+    # 1. ANSWER: prefix
     match = re.search(r"^ANSWER:\s*(.+)", eval_output, re.MULTILINE | re.IGNORECASE)
     if match:
         return match.group(1).strip()
-    return None
+
+    # 2. JSON block with retrieved_data / answer field
+    json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", eval_output, re.DOTALL)
+    if json_match:
+        try:
+            data = json.loads(json_match.group(1))
+            for key in ("retrieved_data", "answer", "result", "value"):
+                val = data.get(key)
+                if val:
+                    if isinstance(val, list):
+                        return ", ".join(str(x) for x in val)
+                    return str(val)
+        except (json.JSONDecodeError, AttributeError):
+            pass
+
+    # 3. Fall back to full output (supports must_include / fuzzy_match on natural-language answers)
+    return eval_output
 
 
 def _clean_answer(answer: str) -> str:
@@ -142,18 +166,14 @@ def run_single_instance_eval(
 
     if eval_types == ["string_match"]:
         answer = _extract_answer(eval_output)
-        if answer is None:
-            result["score"] = 0.0
-            result["error"] = "No ANSWER: prefix in agent output"
-        else:
-            result["score"] = _string_match_score(
-                pred=answer,
-                reference_answers=eval_config.get("reference_answers", {}),
-                intent=example.get("intent", ""),
-                string_note=eval_config.get("string_note", ""),
-                lm=lm,
-            )
-            result["answer"] = answer
+        result["score"] = _string_match_score(
+            pred=answer,
+            reference_answers=eval_config.get("reference_answers", {}),
+            intent=example.get("prompt", ""),
+            string_note=eval_config.get("string_note", ""),
+            lm=lm,
+        )
+        result["answer"] = answer[:500] if len(answer) > 500 else answer
     else:
         # url_match / program_html require live browser
         result["score"] = None
