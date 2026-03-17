@@ -22,6 +22,13 @@ def get_config(task_id: str):
             "use_process": True,
             "max_workers": 32,
         }
+    elif task_id == "webarena":
+        from .task_evals.webarena import run_single_instance_eval
+        return {
+            "eval_function": run_single_instance_eval,
+            "use_process": False,
+            "max_workers": 32,
+        }
     else:
         return {
             "eval_function": run_single_instance_eval,
@@ -96,7 +103,9 @@ def run_task_eval(
         if eval_lm_name not in LM_DICT:
             raise ValueError(f"Unknown eval_lm_name: {eval_lm_name}. Check configs/models.yaml.")
         eval_lm = LM_DICT[eval_lm_name]
-        args_list = [{**args, "lm": eval_lm} for args in args_list]
+    else:
+        eval_lm = None
+    args_list = [{**args, "lm": eval_lm} for args in args_list]
     
     # Add docker_image to args if available
     if docker_image:
@@ -118,7 +127,6 @@ def run_task_eval(
             use_process=config["use_process"],
             max_workers=config["max_workers"],
             on_batch_complete=write_partial_results,
-            batch_size=batch_size,
         )
         results.extend(batch_results)
 

@@ -1,0 +1,4 @@
+name: webarena
+description: >
+  Web navigation benchmark. The agent uses browser tools to complete tasks
+  across realistic web applications (shopping, GitLab, Reddit, Wikipedia, maps).

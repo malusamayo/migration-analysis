@@ -3,7 +3,6 @@ Data loader classes for evaluation and collection tasks.
 """
 import json
 import os
-import pandas as pd
 from typing import List, Optional
 from pathlib import Path
 import re
@@ -130,10 +129,11 @@ def prepare_task(
         Tuple of (data, task_prompt, eval_prompt)
     """
     if data_path is None:
-        data_path = f"data/{task_id}.csv"
-    data = pd.read_csv(data_path)
+        data_path = f"data/{task_id}.json"
+    with open(data_path, "r") as f:
+        data = json.load(f)
     print(f"Loaded {len(data)} examples from {data_path}, keeping max_examples={max_examples}")
-    data = data.to_dict(orient="records")[:max_examples]
+    data = data[:max_examples]
 
     task_prompt_path = f"tasks/{task_id}/prompts/{prompt_name}.md"
     with open(task_prompt_path, "r") as f:
@@ -440,7 +440,7 @@ class CollectDataLoader(BaseDataLoader):
             subset_k: Number of skills to select when subset_mode is "top_k" or "random"
             subset_seed: Random seed for reproducibility when subset_mode is "random"
             resume: Whether to skip already-completed tasks
-            data_path: Path to the CSV data file (default: data/{task_id}.csv)
+            data_path: Path to the JSON data file (default: data/{task_id}.json)
         """
 
         self.task_id = task_id

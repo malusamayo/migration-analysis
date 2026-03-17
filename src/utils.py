@@ -40,7 +40,6 @@ def batch_inference(
     use_process=False,
     max_workers=32,
     on_batch_complete=None,
-    batch_size=None,
 ) -> List[Any]:
     """
     Execute inference on a list of arguments in parallel.
@@ -51,7 +50,6 @@ def batch_inference(
         use_process: Whether to use ProcessPoolExecutor (True) or ThreadPoolExecutor (False)
         max_workers: Maximum number of concurrent workers
         on_batch_complete: Optional callback function(completed_results, total_count) called every batch_size completions
-        batch_size: Number of completions between callback invocations. If None, callback is never invoked.
 
     Returns:
         List of results in the same order as args_list
@@ -60,9 +58,12 @@ def batch_inference(
     results = [None] * len(args_list)
     completed_count = 0
 
-    executor_class = ProcessPoolExecutor if use_process else ThreadPoolExecutor
+    if use_process:
+        executor = ProcessPoolExecutor(max_workers=max_workers, max_tasks_per_child=1)
+    else:
+        executor = ThreadPoolExecutor(max_workers=max_workers)
 
-    with executor_class(max_workers=max_workers) as executor:
+    with executor:
         for i, args in enumerate(args_list):
             future = executor.submit(
                 program,

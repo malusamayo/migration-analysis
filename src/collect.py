@@ -25,11 +25,20 @@ import argparse
 import re
 from pathlib import Path
 
+from openhands.sdk import Tool
 from openhands.sdk.context import (
     Skill,
 )
+from openhands.tools.browser_use import BrowserToolSet
 from .review.skill_manager import SkillManager
 from .runner import run_single_instance_agentic
+from .task_setups.webarena_servers import (
+    collect_required_sites,
+    set_default_webarena_urls,
+    start_webarena_servers,
+    stop_webarena_servers,
+    replace_url_placeholders,
+)
 
 def discover_skills(
     skill_path: Optional[str] = None,
@@ -181,6 +190,8 @@ def run_task(
         use_docker: bool = True,
         server_image: str = "migration-analysis:latest",
         data_path: Optional[str] = None,
+        start_servers: bool = False,
+        server_start_timeout: int = 300,
     ):
     """
     Run a task with specified model and prompt.
@@ -269,11 +280,10 @@ def run_task(
     if is_agentic:
         run_function = run_single_instance_agentic
         use_process = True
-        max_workers = 16
     else:
         run_function = run_single_instance
         use_process = False
-        max_workers = 32
+    max_workers = batch_size
 
     # Add skills and docker settings to agentic args
     if is_agentic:
@@ -283,6 +293,24 @@ def run_task(
                 args["skill_mode"] = skill_mode
             args["use_docker"] = use_docker
             args["server_image"] = server_image
+            if task_id == "webarena":
+                args["tools"] = [Tool(name=BrowserToolSet.name)]
+
+    # Start webarena servers if requested and replace URL placeholders in prompts
+    servers_started = []
+    if task_id == "webarena" and is_agentic:
+        required_sites = collect_required_sites(args_list)
+        set_default_webarena_urls(required_sites)
+        if start_servers:
+            servers_started = start_webarena_servers(
+                sites=required_sites,
+                timeout=server_start_timeout,
+            )
+        for args in args_list:
+            example = args["example"].copy()
+            start_url = replace_url_placeholders(str(example.get("start_url", "")))
+            example["prompt"] = f"{example['intent']}\n\nStarting URL: {start_url}"
+            args["example"] = example
 
     # Define callback to save partial results
     def write_partial_results(completed_results, total_count):
@@ -292,17 +320,20 @@ def run_task(
             json.dump(all_results, f, indent=2)
         print(f"💾 Saved partial results ({len(all_results)}/{len(data_loader)} completed)")
 
-    # Process remaining data with periodic callbacks
-    if args_list:
-        batch_results = batch_inference(
-            run_function,
-            args_list,
-            use_process=use_process,
-            max_workers=max_workers,
-            on_batch_complete=write_partial_results,
-            batch_size=batch_size,
-        )
-        results.extend(batch_results)
+    try:
+        # Process remaining data with periodic callbacks
+        if args_list:
+            batch_results = batch_inference(
+                run_function,
+                args_list,
+                use_process=use_process,
+                max_workers=max_workers,
+                on_batch_complete=write_partial_results
+            )
+            results.extend(batch_results)
+    finally:
+        if servers_started:
+            stop_webarena_servers(list(servers_started))
 
     # Write final results
     with open(output_path, "w") as f:
@@ -370,6 +401,8 @@ if __name__ == "__main__":
     use_docker = config.get("use_docker", False)
     server_image = config.get("server_image", "migration-analysis:latest")
     data_path = config.get("data_path")
+    start_servers = config.get("start_servers", False)
+    server_start_timeout = config.get("server_start_timeout", 300)
 
     # Validate required arguments
     if not model_name:
@@ -394,4 +427,6 @@ if __name__ == "__main__":
         use_docker=use_docker,
         server_image=server_image,
         data_path=data_path,
+        start_servers=start_servers,
+        server_start_timeout=server_start_timeout,
     )

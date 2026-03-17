@@ -36,6 +36,48 @@ from openhands.workspace import DockerWorkspace
 
 from .debug_utils import patch_llm_for_debugging
 
+
+def run_with_agent(
+        agent: Agent,
+        example: dict,
+        workspace: str,
+        task_id: str = None,
+        workspace_scripts: dict[str, str] = None,
+    ) -> dict:
+    """Run an agent built by candidate code on a single task example.
+
+    Args:
+        agent: Pre-built Agent object (from build_agent()).
+        example: Example data dict containing 'prompt' field.
+        workspace: Workspace directory for the agent.
+        task_id: Task identifier (for workspace setup).
+        workspace_scripts: Optional {filename: content} scripts to place in workspace.
+
+    Returns:
+        dict: Example with added 'run_result' field.
+    """
+    example = copy.deepcopy(example)
+    workspace_dir = Path(workspace)
+    log_dir = workspace_dir.parent / f"{workspace_dir.name}_logs"
+
+    if task_id:
+        _setup_workspace(task_id, workspace, log_dir, example)
+
+    # Deploy workspace scripts if provided
+    if workspace_scripts:
+        for filename, content in workspace_scripts.items():
+            script_path = workspace_dir / filename
+            script_path.parent.mkdir(parents=True, exist_ok=True)
+            script_path.write_text(content)
+
+    return _run_agentic_conversation(
+        agent=agent,
+        workspace_obj=str(workspace_dir),
+        log_dir=str(log_dir),
+        example=example,
+    )
+
+
 def detect_platform() -> str:
     """Detects the correct platform string for container images."""
     machine = platform.machine().lower()
