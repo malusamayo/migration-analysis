@@ -1,0 +1,16 @@
+task_id: "oolong"
+data_path: "data/oolong.json"
+model_name: "gemini-3.1-pro-preview"
+prompt_name: "default"
+
+skill_version: ""
+skill_mode: "all_loaded"
+
+max_examples: 5
+n_responses: 1
+batch_size: 8
+resume: true
+
+is_agentic: true
+use_docker: false
+server_image: ""

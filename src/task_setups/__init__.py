@@ -59,6 +59,10 @@ def setup_workspace(task_id: str, workspace_dir: str, log_dir: str, example: dic
         with open(os.path.join(workspace_dir, "index.html"), "w") as f:
             f.write(example["html_content"])
 
+    if task_id == "oolong":
+        with open(os.path.join(workspace_dir, "context.txt"), "w") as f:
+            f.write(example["context_window_text"])
+
 
 def setup_servers(
     task_id: str,
@@ -95,8 +99,11 @@ def get_eval_config(task_id: str) -> dict:
     elif task_id == "webarena":
         from ..task_evals.webarena import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 32}
-    elif task_id == "build-pov-ray":
-        from ..task_evals.build_pov_ray import run_single_instance_eval
+    # elif task_id == "build-pov-ray":
+    #     from ..task_evals.build_pov_ray import run_single_instance_eval
+    #     return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 32}
+    elif task_id == "oolong":
+        from ..task_evals.oolong import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 32}
     else:
         raise ValueError(f"Unknown task_id: {task_id!r}")

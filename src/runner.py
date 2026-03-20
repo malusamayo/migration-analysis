@@ -336,7 +336,7 @@ def run_single_instance_agentic(
                 skill_mode=skill_mode,
             )
     else:
-        patch_llm_for_debugging(Path(workspace))
+        # patch_llm_for_debugging(Path(workspace))
         agent = _build_agent(workspace_dir.absolute(), system_prompt_path)
 
         return _run_agentic_conversation(

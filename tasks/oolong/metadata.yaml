@@ -1,0 +1,2 @@
+name: oolong
+description: Long-context reasoning benchmark using D&D episode transcripts. Agents read a transcript file and answer factual questions about events and statistics.
