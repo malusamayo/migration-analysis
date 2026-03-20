@@ -110,6 +110,8 @@ llm = LLM(
 
 **Import:** `from openhands.sdk import Agent` (or `from openhands.sdk.agent import Agent`)
 
+**Adaptation context:** `filter_tools_regex` and `include_default_tools` implement Adaptation 3b (Remove Tools). See Adaptation Guide §3b.
+
 The Agent class is the core orchestrator. It is stateless and configured with an LLM, tools, optional context, condenser, and critic.
 
 ### Constructor Signature
@@ -304,6 +306,8 @@ conversation.run()
 
 **Import:** `from openhands.sdk import AgentContext` (or `from openhands.sdk.context import AgentContext`)
 
+**Adaptation context:** Implements Adaptation 1a (Add Instructions) via `system_message_suffix` and `user_message_suffix`. See Adaptation Guide §1a.
+
 AgentContext manages prompt extensions: skills, system/user message suffixes, secrets, and datetime context.
 
 ### Signature
@@ -353,6 +357,8 @@ agent = Agent(llm=llm, tools=tools, agent_context=agent_context)
 
 **Import:** `from openhands.sdk.context import Skill, KeywordTrigger, TaskTrigger`
 
+**Adaptation context:** Implements Adaptation 1a (Add Instructions), 1b (Add Examples) when `trigger=None`, and Adaptation 2a (Progressive Disclosure) when using `KeywordTrigger`/`TaskTrigger`. See Adaptation Guide §1a, §1b, §2a.
+
 Skills provide specialized knowledge or functionality injected into prompts.
 
 ### Signature
@@ -395,6 +401,8 @@ TaskTrigger(triggers=["code_review", "refactor"])
 ---
 
 ## 7. Custom Tool Definition Pattern
+
+**Adaptation context:** Implements Adaptation 3a (Create Tools), 3c (Update Tool Schemas), 4a (Trim/Filter Observations), and 4b (Post-Process Observations). The `Observation.to_llm_content` override is the primary mechanism for observation adaptation. See Adaptation Guide §3a, §3c, §4a, §4b.
 
 To define a custom tool, you need five components: Action, Observation, ToolExecutor, ToolDefinition subclass, and registration.
 
@@ -528,9 +536,22 @@ class ToolAnnotations(BaseModel):
     openWorldHint: bool = True        # If True, interacts with external entities
 ```
 
+### Overriding the Built-in FinishTool
+
+To replace the default `FinishTool` with a custom one (e.g., to enforce a structured output schema), define a `ToolDefinition` subclass named exactly `FinishTool` and register it under that name.
+
+**Key rules:**
+1. The class must be named `FinishTool` so it replaces the built-in.
+2. Remove `"FinishTool"` from `include_default_tools` on the Agent — keep only `"ThinkTool"` (or an empty list).
+3. Add `Tool(name="FinishTool")` to the agent's `tools` list explicitly.
+4. **CRITICAL — Action class names must be unique.** Do NOT name your Action class `FinishAction`. The SDK registers all Action/Observation subclasses globally in a Pydantic discriminated union. Reusing the built-in names causes a "Duplicate class definition" error that breaks validation of every event in the conversation. Use a distinct name such as `StructuredFinishAction`.
+5. **Do not define custom FinishObservation class unless necessary.** By default, `FinishObservation`just echos what models write through `FinishAction`. That will be the desired behavior, as `FinishAction` often contains information we want to extract.
+
 ---
 
 ## 8. Condensers
+
+**Adaptation context:** Implements Adaptation 2d (Active Context Compression). See Adaptation Guide §2d.
 
 Condensers manage conversation context by summarizing or trimming event history when it grows too large.
 
@@ -607,6 +628,8 @@ class CondenserBase(ABC):
 ---
 
 ## 9. Hooks
+
+**Adaptation context:** Implements Adaptation 5b (Action Intercept) via `pre_tool_use` hooks, and Adaptation 5a (Add Monitoring) via `post_tool_use` hooks. See Adaptation Guide §5a, §5b.
 
 Hooks are shell scripts that execute at specific lifecycle events during agent execution.
 
@@ -767,6 +790,8 @@ planning_agent = get_planning_agent(llm=llm)
 
 ## 11. MCP Integration
 
+**Adaptation context:** Implements Adaptation 3a (Create Tools) by adding external tool servers without writing custom tool code. See Adaptation Guide §3a.
+
 MCP (Model Context Protocol) tools can be added via the `mcp_config` parameter on Agent.
 
 ```python
@@ -789,6 +814,8 @@ agent = Agent(
 ---
 
 ## 12. Agent Delegation
+
+**Adaptation context:** Implements Adaptation 2b (Spawn/Fork Subagents). See Adaptation Guide §2b.
 
 Sub-agents can be registered and delegated to via the `DelegateTool`.
 
@@ -839,6 +866,8 @@ conversation.run()
 
 ## 13. Critic (Experimental)
 
+**Adaptation context:** Extends Adaptation 5a (Add Monitoring) with real-time evaluation and iterative refinement. See Adaptation Guide §5a.
+
 Critics evaluate agent actions/messages in real-time for iterative refinement.
 
 **Import:** `from openhands.sdk.critic import APIBasedCritic, IterativeRefinementConfig`
@@ -867,6 +896,8 @@ conversation.run()  # Automatically retries based on critic scores
 ---
 
 ## 14. Events and Callbacks
+
+**Adaptation context:** Implements Adaptation 5a (Add Monitoring) for per-event observation and logging. See Adaptation Guide §5a.
 
 Callbacks receive `Event` objects for each step of the conversation.
 
