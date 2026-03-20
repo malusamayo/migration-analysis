@@ -14,35 +14,115 @@ from typing import Any, Dict, Optional
 import dspy
 
 
+class WebarenaFeedbackSignature(dspy.Signature):
+    """Generate brief feedback for a webarena task evaluation result."""
+    intent = dspy.InputField(desc="The web navigation task the agent was asked to complete.")
+    raw_eval_output = dspy.InputField(desc="The raw final output from the agent (may be a JSON string from the FinishTool, plain text, or empty).")
+    agent_answer = dspy.InputField(desc="The answer extracted from the agent's raw output. Empty string means extraction failed (agent did not produce a parseable structured answer).")
+    reference_answers = dspy.InputField(desc="The correct reference answer(s) as a JSON string.")
+    score = dspy.InputField(desc="Evaluation score from 0.0 (wrong) to 1.0 (correct).")
+    feedback = dspy.OutputField(desc="One or two sentences: state if correct, or explain the mismatch. If agent_answer is empty, note that the agent failed to produce a structured answer via FinishTool. Otherwise explain what the agent got wrong vs the reference.")
+
+
+def _build_feedback(
+    lm: Optional[dspy.LM],
+    intent: str,
+    raw_eval_output: str,
+    agent_answer: str,
+    reference_answers: dict,
+    score: float,
+) -> str:
+    if score >= 1.0:
+        return "Correct."
+    ref_str = json.dumps(reference_answers)
+    if lm is None:
+        if not agent_answer:
+            return f"Incorrect. Agent did not produce a structured answer (raw output: {repr(raw_eval_output[:200])}). Expected {ref_str}."
+        return f"Incorrect. Expected {ref_str}, got: {repr(agent_answer[:200])}"
+    with dspy.context(lm=lm):
+        result = dspy.Predict(WebarenaFeedbackSignature)(
+            intent=intent,
+            raw_eval_output=raw_eval_output[:500],
+            agent_answer=agent_answer[:500],
+            reference_answers=ref_str,
+            score=str(score),
+        )
+    return result.feedback
+
+
+def _extract_from_json(data: dict) -> Optional[str]:
+    """Extract an answer string from a parsed JSON dict.
+
+    Checks keys in priority order; skips empty lists/strings.
+    For list values, joins string items with ', ' and extracts 'name' from dict items.
+    error_details is checked last to support unachievable-task answers.
+    """
+    for key in ("retrieved_data", "answer", "result", "value", "error_details"):
+        val = data.get(key)
+        if not val and val != 0:  # skip None, [], ""
+            continue
+        if isinstance(val, list):
+            parts = []
+            for item in val:
+                if isinstance(item, dict):
+                    parts.append(item.get("name", item.get("title", str(item))))
+                else:
+                    parts.append(str(item))
+            return ", ".join(parts)
+        else:
+            return str(val)
+    return None
+
+
 def _extract_answer(eval_output: str) -> str:
     """Extract the answer from the agent's output.
 
     Tries in order:
     1. Explicit ``ANSWER: <text>`` prefix (original format)
-    2. ``retrieved_data`` field inside a fenced JSON block
-    3. Full output text (allows must_include / fuzzy_match to work on natural-language answers)
+    2. Fenced JSON block (``` json {...} ```)
+    3. Full string is a JSON object
+    4. JSON object embedded anywhere in the text
+    Returns "" if no structured answer is found (avoids full-output false positives).
     """
     # 1. ANSWER: prefix
     match = re.search(r"^ANSWER:\s*(.+)", eval_output, re.MULTILINE | re.IGNORECASE)
     if match:
         return match.group(1).strip()
 
-    # 2. JSON block with retrieved_data / answer field
+    # 2. Fenced JSON block
     json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", eval_output, re.DOTALL)
     if json_match:
         try:
-            data = json.loads(json_match.group(1))
-            for key in ("retrieved_data", "answer", "result", "value"):
-                val = data.get(key)
-                if val:
-                    if isinstance(val, list):
-                        return ", ".join(str(x) for x in val)
-                    return str(val)
+            extracted = _extract_from_json(json.loads(json_match.group(1)))
+            if extracted is not None:
+                return extracted
         except (json.JSONDecodeError, AttributeError):
             pass
 
-    # 3. Fall back to full output (supports must_include / fuzzy_match on natural-language answers)
-    return eval_output
+    # 3. Full string is a JSON object (FinishTool emits {"task_type": ..., "retrieved_data": [...]} directly)
+    try:
+        data = json.loads(eval_output.strip())
+        if isinstance(data, dict):
+            extracted = _extract_from_json(data)
+            if extracted is not None:
+                return extracted
+    except (json.JSONDecodeError, ValueError):
+        pass
+
+    # 4. JSON object embedded somewhere in the text
+    json_match = re.search(r'\{.*?\}', eval_output, re.DOTALL)
+    if json_match:
+        try:
+            data = json.loads(json_match.group(0))
+            if isinstance(data, dict):
+                extracted = _extract_from_json(data)
+                if extracted is not None:
+                    return extracted
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+    # No structured answer found — return empty string so eval scores 0, not a false match
+    return ""
 
 
 def _clean_answer(answer: str) -> str:
@@ -147,6 +227,7 @@ def run_single_instance_eval(
         return {
             "workspace_dir": str(workspace_dir),
             "score": 0.0,
+            "feedback": "No trace file found — agent did not run.",
             "error": "No trace file found",
         }
 
@@ -165,15 +246,27 @@ def run_single_instance_eval(
     }
 
     if eval_types == ["string_match"]:
+        reference_answers = eval_config.get("reference_answers", {})
         answer = _extract_answer(eval_output)
-        result["score"] = _string_match_score(
+        score = _string_match_score(
             pred=answer,
-            reference_answers=eval_config.get("reference_answers", {}),
+            reference_answers=reference_answers,
             intent=example.get("prompt", ""),
             string_note=eval_config.get("string_note", ""),
             lm=lm,
         )
-        result["answer"] = answer[:500] if len(answer) > 500 else answer
+        result["score"] = score
+        result['raw_output'] = eval_output
+        result["answer"] = answer
+        result["reference_answers"] = reference_answers
+        result["feedback"] = _build_feedback(
+            lm=lm,
+            intent=example.get("prompt", ""),
+            raw_eval_output=eval_output,
+            agent_answer=answer,
+            reference_answers=reference_answers,
+            score=score,
+        )
     else:
         # url_match / program_html require live browser
         result["score"] = None
