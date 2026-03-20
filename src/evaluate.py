@@ -2,6 +2,7 @@ import json
 import yaml
 import os
 import argparse
+from pathlib import Path
 from typing import Optional
 from .utils import batch_inference
 from .utils import LM_DICT
@@ -122,6 +123,8 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=None, help="Batch size for evaluation")
     parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results")
     parser.add_argument("--eval_lm", type=str, default=None, help="LM name for evaluation feedback (required for webtest)")
+    parser.add_argument("--agent_file", type=str, default=None,
+                        help="Path to the agent file used during collection (to resolve the correct rollout directory)")
 
     # Parameters for automatic rollout versioning
     parser.add_argument("--skill_version", type=str, default=None,
@@ -166,6 +169,7 @@ if __name__ == "__main__":
     resume = args.resume if args.resume else config.get("resume", True)
     data_path = config.get("data_path")
     docker_image = config.get("docker_image")
+    agent_file = args.agent_file if args.agent_file is not None else config.get("agent_file")
 
     # Validate required arguments
     if not task_id:
@@ -174,12 +178,14 @@ if __name__ == "__main__":
         parser.error("--model_name is required (either via command line or config file)")
 
     # Auto-generate rollout_version from skill parameters
+    agent_name = Path(agent_file).stem if agent_file else None
     rollout_version = generate_rollout_version(
         skill_version=skill_version,
         skill_mode=skill_mode,
         subset_mode=subset_mode,
         subset_k=subset_k,
         subset_seed=subset_seed,
+        agent_name=agent_name,
     )
     print(f"📦 Auto-generated rollout version: {rollout_version}")
 

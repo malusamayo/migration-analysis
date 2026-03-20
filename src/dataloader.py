@@ -14,6 +14,7 @@ def generate_rollout_version(
     subset_mode: str = "all",
     subset_k: Optional[int] = None,
     subset_seed: Optional[int] = None,
+    agent_name: Optional[str] = None,
 ) -> str:
     """
     Generate a rollout version name based on configuration parameters.
@@ -24,15 +25,20 @@ def generate_rollout_version(
         subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
         subset_k: Number of skills to select when subset_mode is "top_k" or "random"
         subset_seed: Random seed for reproducibility when subset_mode is "random"
+        agent_name: Optional stem name of a custom agent file (e.g., "agent" from "agent.py")
 
     Returns:
-        Rollout version string (e.g., "v0", "v1_all", "v1_filtered_all", "v1_agent_top5", "v1_all_rand10s42")
+        Rollout version string (e.g., "v0", "agent_v0", "v1_all", "agent_v1_all")
 
     Examples:
         >>> generate_rollout_version("", "all_loaded")
         'v0'
+        >>> generate_rollout_version("", "all_loaded", agent_name="agent")
+        'agent_v0'
         >>> generate_rollout_version("skills/v1", "all_loaded")
         'v1_all'
+        >>> generate_rollout_version("skills/v1", "all_loaded", agent_name="agent")
+        'agent_v1_all'
         >>> generate_rollout_version("skills/v1/metadata.yaml", "all_loaded")
         'v1_all'
         >>> generate_rollout_version("skills/v1/metadata_filtered.yaml", "all_loaded")
@@ -44,9 +50,10 @@ def generate_rollout_version(
         >>> generate_rollout_version("skills/v1", "all_loaded", "random", 10, 42)
         'v1_all_rand10s42'
     """
-    # If no skills, always return v0
+    # If no skills, always return v0 (possibly prefixed with agent name)
     if skill_version == "" or skill_version is None:
-        return "v0"
+        version = "v0"
+        return f"{agent_name}_{version}" if agent_name else version
 
     skill_path = Path(skill_version)
 
@@ -93,7 +100,7 @@ def generate_rollout_version(
         if subset_seed is not None:
             version_str += f"s{subset_seed}"
 
-    return version_str
+    return f"{agent_name}_{version_str}" if agent_name else version_str
 
 def prepare_task(
         task_id: str,

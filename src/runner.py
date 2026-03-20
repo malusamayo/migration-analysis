@@ -243,6 +243,7 @@ def run_single_instance_agentic(
         setup_commands: List[str] = [],
         tools: List[Tool] = None,
         workspace_fn = None,
+        agent_file: str = None,
     ):
     """
     Run a single instance using OpenHands agents.
@@ -267,12 +268,6 @@ def run_single_instance_agentic(
     """
     example = copy.deepcopy(example)
 
-    if tools is None:
-        tools = [
-            Tool(name=TerminalTool.name),
-            Tool(name=FileEditorTool.name),
-        ]
-
     llm = LLM(model=lm.model) #, temperature=lm.kwargs.get("temperature"))
     system_prompt_path = os.path.abspath(system_prompt_path)
 
@@ -280,6 +275,29 @@ def run_single_instance_agentic(
     log_dir = workspace_dir.parent / f"{workspace_dir.name}_logs"
     if task_id:
         setup_workspace(task_id, workspace, log_dir, example)
+
+    def _build_agent(base_dir, prompt_path):
+        if agent_file is not None:
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("_agent_module", agent_file)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            seed_prompt = Path(prompt_path).read_text()
+            return mod.build_agent(base_dir=str(base_dir), lm_model=lm.model, seed_prompt=seed_prompt)
+        if tools is None:
+            _tools = [
+                Tool(name=TerminalTool.name),
+                Tool(name=FileEditorTool.name),
+            ]
+        else:
+            _tools = tools
+        agent_context = AgentContext(skills=skills or [])
+        return Agent(
+            llm=llm,
+            tools=_tools,
+            system_prompt_filename=prompt_path,
+            agent_context=agent_context,
+        )
 
     if use_docker:
         # Docker execution path
@@ -289,13 +307,7 @@ def run_single_instance_agentic(
             forward_env,
             workspace_dir) = construct_docker_workspace(workspace_dir.absolute(), system_prompt_path, skills)
 
-        agent_context = AgentContext(skills=skills or [])
-        agent = Agent(
-            llm=llm,
-            tools=tools,
-            system_prompt_filename=docker_system_prompt_path,
-            agent_context=agent_context,
-        )
+        agent = _build_agent(docker_workspace_path, docker_system_prompt_path)
 
         with DockerWorkspace(
             working_dir=docker_workspace_path,
@@ -325,13 +337,7 @@ def run_single_instance_agentic(
             )
     else:
         patch_llm_for_debugging(Path(workspace))
-        agent_context = AgentContext(skills=skills or [])
-        agent = Agent(
-            llm=llm,
-            tools=tools,
-            system_prompt_filename=system_prompt_path,
-            agent_context=agent_context,
-        )
+        agent = _build_agent(workspace_dir.absolute(), system_prompt_path)
 
         return _run_agentic_conversation(
             agent=agent,

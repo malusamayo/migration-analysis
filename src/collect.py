@@ -184,6 +184,7 @@ def run_task(
         data_path: Optional[str] = None,
         start_servers: bool = False,
         server_start_timeout: int = 300,
+        agent_file: Optional[str] = None,
     ):
     """
     Run a task with specified model and prompt.
@@ -211,12 +212,14 @@ def run_task(
     from .dataloader import generate_rollout_version
 
     # Auto-generate rollout_version
+    agent_name = Path(agent_file).stem if agent_file else None
     rollout_version = generate_rollout_version(
         skill_version=skill_path,
         skill_mode=skill_mode,
         subset_mode=subset_mode,
         subset_k=subset_k,
         subset_seed=subset_seed,
+        agent_name=agent_name,
     )
     print(f"📦 Auto-generated rollout version: {rollout_version}")
 
@@ -277,6 +280,9 @@ def run_task(
         use_process = False
     max_workers = batch_size
 
+    if agent_file is not None:
+        print(f"🤖 Using custom agent builder from {agent_file}")
+
     # Add skills and docker settings to agentic args
     if is_agentic:
         for args in args_list:
@@ -286,6 +292,8 @@ def run_task(
             args["use_docker"] = use_docker
             args["server_image"] = server_image
             args["tools"] = get_tools(task_id, args.get("workspace"))
+            if agent_file is not None:
+                args["agent_file"] = os.path.abspath(agent_file)
 
     servers_started = setup_servers(
         task_id, args_list, start_servers=start_servers, timeout=server_start_timeout
@@ -335,6 +343,8 @@ if __name__ == "__main__":
     parser.add_argument("--is_agentic", action="store_true", help="Whether to use agentic execution.")
     parser.add_argument("--batch_size", type=int, default=None, help="Batch size for collection.")
     parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results.")
+    parser.add_argument("--agent_file", type=str, default=None,
+                        help="Path to a Python file defining build_agent(base_dir, lm_model, seed_prompt) -> Agent")
 
     # Parameters for automatic rollout versioning
     parser.add_argument("--skill_path", type=str, default=None,
@@ -383,6 +393,7 @@ if __name__ == "__main__":
     data_path = config.get("data_path")
     start_servers = config.get("start_servers", False)
     server_start_timeout = config.get("server_start_timeout", 300)
+    agent_file = args.agent_file if args.agent_file is not None else config.get("agent_file")
 
     # Validate required arguments
     if not model_name:
@@ -409,4 +420,5 @@ if __name__ == "__main__":
         data_path=data_path,
         start_servers=start_servers,
         server_start_timeout=server_start_timeout,
+        agent_file=agent_file,
     )
