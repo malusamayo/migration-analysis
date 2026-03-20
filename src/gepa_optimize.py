@@ -6,10 +6,13 @@ import shutil
 import tempfile
 import traceback
 import argparse
+import difflib
+import hashlib
 import yaml
+from concurrent.futures import ProcessPoolExecutor
+from functools import partial
 from typing import Any, Mapping, Sequence, Optional
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from gepa import optimize, GEPAAdapter, EvaluationBatch, GEPAResult
 
@@ -20,10 +23,10 @@ from openhands.tools.terminal import TerminalTool
 from openhands.sdk.context import Skill
 
 from .runner import run_with_agent
-from .evaluate import get_config
 from .dataloader import prepare_task
-from .utils import LM_DICT
+from .utils import LM_DICT, batch_inference
 from .review.trajectory_utils import convert_json_to_markdown
+from .task_setups import preprocess_example, setup_servers, get_eval_config, get_seed_candidate
 
 
 # ---------------------------------------------------------------------------
@@ -38,14 +41,16 @@ PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an
 - `project/seed_prompt.txt` — The original task prompt (passed to `build_agent` as the `seed_prompt` parameter).
 - `trajectories/` — Markdown traces of the agent's recent execution on training examples.
 - `eval_results.yaml` — Per-example scores and detailed evaluation feedback.
+- `proposal_memory/rejected_proposals.yaml` — Recent rejected edits, mainly for this exact parent candidate. Treat these as soft evidence about strategies that already failed to improve scores.
 
 ## Your Task
 
 1. Read `eval_results.yaml` to understand overall performance and per-example scores.
 2. Read the trajectory files in `trajectories/` to understand the agent's step-by-step behavior.
-3. Identify failure modes: wrong actions, missing capabilities, excessive context, stuck loops, missing tools, poor instructions, etc.
-4. Modify `project/agent.py` to address the identified failures. You have the full OpenHands SDK at your disposal — consult the SDK Reference skill for available APIs.
-5. Optionally add/modify `get_workspace_scripts()` to deploy helper scripts to the agent's workspace.
+3. Read `proposal_memory/rejected_proposals.yaml` before editing. Avoid repeating the same non-improving strategy unless the current trajectories provide strong new evidence that the earlier rejection was minibatch-specific.
+4. Identify failure modes: wrong actions, missing capabilities, excessive context, stuck loops, missing tools, poor instructions, etc.
+5. Modify `project/agent.py` to address the identified failures. You have the full OpenHands SDK at your disposal — consult the SDK Reference skill for available APIs.
+6. Optionally add/modify `get_workspace_scripts()` to deploy helper scripts to the agent's workspace.
 
 ## Constraints on agent.py
 
@@ -95,6 +100,48 @@ def extract_workspace_scripts(code: str) -> dict[str, str]:
     return fn()
 
 
+def _validate_worker(code: str, lm_model: str, seed_prompt: str) -> tuple[bool, str]:
+    """Subprocess worker for validate_agent_candidate.
+
+    Runs exec() in an isolated process so custom Action/Observation class
+    registrations (e.g. a redefined FinishAction) never pollute the main
+    process's global Pydantic discriminated union.
+
+    Also spawns a short Conversation and calls send_message to trigger
+    _ensure_agent_ready() / tool resolution, catching errors like
+    AttributeError in ToolDefinition.create() that only surface at init time.
+    """
+    import tempfile
+    from openhands.sdk import Agent as _Agent, Conversation as _Conversation
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        try:
+            namespace = {}
+            exec(code, namespace)
+            agent = namespace["build_agent"](tmp_dir, lm_model, seed_prompt)
+            if not isinstance(agent, _Agent):
+                return False, f"build_agent returned {type(agent).__name__}, expected Agent"
+        except Exception as e:
+            return False, f"{type(e).__name__}: {e}"
+
+        # Spawn a real Conversation to trigger tool resolution (_ensure_agent_ready).
+        # Errors here (e.g. AttributeError in ToolDefinition.create) would silently
+        # produce empty traces during actual evaluation.
+        conversation = None
+        try:
+            conversation = _Conversation(agent=agent, workspace=tmp_dir)
+            conversation.send_message("test")
+        except Exception as e:
+            return False, f"{type(e).__name__} during conversation init: {e}"
+        finally:
+            if conversation is not None:
+                try:
+                    conversation.close()
+                except Exception:
+                    pass
+
+        return True, ""
+
+
 def validate_agent_candidate(
     code: str,
     lm_model: str,
@@ -103,22 +150,19 @@ def validate_agent_candidate(
     """Validate candidate code by compiling, executing, and building the Agent.
 
     Returns (success, error_message). On success, error_message is empty.
+    The exec() step runs in a subprocess to avoid polluting the main process's
+    Pydantic discriminated union with custom Action/Observation registrations.
     """
-    # 1. Compile check
+    # 1. Compile check (safe to do in-process — no side effects)
     try:
         compile(code, "agent.py", "exec")
     except SyntaxError as e:
         return False, f"SyntaxError: {e}"
 
-    # 2. Exec + build_agent check
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        try:
-            agent = execute_agent_candidate(code, tmp_dir, lm_model, seed_prompt)
-            if not isinstance(agent, Agent):
-                return False, f"build_agent returned {type(agent).__name__}, expected Agent"
-            return True, ""
-        except Exception as e:
-            return False, f"{type(e).__name__}: {e}"
+    # 2. Exec + build_agent check in an isolated subprocess
+    with ProcessPoolExecutor(max_workers=1, max_tasks_per_child=1) as pool:
+        future = pool.submit(_validate_worker, code, lm_model, seed_prompt)
+        return future.result()
 
 
 # ---------------------------------------------------------------------------
@@ -150,6 +194,51 @@ def _format_eval_feedback(output: dict, score: float) -> str:
                 parts.append(file_line)
 
     return "\n".join(parts)
+
+
+def _hash_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
+
+
+def _build_code_diff(old_text: str, new_text: str, max_lines: int = 120) -> str:
+    diff_lines = list(
+        difflib.unified_diff(
+            old_text.splitlines(),
+            new_text.splitlines(),
+            fromfile="current.py",
+            tofile="proposed.py",
+            lineterm="",
+        )
+    )
+    if not diff_lines:
+        return "(no code changes)"
+    if len(diff_lines) > max_lines:
+        diff_lines = diff_lines[:max_lines] + ["... diff truncated ..."]
+    return "\n".join(diff_lines)
+
+
+def _summarize_score_changes(
+    batch: Sequence[dict[str, Any]],
+    before_scores: Sequence[float],
+    after_scores: Sequence[float],
+    limit: int = 3,
+) -> list[dict[str, Any]]:
+    changes = []
+    for example, before, after in zip(batch, before_scores, after_scores):
+        delta = after - before
+        if abs(delta) < 1e-9:
+            continue
+        changes.append(
+            {
+                "task_input": example.get("prompt", "")[:300],
+                "before": before,
+                "after": after,
+                "delta": delta,
+            }
+        )
+
+    changes.sort(key=lambda item: (item["delta"], abs(item["delta"])))
+    return changes[:limit]
 
 
 # ---------------------------------------------------------------------------
@@ -196,6 +285,85 @@ def _load_proposer_skills(run_dir: str) -> list[Skill]:
 # GEPA Adapter — agentic proposer
 # ---------------------------------------------------------------------------
 
+def _evaluate_single_worker(
+    i: int,
+    example: dict,
+    candidate: dict,
+    phase_dir: str,
+    capture_traces: bool,
+    task_id: str,
+    model_name: str,
+    task_prompt: str,
+    eval_lm_name: Optional[str],
+) -> dict:
+    """Module-level worker for ProcessPoolExecutor: run candidate agent + eval for one example."""
+    from .task_setups import get_eval_config
+    from .utils import LM_DICT as _LM_DICT
+
+    eval_function = get_eval_config(task_id)["eval_function"]
+    eval_lm = _LM_DICT[eval_lm_name] if eval_lm_name else None
+
+    example = copy.deepcopy(example)
+    workspace_base = os.path.abspath(os.path.join(phase_dir, f"example{i}"))
+    agent_base_dir = os.path.abspath(os.path.join(phase_dir, f"example{i}_config"))
+    os.makedirs(workspace_base, exist_ok=True)
+    os.makedirs(agent_base_dir, exist_ok=True)
+
+    try:
+        # Execute candidate code exactly once to avoid re-registering pydantic models
+        # (e.g. CustomFinishAction) which causes "Duplicate class definition" errors.
+        namespace = {}
+        exec(candidate["agent_code"], namespace)
+        agent = namespace["build_agent"](agent_base_dir, model_name, task_prompt)
+        fn = namespace.get("get_workspace_scripts")
+        workspace_scripts = fn() if fn is not None else {}
+
+        result = run_with_agent(
+            agent=agent,
+            example=example,
+            workspace=workspace_base,
+            task_id=task_id,
+            workspace_scripts=workspace_scripts,
+        )
+
+        # Copy trace files into workspace (eval checks for them there)
+        log_dir = Path(workspace_base).parent / f"{Path(workspace_base).name}_logs"
+        if log_dir.exists():
+            for trace_file in log_dir.glob("trace_*.md"):
+                shutil.copy2(trace_file, workspace_base)
+
+        eval_kwargs = {
+            "workspace_dir": workspace_base,
+            "example": result or example,
+            "lm": eval_lm,
+        }
+        eval_result = eval_function(**eval_kwargs)
+
+        score = float(eval_result.get("score", 0.0))
+
+        trajectory = None
+        if capture_traces:
+            trace_data = {}
+            trace_files = list(log_dir.glob("trace_*.json")) if log_dir.exists() else []
+            if trace_files:
+                with open(trace_files[0]) as f:
+                    trace_data = json.load(f)
+            trace_data["eval_result"] = eval_result
+            trajectory = trace_data
+
+        return {"output": eval_result, "score": score, "trajectory": trajectory, "error_message": None}
+
+    except Exception as e:
+        traceback.print_exc()
+        trajectory = {"error": str(e)} if capture_traces else None
+        return {
+            "output": {"error": str(e), "score": 0.0},
+            "score": 0.0,
+            "trajectory": trajectory,
+            "error_message": f"Error on example {i}: {e}",
+        }
+
+
 class AgentOptimizationAdapter(GEPAAdapter):
     """GEPAAdapter that evolves agent code via an agentic proposer.
 
@@ -213,6 +381,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         eval_lm_name: Optional[str] = None,
         run_dir: str = "results/gepa",
         max_proposal_retries: int = 2,
+        batch_size: Optional[int] = None,
     ):
         self.task_id = task_id
         self.task_prompt = task_prompt
@@ -223,8 +392,9 @@ class AgentOptimizationAdapter(GEPAAdapter):
         self.eval_lm_name = eval_lm_name
         self.eval_lm = LM_DICT[eval_lm_name] if eval_lm_name else None
         self._max_proposal_retries = max_proposal_retries
+        self._batch_size = batch_size
 
-        self.eval_config = get_config(task_id)
+        self.eval_config = get_eval_config(task_id)
         self.eval_function = self.eval_config["eval_function"]
 
         # Load proposer skills once
@@ -235,8 +405,34 @@ class AgentOptimizationAdapter(GEPAAdapter):
         self._phase = "seed"
         self._calls_since_reflection = 0
         self._last_batch: list[dict] = []
+        self._last_reflection_context: Optional[dict[str, Any]] = None
+        self._pending_proposal_context: Optional[dict[str, Any]] = None
 
         os.makedirs(run_dir, exist_ok=True)
+
+    def _eval_cache_path(self) -> str:
+        return os.path.join(self.run_dir, "shared", "eval_cache.json")
+
+    def _eval_cache_key(self, agent_code: str, example: dict, capture_traces: bool) -> str:
+        code_hash = _hash_text(agent_code)
+        try:
+            example_hash = _hash_text(json.dumps(example, sort_keys=True, default=str))
+        except Exception:
+            example_hash = _hash_text(str(example))
+        return f"{code_hash}_{example_hash}_{'t' if capture_traces else 'f'}"
+
+    def _load_eval_cache(self) -> dict:
+        path = self._eval_cache_path()
+        if not os.path.exists(path):
+            return {}
+        with open(path) as f:
+            return json.load(f)
+
+    def _save_eval_cache(self, cache: dict):
+        path = self._eval_cache_path()
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            json.dump(cache, f)
 
     def _iter_dir(self) -> str:
         if self._gepa_iter < 0:
@@ -246,79 +442,154 @@ class AgentOptimizationAdapter(GEPAAdapter):
     def _phase_dir(self) -> str:
         base = self._iter_dir()
         if self._phase in ("seed", "reflection"):
-            return base
-        return os.path.join(base, f"eval_{self._phase}")
+            return os.path.join(base, "current")
+        if self._phase == "candidate":
+            return os.path.join(base, "proposed")
+        return os.path.join(base, "proposed_val")
 
-    # ------------------------------------------------------------------
-    # Evaluate: run candidate agent on examples
-    # ------------------------------------------------------------------
+    def _proposal_memory_dir(self) -> str:
+        return os.path.join(self.run_dir, "shared", "proposal_memory")
 
-    def _evaluate_single(
+    def _proposal_memory_path(self) -> str:
+        return os.path.join(self._proposal_memory_dir(), "rejected_proposals.jsonl")
+
+    def _iter_proposal_metadata_path(self) -> str:
+        return os.path.join(self._iter_dir(), "proposer", "proposal_metadata.json")
+
+    def _iter_proposal_outcome_path(self) -> str:
+        return os.path.join(self._iter_dir(), "proposer", "proposal_outcome.json")
+
+    def _load_rejected_proposals(self) -> list[dict[str, Any]]:
+        path = self._proposal_memory_path()
+        if not os.path.exists(path):
+            return []
+
+        records = []
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    records.append(json.loads(line))
+                except json.JSONDecodeError:
+                    self.logger.log(f"[iter {self._gepa_iter}] Skipping invalid proposal memory record")
+        return records
+
+    def _save_rejected_proposals(self, records: list[dict[str, Any]]):
+        path = self._proposal_memory_path()
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            for record in records[-200:]:
+                f.write(json.dumps(record, default=str))
+                f.write("\n")
+
+    def _append_rejected_proposal(self, record: dict[str, Any]):
+        records = self._load_rejected_proposals()
+        records.append(record)
+        self._save_rejected_proposals(records)
+
+    def _select_relevant_rejections(
         self,
-        i: int,
-        example: dict,
         candidate: dict[str, str],
-        phase_dir: str,
-        capture_traces: bool,
-    ) -> dict:
-        """Run candidate agent + eval for a single example."""
-        example = copy.deepcopy(example)
-        workspace_base = os.path.abspath(os.path.join(phase_dir, "rollouts", f"example{i}_rollout0"))
-        agent_base_dir = os.path.abspath(os.path.join(phase_dir, "agent_files", f"example{i}"))
-        os.makedirs(workspace_base, exist_ok=True)
-        os.makedirs(agent_base_dir, exist_ok=True)
+        limit: int = 8,
+    ) -> list[dict[str, Any]]:
+        candidate_hash = _hash_text(candidate["agent_code"])
+        records = self._load_rejected_proposals()
+        if not records:
+            return []
 
-        try:
-            agent = execute_agent_candidate(
-                candidate["agent_code"],
-                agent_base_dir,
-                self.model_name,
-                self.task_prompt,
+        same_parent = [r for r in records if r.get("parent_candidate_hash") == candidate_hash]
+        recent_other = [r for r in records if r.get("parent_candidate_hash") != candidate_hash]
+
+        selected = same_parent[-limit:]
+        remaining = max(0, limit - len(selected))
+        if remaining > 0:
+            selected.extend(recent_other[-min(2, remaining):])
+        return selected
+
+    def _write_proposal_metadata(self, record: dict[str, Any]):
+        path = self._iter_proposal_metadata_path()
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            json.dump(record, f, indent=2)
+
+    def _write_proposal_outcome(self, record: dict[str, Any]):
+        path = self._iter_proposal_outcome_path()
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            json.dump(record, f, indent=2)
+
+    def _record_reflection_context(
+        self,
+        batch: Sequence[dict[str, Any]],
+        candidate: dict[str, str],
+        scores: list[float],
+    ):
+        self._pending_proposal_context = None
+        self._last_reflection_context = {
+            "iteration": self._gepa_iter,
+            "parent_candidate_hash": _hash_text(candidate["agent_code"]),
+            "before_scores": list(scores),
+            "before_score_sum": sum(scores),
+            "batch_prompts": [example.get("prompt", "")[:300] for example in batch],
+        }
+
+    def _record_candidate_outcome(
+        self,
+        batch: Sequence[dict[str, Any]],
+        candidate: dict[str, str],
+        scores: list[float],
+        outputs: list[dict[str, Any]],
+    ):
+        pending = self._pending_proposal_context
+        reflection = self._last_reflection_context
+        if pending is None or reflection is None:
+            return
+
+        proposed_hash = _hash_text(candidate["agent_code"])
+        if proposed_hash != pending.get("proposed_candidate_hash"):
+            return
+
+        before_scores = list(reflection.get("before_scores", []))
+        if len(before_scores) != len(scores):
+            self.logger.log(
+                f"[iter {self._gepa_iter}] Skipping proposal outcome record due to score length mismatch"
             )
+            self._pending_proposal_context = None
+            return
 
-            workspace_scripts = extract_workspace_scripts(candidate["agent_code"])
+        before_sum = float(reflection.get("before_score_sum", 0.0))
+        after_sum = sum(scores)
+        delta = after_sum - before_sum
 
-            result = run_with_agent(
-                agent=agent,
-                example=example,
-                workspace=workspace_base,
-                task_id=self.task_id,
-                workspace_scripts=workspace_scripts,
-            )
-
-            # Copy trace files into workspace (eval checks for them there)
-            log_dir = Path(workspace_base).parent / f"{Path(workspace_base).name}_logs"
-            if log_dir.exists():
-                for trace_file in log_dir.glob("trace_*.md"):
-                    shutil.copy2(trace_file, workspace_base)
-
-            eval_kwargs = {
-                "workspace_dir": workspace_base,
-                "example": result or example,
+        per_example_feedback = [
+            {
+                "prompt": example.get("prompt", "")[:300],
+                "score": score,
+                "feedback": output.get("feedback", "") if isinstance(output, dict) else "",
             }
-            if self.eval_lm is not None:
-                eval_kwargs["lm"] = self.eval_lm
-            eval_result = self.eval_function(**eval_kwargs)
+            for example, score, output in zip(batch, scores, outputs)
+        ]
 
-            score = float(eval_result.get("score", 0.0))
+        outcome = {
+            **pending,
+            "status": "accepted_on_subsample" if delta > 0 else "rejected_on_subsample",
+            "batch_prompts": list(reflection.get("batch_prompts", [])),
+            "before_scores": before_scores,
+            "after_scores": list(scores),
+            "before_score_sum": before_sum,
+            "after_score_sum": after_sum,
+            "score_delta": delta,
+            "score_delta_examples": _summarize_score_changes(batch, before_scores, scores),
+            "per_example_feedback": per_example_feedback,
+        }
+        self._write_proposal_outcome(outcome)
 
-            trajectory = None
-            if capture_traces:
-                trace_data = {}
-                trace_files = list(log_dir.glob("trace_*.json")) if log_dir.exists() else []
-                if trace_files:
-                    with open(trace_files[0]) as f:
-                        trace_data = json.load(f)
-                trace_data["eval_result"] = eval_result
-                trajectory = trace_data
+        if delta <= 0:
+            self._append_rejected_proposal(outcome)
 
-            return {"output": eval_result, "score": score, "trajectory": trajectory}
-
-        except Exception as e:
-            self.logger.log(f"[iter {self._gepa_iter}, {self._phase}] Error on example {i}: {e}")
-            traceback.print_exc()
-            trajectory = {"error": str(e)} if capture_traces else None
-            return {"output": {"error": str(e), "score": 0.0}, "score": 0.0, "trajectory": trajectory}
+        self._pending_proposal_context = None
 
     def _save_candidate(self, candidate: dict[str, str]):
         iter_dir = self._iter_dir()
@@ -356,24 +627,58 @@ class AgentOptimizationAdapter(GEPAAdapter):
             f"(capture_traces={capture_traces})"
         )
 
-        # Run all examples in parallel
-        results_by_idx: dict[int, dict] = {}
-        with ThreadPoolExecutor(max_workers=len(batch)) as executor:
-            futures = {
-                executor.submit(
-                    self._evaluate_single, i, ex, candidate, phase_dir, capture_traces
-                ): i
-                for i, ex in enumerate(batch)
+        # Run all examples in separate processes (browser tool requires process isolation)
+        max_workers = self._batch_size if self._batch_size is not None else len(batch)
+        args_list = [
+            {
+                "i": i,
+                "example": ex,
+                "candidate": candidate,
+                "phase_dir": phase_dir,
+                "capture_traces": capture_traces,
+                "task_id": self.task_id,
+                "model_name": self.model_name,
+                "task_prompt": self.task_prompt,
+                "eval_lm_name": self.eval_lm_name,
             }
-            for future in as_completed(futures):
-                idx = futures[future]
-                results_by_idx[idx] = future.result()
+            for i, ex in enumerate(batch)
+        ]
+
+        # Check cache — only dispatch examples not already evaluated with this code
+        eval_cache = self._load_eval_cache()
+        results_list = [None] * len(args_list)
+        uncached_indices = []
+        n_hits = 0
+        for idx, args in enumerate(args_list):
+            key = self._eval_cache_key(candidate["agent_code"], args["example"], capture_traces)
+            if key in eval_cache:
+                results_list[idx] = eval_cache[key]
+                n_hits += 1
+            else:
+                uncached_indices.append(idx)
+
+        if n_hits:
+            self.logger.log(
+                f"[iter {self._gepa_iter}, {self._phase}] Cache hits: {n_hits}/{len(batch)}"
+            )
+
+        if uncached_indices:
+            uncached_args = [args_list[idx] for idx in uncached_indices]
+            fresh_results = batch_inference(
+                _evaluate_single_worker, uncached_args, max_workers=max_workers, use_process=True
+            )
+            for idx, result in zip(uncached_indices, fresh_results):
+                results_list[idx] = result
+                key = self._eval_cache_key(candidate["agent_code"], args_list[idx]["example"], capture_traces)
+                eval_cache[key] = result
+            self._save_eval_cache(eval_cache)
 
         outputs = []
         scores = []
         trajectories = [] if capture_traces else None
-        for i in range(len(batch)):
-            r = results_by_idx[i]
+        for r in results_list:
+            if r.get("error_message"):
+                self.logger.log(f"[iter {self._gepa_iter}, {self._phase}] {r['error_message']}")
             outputs.append(r["output"])
             scores.append(r["score"])
             if capture_traces:
@@ -384,6 +689,11 @@ class AgentOptimizationAdapter(GEPAAdapter):
             f"[iter {self._gepa_iter}, {self._phase}] "
             f"scores: {scores}, avg: {avg_score:.3f}"
         )
+
+        if capture_traces:
+            self._record_reflection_context(batch, candidate, scores)
+        elif self._phase == "candidate":
+            self._record_candidate_outcome(batch, candidate, scores, outputs)
 
         return EvaluationBatch(
             outputs=outputs,
@@ -428,15 +738,16 @@ class AgentOptimizationAdapter(GEPAAdapter):
                         "Task Input": example.get("prompt", ""),
                         "Agent Trajectory": trajectory_md,
                         "Evaluation Feedback": feedback,
+                        "eval_output": output if isinstance(output, dict) else {},
                     })
 
             result[component] = records
 
         # Save reflective dataset
         iter_dir = self._iter_dir()
-        reflections_dir = os.path.join(iter_dir, "reflections")
-        os.makedirs(reflections_dir, exist_ok=True)
-        reflection_path = os.path.join(reflections_dir, "reflection.json")
+        proposer_dir = os.path.join(iter_dir, "proposer")
+        os.makedirs(proposer_dir, exist_ok=True)
+        reflection_path = os.path.join(proposer_dir, "reflection.json")
         with open(reflection_path, "w") as f:
             json.dump(result, f, indent=2, default=str)
         self.logger.log(f"[iter {self._gepa_iter}] Reflection inputs saved to {reflection_path}")
@@ -454,7 +765,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
     ) -> str:
         """Create the proposer agent's workspace with all context."""
         iter_dir = self._iter_dir()
-        workspace = os.path.join(iter_dir, "proposer_workspace")
+        workspace = os.path.join(iter_dir, "proposer", "workspace")
         if os.path.exists(workspace):
             shutil.rmtree(workspace)
 
@@ -483,12 +794,29 @@ class AgentOptimizationAdapter(GEPAAdapter):
         # eval_results.yaml — summary of scores and feedback
         eval_summary = []
         for i, record in enumerate(dataset):
-            eval_summary.append({
+            eval_out = record.get("eval_output", {})
+            entry = {
                 "example": i,
                 "feedback": record.get("Evaluation Feedback", ""),
-            })
+            }
+            for key in ("task_id", "score", "answer", "reference_answers", "eval_types"):
+                if key in eval_out:
+                    entry[key] = eval_out[key]
+            eval_summary.append(entry)
         with open(os.path.join(workspace, "eval_results.yaml"), "w") as f:
             yaml.dump(eval_summary, f, sort_keys=False, default_flow_style=False)
+
+        memory_dir = os.path.join(workspace, "proposal_memory")
+        os.makedirs(memory_dir)
+        rejected_proposals = self._select_relevant_rejections(candidate)
+        memory_payload = rejected_proposals or [
+            {
+                "status": "no_prior_rejections",
+                "note": "No prior rejected proposals recorded for this candidate yet.",
+            }
+        ]
+        with open(os.path.join(memory_dir, "rejected_proposals.yaml"), "w") as f:
+            yaml.dump(memory_payload, f, sort_keys=False, default_flow_style=False)
 
         return workspace
 
@@ -526,6 +854,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
     ) -> dict[str, str]:
         """Run the agentic proposer to improve the candidate code."""
         new_candidate = dict(candidate)
+        self._pending_proposal_context = None
 
         if "agent_code" not in components_to_update:
             return new_candidate
@@ -540,9 +869,10 @@ class AgentOptimizationAdapter(GEPAAdapter):
         # 3. Run proposer conversation
         instruction = (
             "Analyze the agent's performance by reading eval_results.yaml and the trajectory files "
-            "in trajectories/. Then improve the agent configuration in project/agent.py to address "
-            "the identified failure modes. Use the SDK Reference and Adaptation Guide skills for "
-            "available APIs and strategies."
+            "in trajectories/. Read proposal_memory/rejected_proposals.yaml before editing so you "
+            "can avoid repeating non-improving changes. Then improve the agent configuration in "
+            "project/agent.py to address the identified failure modes. Use the SDK Reference and "
+            "Adaptation Guide skills for available APIs and strategies."
         )
 
         conversation = Conversation(agent=proposer_agent, workspace=workspace)
@@ -579,6 +909,15 @@ class AgentOptimizationAdapter(GEPAAdapter):
             success, error = validate_agent_candidate(new_code, self.model_name, self.task_prompt)
             if success:
                 new_candidate["agent_code"] = new_code
+                proposal_record = {
+                    "iteration": self._gepa_iter,
+                    "parent_candidate_hash": _hash_text(candidate["agent_code"]),
+                    "proposed_candidate_hash": _hash_text(new_code),
+                    "components_to_update": list(components_to_update),
+                    "code_diff": _build_code_diff(candidate["agent_code"], new_code),
+                }
+                self._pending_proposal_context = proposal_record
+                self._write_proposal_metadata(proposal_record)
                 if attempt > 0:
                     self.logger.log(
                         f"[iter {self._gepa_iter}] Proposal succeeded on attempt {attempt + 1}"
@@ -600,7 +939,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
 
         # Save proposer conversation trace
         try:
-            proposer_log_dir = os.path.join(self._iter_dir(), "proposer_logs")
+            proposer_log_dir = os.path.join(self._iter_dir(), "proposer", "workspace_logs")
             os.makedirs(proposer_log_dir, exist_ok=True)
             from .runner import save_conversation_trace
             save_conversation_trace(conversation, proposer_log_dir)
@@ -656,6 +995,7 @@ def run_optimization(
     seed: int = 0,
     run_dir: Optional[str] = None,
     data_path: Optional[str] = None,
+    batch_size: Optional[int] = None,
 ):
     # 0. Configure logging
     logging.basicConfig(
@@ -674,30 +1014,18 @@ def run_optimization(
         data_path=data_path,
     )
 
+    # Apply task-specific server setup and example preprocessing
+    setup_servers(task_id)
+    data = [preprocess_example(task_id, ex) for ex in data]
+
     # 2. Split train/val
     split_idx = max(1, int(len(data) * train_ratio))
     trainset = data[:split_idx]
     valset = data[split_idx:] if split_idx < len(data) else data
 
     # 3. Build seed candidate
-    seed_code = '''\
-from openhands.sdk import LLM, Agent, Tool, AgentContext
-from openhands.tools.terminal import TerminalTool
-from openhands.tools.file_editor import FileEditorTool
-import os
-
-def build_agent(base_dir, lm_model, seed_prompt):
-    prompt_path = os.path.join(base_dir, "system_prompt.md")
-    with open(prompt_path, "w") as f:
-        f.write(seed_prompt)
-    return Agent(
-        llm=LLM(model=lm_model),
-        tools=[Tool(name=TerminalTool.name), Tool(name=FileEditorTool.name)],
-        system_prompt_filename=prompt_path,
-    )
-'''
-
-    seed_candidate = {"agent_code": seed_code}
+    seed_candidate = get_seed_candidate(task_id)
+    seed_code = seed_candidate["agent_code"]
 
     # 4. Set up run directory
     if run_dir is None:
@@ -724,6 +1052,7 @@ def build_agent(base_dir, lm_model, seed_prompt):
         task_prompt=task_prompt,
         eval_lm_name=eval_lm_name,
         run_dir=run_dir,
+        batch_size=batch_size,
     )
 
     # 6. Run GEPA optimization
@@ -795,6 +1124,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_metric_calls", type=int, default=None)
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--run_dir", type=str, default=None)
+    parser.add_argument("--batch_size", type=int, default=None)
 
     args = parser.parse_args()
 
@@ -815,6 +1145,7 @@ if __name__ == "__main__":
     seed = args.seed if args.seed is not None else config.get("seed", 0)
     run_dir = args.run_dir or config.get("run_dir")
     data_path = config.get("data_path")
+    batch_size = args.batch_size if args.batch_size is not None else config.get("batch_size")
 
     if not task_id:
         parser.error("--task_id is required")
@@ -833,4 +1164,5 @@ if __name__ == "__main__":
         seed=seed,
         run_dir=run_dir,
         data_path=data_path,
+        batch_size=batch_size,
     )
