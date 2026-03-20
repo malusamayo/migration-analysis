@@ -1,0 +1,17 @@
+task_id: "build-pov-ray"
+data_path: "data/build_pov_ray.csv"
+model_name: "claude-sonnet-4-5"
+prompt_name: "default"
+
+skill_version: ""
+
+max_examples: 1
+n_responses: 1
+batch_size: 4
+resume: true
+
+is_agentic: true
+use_docker: true
+server_image: "alexgshaw/build-pov-ray:20251031"
+
+eval_lm: "gemini-3-flash-preview"
