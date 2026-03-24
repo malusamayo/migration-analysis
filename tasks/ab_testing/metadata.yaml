@@ -1,0 +1,6 @@
+name: ab_testing
+description: >
+  A/B testing analysis benchmark. The agent queries mock BigQuery tables with
+  per-scenario clickstream data, computes conversion rates, and takes the correct
+  downstream action (create a Cloud Storage bucket or write a Cloud Logging entry)
+  based on which version wins. Based on LOCA-bench ABTestingS2LEnv.

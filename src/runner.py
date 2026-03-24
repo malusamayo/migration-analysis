@@ -34,7 +34,7 @@ from openhands.sdk.context import (
 from openhands.workspace import DockerWorkspace
 
 from .debug_utils import patch_llm_for_debugging
-from .task_setups import setup_workspace
+from .task_setups import setup_workspace, get_mcp_config
 
 
 def run_with_agent(
@@ -244,6 +244,7 @@ def run_single_instance_agentic(
         tools: List[Tool] = None,
         workspace_fn = None,
         agent_file: str = None,
+        post_docker_fn = None,
     ):
     """
     Run a single instance using OpenHands agents.
@@ -292,12 +293,16 @@ def run_single_instance_agentic(
         else:
             _tools = tools
         agent_context = AgentContext(skills=skills or [])
-        return Agent(
+        mcp_cfg = get_mcp_config(task_id, str(workspace_dir)) if task_id else {}
+        agent_kwargs = dict(
             llm=llm,
             tools=_tools,
             system_prompt_filename=prompt_path,
             agent_context=agent_context,
         )
+        if mcp_cfg:
+            agent_kwargs["mcp_config"] = mcp_cfg
+        return Agent(**agent_kwargs)
 
     if use_docker:
         # Docker execution path
@@ -328,13 +333,20 @@ def run_single_instance_agentic(
                     log_dir=log_dir,
                 )
 
-            return _run_agentic_conversation(
+            result = _run_agentic_conversation(
                 agent=agent,
                 workspace_obj=docker_workspace,
                 log_dir=log_dir,
                 example=example,
                 skill_mode=skill_mode,
             )
+            if post_docker_fn:
+                post_docker_fn(
+                    workspace=docker_workspace,
+                    example=example,
+                    workspace_dir=str(workspace_dir),
+                )
+            return result
     else:
         # patch_llm_for_debugging(Path(workspace))
         agent = _build_agent(workspace_dir.absolute(), system_prompt_path)

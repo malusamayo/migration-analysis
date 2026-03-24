@@ -13,6 +13,7 @@ from .webarena_servers import (
     start_webarena_servers,
     stop_webarena_servers,
 )
+from . import ab_testing as _ab_testing
 
 
 def _webarena_browser_tool_params(workspace_dir: str | None) -> dict:
@@ -31,6 +32,10 @@ def preprocess_example(task_id: str, example: dict) -> dict:
     """Apply task-specific preprocessing to an example before running the agent."""
     if task_id == "webarena":
         return _webarena_preprocess_example(example)
+    if task_id == "ab_testing":
+        example = dict(example)
+        example["prompt"] = _ab_testing.TASK_INSTRUCTION
+        return example
     return example
 
 
@@ -62,6 +67,9 @@ def setup_workspace(task_id: str, workspace_dir: str, log_dir: str, example: dic
     if task_id == "oolong":
         with open(os.path.join(workspace_dir, "context.txt"), "w") as f:
             f.write(example["context_window_text"])
+
+    if task_id == "ab_testing":
+        _ab_testing.setup_workspace(workspace_dir, str(log_dir), example)
 
 
 def setup_servers(
@@ -102,6 +110,9 @@ def get_eval_config(task_id: str) -> dict:
     # elif task_id == "build-pov-ray":
     #     from ..task_evals.build_pov_ray import run_single_instance_eval
     #     return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 32}
+    elif task_id == "ab_testing":
+        from ..task_evals.ab_testing import run_single_instance_eval
+        return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
     elif task_id == "oolong":
         from ..task_evals.oolong import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 32}
@@ -157,3 +168,10 @@ def build_agent(base_dir, lm_model, seed_prompt):
 def requires_eval_lm(task_id: str) -> bool:
     """Return True if the task requires an eval LM to be specified."""
     return task_id == "webtest"
+
+
+def get_mcp_config(task_id: str, workspace_dir: str) -> dict:
+    """Return an mcp_config dict for tasks that require MCP servers, else {}."""
+    if task_id == "ab_testing":
+        return _ab_testing.get_mcp_config(workspace_dir)
+    return {}
