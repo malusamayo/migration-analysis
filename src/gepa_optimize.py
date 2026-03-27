@@ -60,12 +60,42 @@ PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an
 - `seed_prompt` is the original task prompt text (passed as a parameter, also available in `project/seed_prompt.txt`).
 - Code must be valid, self-contained Python with explicit imports at the top.
 - Refer to the **SDK Reference** skill for the full API surface.
-- Refer to the **Adaptation Guide** skill for strategies (augment context, trim context, adapt actions, adapt observations, adapt orchestration).
+{adaptation_guide_line}
 
 ## Output
 
 After modifying agent.py, read it back to verify there are no syntax errors. Make sure the code is complete and self-contained.
 """
+
+
+def _build_proposer_system_prompt(use_adaptation_guide: bool) -> str:
+    adaptation_guide_line = ""
+    if use_adaptation_guide:
+        adaptation_guide_line = (
+            "- Refer to the **Adaptation Guide** skill for strategies "
+            "(augment context, trim context, adapt actions, adapt observations, "
+            "adapt orchestration)."
+        )
+    return PROPOSER_SYSTEM_PROMPT.format(adaptation_guide_line=adaptation_guide_line)
+
+
+def _build_proposer_instruction(use_adaptation_guide: bool) -> str:
+    instruction = (
+        "Analyze the agent's performance by reading eval_results.yaml and the trajectory files "
+        "in trajectories/. Read proposal_memory/rejected_proposals.yaml before editing so you "
+        "can avoid repeating non-improving changes. Then improve the agent configuration in "
+        "project/agent.py to address the identified failure modes. Use the SDK Reference"
+    )
+    if use_adaptation_guide:
+        instruction += " and Adaptation Guide skills"
+    else:
+        instruction += " skill"
+    instruction += " for available APIs"
+    if use_adaptation_guide:
+        instruction += " and strategies."
+    else:
+        instruction += "."
+    return instruction
 
 
 # ---------------------------------------------------------------------------
@@ -200,6 +230,53 @@ def _hash_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
 
 
+def _empty_cost_bucket() -> dict:
+    return {
+        "accumulated_cost": 0.0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0,
+        "reasoning_tokens": 0,
+    }
+
+
+def _add_to_cost_bucket(bucket: dict, metrics: dict) -> None:
+    bucket["accumulated_cost"] += metrics.get("accumulated_cost", 0.0)
+    usage = metrics.get("accumulated_token_usage") or {}
+    bucket["prompt_tokens"] += usage.get("prompt_tokens", 0)
+    bucket["completion_tokens"] += usage.get("completion_tokens", 0)
+    bucket["cache_read_tokens"] += usage.get("cache_read_tokens", 0)
+    bucket["cache_write_tokens"] += usage.get("cache_write_tokens", 0)
+    bucket["reasoning_tokens"] += usage.get("reasoning_tokens", 0)
+
+
+def _extract_dspy_cost(lm, history_len_before: int) -> Optional[dict]:
+    """Extract cost incurred by a dspy LM since history_len_before."""
+    if lm is None or not hasattr(lm, "history"):
+        return None
+    new_calls = lm.history[history_len_before:]
+    if not new_calls:
+        return None
+    cost = sum(c.get("cost", 0.0) or 0.0 for c in new_calls)
+    prompt_tokens = 0
+    completion_tokens = 0
+    for c in new_calls:
+        usage = c.get("usage") or {}
+        prompt_tokens += usage.get("prompt_tokens", 0) or 0
+        completion_tokens += usage.get("completion_tokens", 0) or 0
+    return {
+        "accumulated_cost": cost,
+        "accumulated_token_usage": {
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "reasoning_tokens": 0,
+        },
+    }
+
+
 def _build_code_diff(old_text: str, new_text: str, max_lines: int = 120) -> str:
     diff_lines = list(
         difflib.unified_diff(
@@ -257,26 +334,31 @@ def _create_skill_file(content: str, name: str, dest_dir: str) -> Skill:
     return skill
 
 
-def _load_proposer_skills(run_dir: str) -> list[Skill]:
-    """Load SDK reference and adaptation guide as Skill objects for the proposer."""
+def _load_proposer_skills(run_dir: str, use_adaptation_guide: bool = True) -> list[Skill]:
+    """Load proposer skills, swapping in the base SDK reference when adaptation is disabled."""
     skills_dir = os.path.join(run_dir, "shared", "proposer_skills")
     os.makedirs(skills_dir, exist_ok=True)
 
     skills = []
 
     # SDK reference
-    sdk_ref_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs", "sdk_reference.md")
+    docs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs")
+    sdk_ref_filename = "sdk_reference.md" if use_adaptation_guide else "sdk_reference_base.md"
+    sdk_ref_path = os.path.join(docs_dir, sdk_ref_filename)
+    if not os.path.exists(sdk_ref_path) and not use_adaptation_guide:
+        sdk_ref_path = os.path.join(docs_dir, "sdk_reference.md")
     if os.path.exists(sdk_ref_path):
         with open(sdk_ref_path) as f:
             sdk_content = f.read()
         skills.append(_create_skill_file(sdk_content, "sdk_reference", skills_dir))
 
     # Adaptation guide
-    adaptation_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs", "adaptation.md")
-    if os.path.exists(adaptation_path):
-        with open(adaptation_path) as f:
-            adaptation_content = f.read()
-        skills.append(_create_skill_file(adaptation_content, "adaptation_guide", skills_dir))
+    if use_adaptation_guide:
+        adaptation_path = os.path.join(docs_dir, "adaptation.md")
+        if os.path.exists(adaptation_path):
+            with open(adaptation_path) as f:
+                adaptation_content = f.read()
+            skills.append(_create_skill_file(adaptation_content, "adaptation_guide", skills_dir))
 
     return skills
 
@@ -337,9 +419,15 @@ def _evaluate_single_worker(
             "example": result or example,
             "lm": eval_lm,
         }
+        _eval_history_before = len(eval_lm.history) if eval_lm is not None and hasattr(eval_lm, "history") else 0
         eval_result = eval_function(**eval_kwargs)
+        eval_metrics = _extract_dspy_cost(eval_lm, _eval_history_before)
 
         score = float(eval_result.get("score", 0.0))
+
+        rollout_metrics = None
+        if result and "run_result" in result:
+            rollout_metrics = result["run_result"].get("metrics")
 
         trajectory = None
         if capture_traces:
@@ -351,7 +439,7 @@ def _evaluate_single_worker(
             trace_data["eval_result"] = eval_result
             trajectory = trace_data
 
-        return {"output": eval_result, "score": score, "trajectory": trajectory, "error_message": None}
+        return {"output": eval_result, "score": score, "trajectory": trajectory, "rollout_metrics": rollout_metrics, "eval_metrics": eval_metrics, "error_message": None}
 
     except Exception as e:
         traceback.print_exc()
@@ -360,6 +448,8 @@ def _evaluate_single_worker(
             "output": {"error": str(e), "score": 0.0},
             "score": 0.0,
             "trajectory": trajectory,
+            "rollout_metrics": None,
+            "eval_metrics": None,
             "error_message": f"Error on example {i}: {e}",
         }
 
@@ -382,6 +472,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         run_dir: str = "results/gepa",
         max_proposal_retries: int = 2,
         batch_size: Optional[int] = None,
+        use_adaptation_guide: bool = True,
     ):
         self.task_id = task_id
         self.task_prompt = task_prompt
@@ -393,12 +484,15 @@ class AgentOptimizationAdapter(GEPAAdapter):
         self.eval_lm = LM_DICT[eval_lm_name] if eval_lm_name else None
         self._max_proposal_retries = max_proposal_retries
         self._batch_size = batch_size
+        self._use_adaptation_guide = use_adaptation_guide
 
         self.eval_config = get_eval_config(task_id)
         self.eval_function = self.eval_config["eval_function"]
 
         # Load proposer skills once
-        self._proposer_skills = _load_proposer_skills(run_dir)
+        self._proposer_skills = _load_proposer_skills(
+            run_dir, use_adaptation_guide=use_adaptation_guide
+        )
 
         # Iteration tracking
         self._gepa_iter = 0
@@ -407,6 +501,16 @@ class AgentOptimizationAdapter(GEPAAdapter):
         self._last_batch: list[dict] = []
         self._last_reflection_context: Optional[dict[str, Any]] = None
         self._pending_proposal_context: Optional[dict[str, Any]] = None
+
+        # Cost tracking: rollout broken down by phase, eval_lm, and proposer
+        self._cost_tracker: dict[str, dict] = {
+            "rollout_seed": _empty_cost_bucket(),
+            "rollout_reflection": _empty_cost_bucket(),
+            "rollout_candidate": _empty_cost_bucket(),
+            "rollout_valset": _empty_cost_bucket(),
+            "eval_lm": _empty_cost_bucket(),
+            "proposer": _empty_cost_bucket(),
+        }
 
         os.makedirs(run_dir, exist_ok=True)
 
@@ -458,6 +562,26 @@ class AgentOptimizationAdapter(GEPAAdapter):
 
     def _iter_proposal_outcome_path(self) -> str:
         return os.path.join(self._iter_dir(), "proposer", "proposal_outcome.json")
+
+    def _cost_summary_path(self) -> str:
+        return os.path.join(self.run_dir, "shared", "cost_summary.json")
+
+    def _save_cost_summary(self) -> None:
+        total = _empty_cost_bucket()
+        for bucket in self._cost_tracker.values():
+            _add_to_cost_bucket(total, bucket)
+        summary = {**self._cost_tracker, "total": total}
+        path = self._cost_summary_path()
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            json.dump(summary, f, indent=2)
+        self.logger.log(
+            f"[cost] total=${total['accumulated_cost']:.4f} "
+            f"(rollout_reflection=${self._cost_tracker['rollout_reflection']['accumulated_cost']:.4f}, "
+            f"rollout_candidate=${self._cost_tracker['rollout_candidate']['accumulated_cost']:.4f}, "
+            f"eval_lm=${self._cost_tracker['eval_lm']['accumulated_cost']:.4f}, "
+            f"proposer=${self._cost_tracker['proposer']['accumulated_cost']:.4f})"
+        )
 
     def _load_rejected_proposals(self) -> list[dict[str, Any]]:
         path = self._proposal_memory_path()
@@ -612,7 +736,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
             self._gepa_iter += 1
             self._phase = "reflection"
             self._calls_since_reflection = 0
-        elif self._gepa_iter < 0:
+        elif self._gepa_iter == 0:
             self._phase = "seed"
         else:
             self._calls_since_reflection += 1
@@ -667,11 +791,17 @@ class AgentOptimizationAdapter(GEPAAdapter):
             fresh_results = batch_inference(
                 _evaluate_single_worker, uncached_args, max_workers=max_workers, use_process=True
             )
+            bucket_key = f"rollout_{self._phase}"
             for idx, result in zip(uncached_indices, fresh_results):
                 results_list[idx] = result
                 key = self._eval_cache_key(candidate["agent_code"], args_list[idx]["example"], capture_traces)
                 eval_cache[key] = result
+                if result.get("rollout_metrics") and bucket_key in self._cost_tracker:
+                    _add_to_cost_bucket(self._cost_tracker[bucket_key], result["rollout_metrics"])
+                if result.get("eval_metrics"):
+                    _add_to_cost_bucket(self._cost_tracker["eval_lm"], result["eval_metrics"])
             self._save_eval_cache(eval_cache)
+            self._save_cost_summary()
 
         outputs = []
         scores = []
@@ -821,7 +951,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         return workspace
 
     def _build_proposer_agent(self) -> Agent:
-        """Construct the proposer agent with SDK reference and adaptation skills."""
+        """Construct the proposer agent with the configured reference skills."""
         lm = LM_DICT[self.reflection_lm_name]
         proposer_llm = LLM(model=lm.model)
 
@@ -837,7 +967,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         os.makedirs(prompt_dir, exist_ok=True)
         prompt_path = os.path.join(prompt_dir, "system_prompt.md")
         with open(prompt_path, "w") as f:
-            f.write(PROPOSER_SYSTEM_PROMPT)
+            f.write(_build_proposer_system_prompt(self._use_adaptation_guide))
 
         return Agent(
             llm=proposer_llm,
@@ -867,13 +997,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         proposer_agent = self._build_proposer_agent()
 
         # 3. Run proposer conversation
-        instruction = (
-            "Analyze the agent's performance by reading eval_results.yaml and the trajectory files "
-            "in trajectories/. Read proposal_memory/rejected_proposals.yaml before editing so you "
-            "can avoid repeating non-improving changes. Then improve the agent configuration in "
-            "project/agent.py to address the identified failure modes. Use the SDK Reference and "
-            "Adaptation Guide skills for available APIs and strategies."
-        )
+        instruction = _build_proposer_instruction(self._use_adaptation_guide)
 
         conversation = Conversation(agent=proposer_agent, workspace=workspace)
         conversation.send_message(instruction)
@@ -946,6 +1070,13 @@ class AgentOptimizationAdapter(GEPAAdapter):
         except Exception as e:
             self.logger.log(f"[iter {self._gepa_iter}] Failed to save proposer trace: {e}")
 
+        try:
+            proposer_metrics = conversation.conversation_stats.get_combined_metrics().get()
+            _add_to_cost_bucket(self._cost_tracker["proposer"], proposer_metrics)
+            self._save_cost_summary()
+        except Exception as e:
+            self.logger.log(f"[iter {self._gepa_iter}] Failed to collect proposer cost: {e}")
+
         conversation.close()
         return new_candidate
 
@@ -996,6 +1127,7 @@ def run_optimization(
     run_dir: Optional[str] = None,
     data_path: Optional[str] = None,
     batch_size: Optional[int] = None,
+    use_adaptation_guide: bool = True,
 ):
     # 0. Configure logging
     logging.basicConfig(
@@ -1036,6 +1168,7 @@ def run_optimization(
     gepa_logger.log(f"Task: {task_id}, Model: {model_name}, Prompt: {prompt_name}")
     gepa_logger.log(f"Dataset: {len(data)} total, {len(trainset)} train, {len(valset)} val")
     gepa_logger.log(f"Max metric calls: {max_metric_calls}, Reflection LM: {reflection_lm}")
+    gepa_logger.log(f"Use adaptation guide: {use_adaptation_guide}")
 
     # Save seed candidate
     config_dir = os.path.join(run_dir, "shared", "config")
@@ -1053,6 +1186,7 @@ def run_optimization(
         eval_lm_name=eval_lm_name,
         run_dir=run_dir,
         batch_size=batch_size,
+        use_adaptation_guide=use_adaptation_guide,
     )
 
     # 6. Run GEPA optimization
@@ -1087,12 +1221,15 @@ def run_optimization(
             f.write(f"# val_score: {score}\n")
             f.write(cand["agent_code"])
 
+    cost_summary = adapter._cost_tracker
+    total_cost = sum(b["accumulated_cost"] for b in cost_summary.values())
     summary = {
         "best_score": best_score,
         "best_idx": result.best_idx,
         "num_candidates": result.num_candidates,
         "total_metric_calls": result.total_metric_calls,
         "all_scores": result.val_aggregate_scores,
+        "cost_summary": {**cost_summary, "total_cost": total_cost},
     }
     summary_path = os.path.join(config_dir, "optimization_summary.json")
     with open(summary_path, "w") as f:
@@ -1101,6 +1238,7 @@ def run_optimization(
     print(f"Best score: {best_score}")
     print(f"Best config saved to: {best_config_path}")
     print(f"Summary saved to: {summary_path}")
+    print(f"Total cost: ${total_cost:.4f}")
 
     return result
 
@@ -1146,6 +1284,7 @@ if __name__ == "__main__":
     run_dir = args.run_dir or config.get("run_dir")
     data_path = config.get("data_path")
     batch_size = args.batch_size if args.batch_size is not None else config.get("batch_size")
+    use_adaptation_guide = config.get("use_adaptation_guide", True)
 
     if not task_id:
         parser.error("--task_id is required")
@@ -1165,4 +1304,5 @@ if __name__ == "__main__":
         run_dir=run_dir,
         data_path=data_path,
         batch_size=batch_size,
+        use_adaptation_guide=use_adaptation_guide,
     )
