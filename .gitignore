@@ -22,5 +22,6 @@ results/
 wandb/
 
 scripts/
+plots/
 .roar/
 configs/
