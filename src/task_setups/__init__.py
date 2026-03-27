@@ -14,6 +14,7 @@ from .webarena_servers import (
     stop_webarena_servers,
 )
 from . import ab_testing as _ab_testing
+from . import replicatorbench as _replicatorbench
 
 
 def _webarena_browser_tool_params(workspace_dir: str | None) -> dict:
@@ -35,6 +36,14 @@ def preprocess_example(task_id: str, example: dict) -> dict:
     if task_id == "ab_testing":
         example = dict(example)
         example["prompt"] = _ab_testing.TASK_INSTRUCTION
+        return example
+    if task_id == "replicatorbench":
+        example = dict(example)
+        example["prompt"] = (
+            "Read hypothesis.txt, examine the scripts in replication_data/, "
+            "translate the analysis to Python, run it, and save the key result "
+            "to post_registration.json."
+        )
         return example
     return example
 
@@ -70,6 +79,9 @@ def setup_workspace(task_id: str, workspace_dir: str, log_dir: str, example: dic
 
     if task_id == "ab_testing":
         _ab_testing.setup_workspace(workspace_dir, str(log_dir), example)
+
+    if task_id == "replicatorbench":
+        _replicatorbench.setup_workspace(workspace_dir, str(log_dir), example)
 
 
 def setup_servers(
@@ -116,6 +128,9 @@ def get_eval_config(task_id: str) -> dict:
     elif task_id == "oolong":
         from ..task_evals.oolong import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 32}
+    elif task_id == "replicatorbench":
+        from ..task_evals.replicatorbench import run_single_instance_eval
+        return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
     else:
         raise ValueError(f"Unknown task_id: {task_id!r}")
 

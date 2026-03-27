@@ -1,0 +1,9 @@
+name: replicatorbench
+description: >
+  Scientific replication benchmark from the Center for Open Science (Stage 2+3).
+  The agent receives the hypothesis being tested and the original analysis scripts
+  and data (R/Stata), but NOT the paper. It must translate the analysis to Python,
+  run it, and reproduce the key numerical result. Evaluation is deterministic:
+  numeric fields (value, CI bounds) checked with 2% tolerance; sample_size requires
+  exact integer match; direction and statistical_significance are categorical/boolean.
+  Source: domsoos/replicatorbench on HuggingFace.
