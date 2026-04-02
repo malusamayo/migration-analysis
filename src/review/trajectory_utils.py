@@ -106,6 +106,16 @@ def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
                     path = action.get("path", "")
                     markdown_lines.append(f"- Command: `{command}`")
                     markdown_lines.append(f"- Path: `{path}`")
+                    if command == "str_replace":
+                        if "old_str" in action and action["old_str"]:
+                            markdown_lines.append(f"- Old content:\n```\n{action['old_str']}\n```")
+                        if "new_str" in action and action["new_str"]:
+                            markdown_lines.append(f"- New content:\n```\n{action['new_str']}\n```")
+                    elif command == "create" and action.get("file_text"):
+                        content = action["file_text"]
+                        if len(content) > 1000:
+                            content = content[:1000] + "...\n[Content truncated]"
+                        markdown_lines.append(f"- File content:\n```\n{content}\n```")
 
                 elif action_kind == "TerminalAction":
                     command = action.get("command", "")
@@ -117,7 +127,24 @@ def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
 
                 elif action_kind == "ThinkAction":
                     if "thought" in action:
-                        markdown_lines.append(f"- Thought: `{action['thought']}`")
+                        thought = action["thought"]
+                        if len(thought) > 2000:
+                            thought = thought[:2000] + "...\n[Thought truncated]"
+                        markdown_lines.append(f"- Thought:\n```\n{thought}\n```")
+
+                elif action_kind == "MCPToolAction":
+                    tool_name = event.get("tool_name", "")
+                    if tool_name:
+                        markdown_lines.append(f"- Tool: `{tool_name}`")
+                    data = action.get("data", {})
+                    if data:
+                        data_str = json.dumps(data, indent=2)
+                        markdown_lines.append(f"- Arguments:\n```json\n{data_str}\n```")
+
+                elif action_kind == "FinishAction":
+                    message = action.get("message", "")
+                    if message:
+                        markdown_lines.append(f"- Message: {message}")
 
                 markdown_lines.append("")
 
@@ -129,8 +156,23 @@ def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
 
                 markdown_lines.append(f"**Observation:**\n")
 
+                # Handle MCPToolObservation
+                if obs_kind == "MCPToolObservation":
+                    if "content" in obs and isinstance(obs["content"], list):
+                        for item in obs["content"]:
+                            if isinstance(item, dict) and item.get("type") == "text":
+                                text = item.get("text", "")
+                                # Skip the placeholder tag line
+                                if text.startswith("[Tool ") and text.endswith(" executed.]"):
+                                    continue
+                                if len(text) > 1000:
+                                    text = text[:1000] + "...\n[Output truncated]"
+                                markdown_lines.append("```")
+                                markdown_lines.append(text)
+                                markdown_lines.append("```\n")
+
                 # Handle FileEditorObservation
-                if obs_kind == "FileEditorObservation":
+                elif obs_kind == "FileEditorObservation":
                     # Extract the text content from the content array
                     if "content" in obs and isinstance(obs["content"], list):
                         for item in obs["content"]:
