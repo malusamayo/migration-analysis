@@ -1,22 +1,44 @@
 """Evaluation functions for oolong task.
 
-Agents read a long D&D transcript from context.txt and write their answer to
-answer.txt. Evaluation is exact string match against the ground-truth answer.
+Agents read a long context file and write their answer to answer.txt.
+Evaluation uses normalized exact match (em_check) against ground-truth answers,
+mirroring the original LOCA-bench QaEnv evaluation logic.
 """
 
+import ast
 import re
+import string
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 import dspy
 
 
-def _extract_boxed(text: str) -> str:
-    """Extract value from \\boxed{...} if present, otherwise return stripped text."""
-    m = re.search(r"\\boxed\{([^}]*)\}", text)
-    if m:
-        return m.group(1).strip()
-    return text.strip()
+def _normalize_answer(s: str) -> str:
+    s = s.lower()
+    s = "".join(ch for ch in s if ch not in set(string.punctuation))
+    s = " ".join(s.split())
+    return s
+
+
+def _parse_reference_answers(raw: Any) -> list[str]:
+    """Parse the reference answer field into a list of string answers.
+
+    The dataset stores answers as string representations of Python lists,
+    e.g. "['negative']" or "[5510]". Parse these to extract the actual values.
+    """
+    if isinstance(raw, list):
+        return [str(v) for v in raw]
+    if isinstance(raw, (int, float)):
+        return [str(raw)]
+    s = str(raw).strip()
+    try:
+        parsed = ast.literal_eval(s)
+        if isinstance(parsed, list):
+            return [str(v) for v in parsed]
+        return [str(parsed)]
+    except (ValueError, SyntaxError):
+        return [s]
 
 
 def run_single_instance_eval(
@@ -24,22 +46,8 @@ def run_single_instance_eval(
     example: dict,
     lm: Optional[dspy.LM] = None,
 ) -> Dict[str, Any]:
-    """Evaluate a single oolong instance.
-
-    Reads answer.txt from the workspace and compares it (exact match) to the
-    ground-truth answer stored in the example dict.
-
-    Args:
-        workspace_dir: Path to the workspace directory.
-        example: The original example dict, must contain an "answer" key.
-        lm: Unused; kept for interface compatibility.
-
-    Returns:
-        Dict with keys: workspace_dir, example_id, score, feedback, agent_answer,
-        reference_answer.
-    """
     workspace_path = Path(workspace_dir)
-    reference_answer = _extract_boxed(str(example["answer"]))
+    reference_answers = _parse_reference_answers(example["answer"])
     example_id = example.get("id", example.get("task_id"))
 
     answer_file = workspace_path / "answer.txt"
@@ -50,16 +58,18 @@ def run_single_instance_eval(
             "score": 0.0,
             "feedback": "answer.txt not found in workspace.",
             "agent_answer": "",
-            "reference_answer": reference_answer,
+            "reference_answer": reference_answers[0] if reference_answers else "",
         }
 
-    agent_answer = _extract_boxed(answer_file.read_text(encoding="utf-8"))
+    agent_answer = answer_file.read_text(encoding="utf-8").strip()
+    normalized_agent = _normalize_answer(agent_answer)
+    is_correct = any(_normalize_answer(ref) == normalized_agent for ref in reference_answers)
 
-    score = 1.0 if agent_answer == reference_answer else 0.0
+    score = 1.0 if is_correct else 0.0
     if score == 1.0:
         feedback = "Correct."
     else:
-        feedback = f"Incorrect. Expected {repr(reference_answer)}, got {repr(agent_answer)}."
+        feedback = f"Incorrect. Expected {repr(reference_answers)}, got {repr(agent_answer)}."
 
     return {
         "workspace_dir": workspace_dir,
@@ -67,5 +77,5 @@ def run_single_instance_eval(
         "score": score,
         "feedback": feedback,
         "agent_answer": agent_answer,
-        "reference_answer": reference_answer,
+        "reference_answer": reference_answers[0] if reference_answers else "",
     }
