@@ -1,24 +1,25 @@
 task_id: "ab_testing"
 data_path: "data/ab_testing.json"
 # model_name: "claude-sonnet-4-5"
-model_name: "qwen3-coder-30b-a3b"
+# model_name: "qwen3-coder-30b-a3b"
+model_name: "ministral-3-8b"
 prompt_name: "default"
 
 # GEPA settings
 reflection_lm: "gemini-3.1-pro-preview"
 max_metric_calls: 30
-seed: 1
+seed: 10
 
 # Evaluation
 eval_lm: "gemini-3-flash-preview"
 
 # Data
-max_examples: 5
+max_examples: 10
 train_ratio: 0.6
 
 # Reflection
 use_adaptation_guide: true
 
 # Docker
-use_docker: false
-server_image: ""
+use_docker: true
+server_image: "ab_testing:latest"

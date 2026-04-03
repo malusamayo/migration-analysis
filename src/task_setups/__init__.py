@@ -160,6 +160,26 @@ def build_agent(base_dir, lm_model, seed_prompt):
         system_prompt_filename=prompt_path,
     )
 '''
+    elif task_id == "ab_testing":
+        code = '''\
+from openhands.sdk import LLM, Agent, Tool
+from openhands.tools.terminal import TerminalTool
+from openhands.tools.file_editor import FileEditorTool
+import os
+
+def build_agent(base_dir, lm_model, seed_prompt):
+    prompt_path = os.path.join(base_dir, "system_prompt.md")
+    with open(prompt_path, "w") as f:
+        f.write(seed_prompt)
+    from src.task_setups.ab_testing import get_mcp_config
+    mcp_config = get_mcp_config(base_dir)
+    return Agent(
+        llm=LLM(model=lm_model),
+        tools=[Tool(name=TerminalTool.name), Tool(name=FileEditorTool.name)],
+        system_prompt_filename=prompt_path,
+        mcp_config=mcp_config,
+    )
+'''
     else:
         code = '''\
 from openhands.sdk import LLM, Agent, Tool

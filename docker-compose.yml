@@ -9,3 +9,8 @@ services:
     build:
       context: .
       dockerfile: tasks/webgen/Dockerfile
+  ab_testing:
+    image: ab_testing:latest
+    build:
+      context: .
+      dockerfile: tasks/ab_testing/Dockerfile

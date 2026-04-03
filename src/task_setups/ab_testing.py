@@ -11,11 +11,13 @@ Directory layout inside workspace_dir after setup:
         groundtruth/expected_ratio.csv  ← ground truth (not visible to agent)
 """
 
+import os
 import shutil
 import sys
 from pathlib import Path
 
-LOCA_BENCH_PATH = Path(__file__).parent.parent.parent / "LOCA-bench"
+_env_loca = os.environ.get("LOCA_BENCH_PATH")
+LOCA_BENCH_PATH = Path(_env_loca) if _env_loca else Path(__file__).parent.parent.parent / "LOCA-bench"
 
 TASK_INSTRUCTION = (
     "The A/B test for our new homepage has concluded, and the raw clickstream data "
@@ -106,19 +108,27 @@ def setup_workspace(workspace_dir: str, log_dir: str, example: dict) -> None:
 def get_mcp_config(workspace_dir: str) -> dict:
     workspace = Path(workspace_dir).resolve()
     gcloud_db_dir = workspace / "local_db" / "google_cloud"
-    server_script = (
-        LOCA_BENCH_PATH / "mcp_convert" / "mcps" / "google_cloud" / "server.py"
-    )
-    project_root = LOCA_BENCH_PATH / "mcp_convert"
+    docker_workspace = str(workspace).startswith("/workspace/")
+    loca_root = Path("/loca-bench") if docker_workspace else LOCA_BENCH_PATH
+    server_script = loca_root / "mcp_convert" / "mcps" / "google_cloud" / "server.py"
+    project_root = loca_root / "mcp_convert"
+
+    # Docker-backed runs serialize MCP config on the host, so detect container
+    # workspaces by path rather than relying on runtime env from the agent server.
+    # The subprocess env dict replaces the parent env, so use an absolute python
+    # path inside the image instead of depending on `uv` being on PATH there.
+    if docker_workspace or os.environ.get("LOCA_BENCH_PATH"):
+        command = "/workspace/.venv/bin/python"
+        args = [str(server_script)]
+    else:
+        command = "uv"
+        args = ["--directory", str(project_root), "run", "python", str(server_script)]
 
     return {
         "mcpServers": {
             "google_cloud": {
-                "command": "uv",
-                "args": [
-                    "--directory", str(project_root),
-                    "run", "python", str(server_script),
-                ],
+                "command": command,
+                "args": args,
                 "env": {
                     "GOOGLE_CLOUD_DATA_DIR": str(gcloud_db_dir),
                     "LOCA_QUIET": "1",

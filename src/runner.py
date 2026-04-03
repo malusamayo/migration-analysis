@@ -293,7 +293,7 @@ def run_single_instance_agentic(
         else:
             _tools = tools
         agent_context = AgentContext(skills=skills or [])
-        mcp_cfg = get_mcp_config(task_id, str(workspace_dir)) if task_id else {}
+        mcp_cfg = get_mcp_config(task_id, str(base_dir)) if task_id else {}
         agent_kwargs = dict(
             llm=llm,
             tools=_tools,
