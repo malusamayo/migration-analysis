@@ -9,6 +9,8 @@ dependencies = [
     "datasets>=4.4.1",
     "dspy>=3.0.4",
     "google-auth>=2.47.0",
+    "google-cloud-aiplatform>=1.145.0",
+    "matplotlib>=3.10.8",
     "openhands-sdk",
     "openhands-tools",
     "openhands-workspace",
