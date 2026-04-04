@@ -1,0 +1,2 @@
+name: docbench
+description: Document QA benchmark. Agents read a PDF document and answer questions requiring text extraction, table/figure understanding, and metadata retrieval.

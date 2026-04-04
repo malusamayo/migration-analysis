@@ -77,6 +77,9 @@ def setup_workspace(task_id: str, workspace_dir: str, log_dir: str, example: dic
         with open(os.path.join(workspace_dir, "context.txt"), "w") as f:
             f.write(example["context_window_text"])
 
+    if task_id == "docbench":
+        shutil.copy(example["pdf_path"], os.path.join(workspace_dir, "document.pdf"))
+
     if task_id == "ab_testing":
         _ab_testing.setup_workspace(workspace_dir, str(log_dir), example)
 
@@ -130,6 +133,9 @@ def get_eval_config(task_id: str) -> dict:
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 32}
     elif task_id == "replicatorbench":
         from ..task_evals.replicatorbench import run_single_instance_eval
+        return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
+    elif task_id == "docbench":
+        from ..task_evals.docbench import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
     else:
         raise ValueError(f"Unknown task_id: {task_id!r}")
@@ -202,7 +208,7 @@ def build_agent(base_dir, lm_model, seed_prompt):
 
 def requires_eval_lm(task_id: str) -> bool:
     """Return True if the task requires an eval LM to be specified."""
-    return task_id == "webtest"
+    return task_id in ("webtest", "docbench")
 
 
 def get_mcp_config(task_id: str, workspace_dir: str) -> dict:
