@@ -17,6 +17,7 @@ from .webarena_servers import (
 )
 from . import ab_testing as _ab_testing
 from . import replicatorbench as _replicatorbench
+from . import browsecompplus as _browsecompplus
 from .corpus_reader import get_corpus_reader
 
 
@@ -55,6 +56,10 @@ def preprocess_example(task_id: str, example: dict) -> dict:
         example["prompt"] = (
             f"The web pages are in `context.txt` in your workspace.\n\nQuestion: {example['query']}"
         )
+        return example
+    if task_id == "browsecompplus":
+        example = dict(example)
+        example["prompt"] = _browsecompplus.format_prompt(example["query"])
         return example
     return example
 
@@ -125,6 +130,9 @@ def setup_servers(
         set_default_webarena_urls(required_sites)
         if start_servers:
             return start_webarena_servers(sites=required_sites, timeout=timeout)
+    if task_id == "browsecompplus" and start_servers:
+        proc = _browsecompplus.start_server()
+        return {"browsecompplus_server": proc}
     return {}
 
 
@@ -132,6 +140,8 @@ def teardown_servers(task_id: str, servers_started: dict) -> None:
     """Stop any servers started by setup_servers."""
     if task_id == "webarena" and servers_started:
         stop_webarena_servers(list(servers_started))
+    if task_id == "browsecompplus" and servers_started.get("browsecompplus_server"):
+        _browsecompplus.stop_server(servers_started["browsecompplus_server"])
 
 
 def get_eval_config(task_id: str) -> dict:
@@ -162,6 +172,9 @@ def get_eval_config(task_id: str) -> dict:
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
     elif task_id == "browsecomplongcontext":
         from ..task_evals.browsecomplongcontext import run_single_instance_eval
+        return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
+    elif task_id == "browsecompplus":
+        from ..task_evals.browsecompplus import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
     else:
         raise ValueError(f"Unknown task_id: {task_id!r}")
@@ -234,11 +247,13 @@ def build_agent(base_dir, lm_model, seed_prompt):
 
 def requires_eval_lm(task_id: str) -> bool:
     """Return True if the task requires an eval LM to be specified."""
-    return task_id in ("webtest", "docbench")
+    return task_id in ("webtest", "docbench", "browsecomplongcontext", "browsecompplus")
 
 
 def get_mcp_config(task_id: str, workspace_dir: str) -> dict:
     """Return an mcp_config dict for tasks that require MCP servers, else {}."""
     if task_id == "ab_testing":
         return _ab_testing.get_mcp_config(workspace_dir)
+    if task_id == "browsecompplus":
+        return _browsecompplus.get_mcp_config()
     return {}

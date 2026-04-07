@@ -1,0 +1,7 @@
+name: browsecompplus
+description: >
+  Deep-research benchmark based on BrowseComp-Plus. Agents answer reasoning-intensive
+  multi-hop questions by iteratively searching a fixed corpus of ~100K human-verified
+  documents via search/get_document MCP tools. Evaluates retrieval strategy and
+  reasoning under a controlled, reproducible retrieval setting.
+  Source: Tevatron/browsecomp-plus on HuggingFace.

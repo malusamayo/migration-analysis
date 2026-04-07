@@ -1,0 +1,18 @@
+task_id: "browsecompplus"
+data_path: "data/browsecomp-plus.json"
+model_name: "claude-sonnet-4-6"
+prompt_name: "default"
+
+skill_version: ""
+skill_mode: "all_loaded"
+
+max_examples: 1
+n_responses: 1
+batch_size: 4
+resume: true
+
+is_agentic: true
+use_docker: false
+server_image: ""
+
+eval_lm: "gemini-3-flash-preview"
