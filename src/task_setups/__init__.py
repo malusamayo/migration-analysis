@@ -40,9 +40,13 @@ def preprocess_example(task_id: str, example: dict) -> dict:
     if task_id == "replicatorbench":
         example = dict(example)
         example["prompt"] = (
-            "Read hypothesis.txt, examine the scripts in replication_data/, "
-            "translate the analysis to Python, run it, and save the key result "
-            "to post_registration.json."
+            "Read task_context.json and original_paper.pdf, extract the focal claim "
+            "into post_registration.json, write a replication plan to replication_info.json, "
+            "use the available files in replication_data/ to execute the replication and "
+            "save the executed result to execution_results.json, then summarize the "
+            "run in interpret_results.json."
+        )
+        return example
         )
         return example
     return example

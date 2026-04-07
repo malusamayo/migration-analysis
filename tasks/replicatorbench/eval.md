@@ -1,16 +1,19 @@
-Reads post_registration.json from the workspace and scores it against expected_post_registration.json in the log_dir groundtruth folder.
+Reads staged JSON artifacts from the workspace and scores the task in four
+stages:
 
-The agent must reproduce results computationally (by translating and running the replication scripts), NOT by reading the paper — the paper is withheld from the workspace.
+1. Extraction
+   - compares `extraction.json` against `expected_post_registration*.json`
+   - uses deterministic field checks on claim/data/method/result fields
+2. Design
+   - compares `design.json` against structured fields derived from the same
+     expected post-registration references
+3. Execution
+   - checks process artifacts in `execution_summary.json`
+   - scores executed result reproduction from `post_registration.json`
+4. Interpretation
+   - checks whether `final_report.json` is internally consistent with the
+     executed result and whether the support decision is justified
 
-Scoring is fully deterministic — no LLM judge:
-
-1. sample_size: parse the first integer from the string. Exact match required.
-2. For each numerical_result in the ground truth, find the best-matching result in the agent output and check:
-   - value: 2% relative tolerance
-   - confidence_interval.lower / upper: 2% relative tolerance
-   - direction: exact match (case-insensitive)
-   - statistical_significance: boolean equality (normalises "true"/1/true)
-
-Fields annotated "not stated" in the ground truth are skipped.
-Final score = mean of all per-field checks across all numerical results.
-If both expected_post_registration.json and expected_post_registration_2.json are present, the higher score is kept.
+The evaluator also reports `result_score`, a legacy reproduction-only subscore
+for sample size and numerical-result fields. Multiple ground-truth variants are
+supported by keeping the best-scoring variant.

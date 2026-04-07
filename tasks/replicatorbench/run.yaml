@@ -7,11 +7,13 @@ prompt_name: "default"
 skill_version: ""
 skill_mode: "all_loaded"
 
-max_examples: 2
+max_examples: 3
 n_responses: 1
 batch_size: 4
 resume: true
 
 is_agentic: true
-use_docker: false
-server_image: ""
+use_docker: true
+server_image: "replicatorbench:latest"
+
+eval_lm: "gemini-3-flash-preview"
