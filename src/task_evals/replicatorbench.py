@@ -364,9 +364,9 @@ def _score_eval_dict(result: dict, max_score: float = 3.0, raw_data: Optional[di
             mark = f"PART {score_f:.0f}/{max_score:.0f}"
         else:
             mark = "FAIL"
-        raw_val = _get_nested_value(raw_data, field) if raw_data is not None else None
-        raw_str = f" | answer: {json.dumps(raw_val, ensure_ascii=False)}" if raw_val is not None else ""
-        lines.append(f"  [{mark}] {field}{raw_str}: {explanation}")
+        # raw_val = _get_nested_value(raw_data, field) if raw_data is not None else None
+        # raw_str = f" | answer: {json.dumps(raw_val, ensure_ascii=False)}" if raw_val is not None else ""
+        lines.append(f"  [{mark}] {field}: {explanation}")
     if not scores:
         return 0.0, lines
     return sum(scores) / len(scores), lines
