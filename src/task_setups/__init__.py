@@ -1,4 +1,6 @@
+import json
 import os
+import random
 import shutil
 
 from openhands.sdk import Tool
@@ -15,6 +17,7 @@ from .webarena_servers import (
 )
 from . import ab_testing as _ab_testing
 from . import replicatorbench as _replicatorbench
+from .corpus_reader import get_corpus_reader
 
 
 def _webarena_browser_tool_params(workspace_dir: str | None) -> dict:
@@ -47,6 +50,10 @@ def preprocess_example(task_id: str, example: dict) -> dict:
             "run in interpret_results.json."
         )
         return example
+    if task_id == "browsecomplongcontext":
+        example = dict(example)
+        example["prompt"] = (
+            f"The web pages are in `context.txt` in your workspace.\n\nQuestion: {example['query']}"
         )
         return example
     return example
@@ -83,6 +90,18 @@ def setup_workspace(task_id: str, workspace_dir: str, log_dir: str, example: dic
 
     if task_id == "docbench":
         shutil.copy(example["pdf_path"], os.path.join(workspace_dir, "document.pdf"))
+
+    if task_id == "browsecomplongcontext":
+        reader = get_corpus_reader()
+        all_docids = list(example["gold_docs"]) + list(example["negative_docs"])
+        rng = random.Random(int(example.get("query_id", 0)))
+        rng.shuffle(all_docids)
+        pages = []
+        for docid in all_docids:
+            doc = reader.get(docid)
+            pages.append(f"--- Document: {doc['url']} ---\n{doc['text']}\n--- End of Document ---")
+        with open(os.path.join(workspace_dir, "context.txt"), "w", encoding="utf-8") as f:
+            f.write("\n\n".join(pages))
 
     if task_id == "ab_testing":
         _ab_testing.setup_workspace(workspace_dir, str(log_dir), example)
@@ -140,6 +159,9 @@ def get_eval_config(task_id: str) -> dict:
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
     elif task_id == "docbench":
         from ..task_evals.docbench import run_single_instance_eval
+        return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
+    elif task_id == "browsecomplongcontext":
+        from ..task_evals.browsecomplongcontext import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
     else:
         raise ValueError(f"Unknown task_id: {task_id!r}")

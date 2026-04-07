@@ -1,0 +1,6 @@
+name: browsecomplongcontext
+description: >
+  Long-context retrieval benchmark based on BrowseComp. Agents read pre-fetched
+  web page content in context.txt and answer multi-hop questions that require
+  filtering relevant information from noisy documents.
+  Source: openai/BrowseCompLongContext on HuggingFace.
