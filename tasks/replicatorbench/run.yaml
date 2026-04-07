@@ -3,11 +3,7 @@ data_path: "data/replicatorbench.json"
 model_name: "gemini-3.1-pro-preview"
 # model_name: "qwen3-coder-30b-a3b"
 prompt_name: "default"
-
-skill_version: ""
-skill_mode: "all_loaded"
-
-max_examples: 3
+max_examples: 4
 n_responses: 1
 batch_size: 4
 resume: true

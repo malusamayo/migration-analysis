@@ -4,9 +4,6 @@ data_path: "data/docbench.json"
 model_name: "qwen3-coder-30b-a3b"
 prompt_name: "default"
 
-skill_version: ""
-skill_mode: "all_loaded"
-
 max_examples: 10
 n_responses: 1
 batch_size: 4

@@ -25,92 +25,8 @@ import argparse
 import re
 from pathlib import Path
 
-from openhands.sdk.context import (
-    Skill,
-)
-from .review.skill_manager import SkillManager
 from .runner import run_single_instance_agentic
 from .task_setups import preprocess_example, get_tools, setup_servers, teardown_servers
-
-def discover_skills(
-    skill_path: Optional[str] = None,
-    skill_mode: str = "all_loaded",
-    subset_mode: str = "all",
-    subset_k: Optional[int] = None,
-    subset_seed: Optional[int] = None,
-) -> List[Skill]:
-    """
-    Discover and load skills based on metadata file.
-
-    Args:
-        skill_path: Path to metadata.yaml file or directory containing it (e.g., "results/webtest/model_default/skills/v1/metadata.yaml"), or None for no skills
-        skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
-        subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
-        subset_k: Number of skills to select when subset_mode is "top_k" or "random"
-        subset_seed: Random seed for reproducibility when subset_mode is "random"
-
-    Returns:
-        List of loaded Skill objects (empty list if skill_path is None)
-    """
-    # If no skill_path specified, no skills to load
-    if skill_path is None:
-        return []
-
-    # Convert to Path and determine metadata file path
-    skill_path = Path(skill_path)
-
-    # If skill_path is a directory, look for metadata.yaml inside it
-    if skill_path.is_dir():
-        metadata_path = skill_path / "metadata.yaml"
-        base_dir = skill_path
-    else:
-        # Assume skill_path points directly to metadata.yaml
-        metadata_path = skill_path
-        base_dir = skill_path.parent
-
-    skills = []
-
-    assert metadata_path.exists(), f"Metadata file not found: {metadata_path}"
-
-    # Step 1: Use SkillManager to load skills and get subset
-    print(f"Loading skills from {metadata_path}...")
-    manager = SkillManager()
-    manager.load_skills(metadata_path)
-
-    # Step 2: Select skill subset based on mode
-    if subset_mode == "all":
-        selected_skills = manager.skills
-        print(f"Using all {len(selected_skills)} skills")
-    elif subset_mode == "top_k":
-        if subset_k is None:
-            raise ValueError("subset_k must be specified when subset_mode='top_k'")
-        selected_skills = manager.get_top_k_skills(subset_k)
-        print(f"Selected top {len(selected_skills)} skills by duplicate count")
-    elif subset_mode == "random":
-        if subset_k is None:
-            raise ValueError("subset_k must be specified when subset_mode='random'")
-        selected_skills = manager.get_random_skills(subset_k, seed=subset_seed)
-        print(f"Selected {len(selected_skills)} random skills (seed={subset_seed})")
-    else:
-        raise ValueError(f"Invalid subset_mode: {subset_mode}. Must be one of ['all', 'top_k', 'random']")
-
-    # Step 3: Load selected skills as openhands Skill objects
-    for skill in selected_skills:
-        skill_file = base_dir / skill.skill_name / "SKILL.md"
-        if skill_file.exists():
-            try:
-                openhands_skill = Skill.load(path=str(skill_file), strict=False)
-                if skill_mode == "all_loaded":
-                    openhands_skill.is_agentskills_format = False
-                skills.append(openhands_skill)
-            except Exception as e:
-                print(f"⚠️  Failed to load skill from {skill_file}: {e}")
-        else:
-            print(f"⚠️  Warning: Skill file not found: {skill_file}")
-
-    print(f"✅ Loaded {len(skills)}/{len(selected_skills)} skills")
-
-    return skills
 
 def run_single_instance(
         lm: dspy.LM,
@@ -174,11 +90,7 @@ def run_task(
         n_responses: int = 1,
         batch_size: int = 16,
         resume: bool = True,
-        skill_path: Optional[str] = None,
-        skill_mode: str = "all_loaded",
-        subset_mode: str = "all",
-        subset_k: Optional[int] = None,
-        subset_seed: Optional[int] = None,
+        rollout_version: str = "v0",
         use_docker: bool = True,
         server_image: str = "migration-analysis:latest",
         data_path: Optional[str] = None,
@@ -198,53 +110,14 @@ def run_task(
         n_responses: Number of responses to generate per example
         batch_size: Batch size for collection
         resume: Whether to resume from existing results
-        skill_path: Path to skill folder containing metadata.yaml (e.g., "skills/v1"), or None for no skills
-        skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
-        subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
-        subset_k: Number of skills to select when subset_mode is "top_k" or "random"
-        subset_seed: Random seed for reproducibility when subset_mode is "random"
+        rollout_version: Rollout version identifier (default: "v0")
 
     Note:
         For agentic execution, volume mounts are automatically inferred from:
         - System prompt directory (mounted as /workspace/prompts:ro)
         - Workspace path (mounted as /workspace/data)
     """
-    from .dataloader import generate_rollout_version
-
-    # Auto-generate rollout_version
-    agent_name = Path(agent_file).stem if agent_file else None
-    rollout_version = generate_rollout_version(
-        skill_version=skill_path,
-        skill_mode=skill_mode,
-        subset_mode=subset_mode,
-        subset_k=subset_k,
-        subset_seed=subset_seed,
-        agent_name=agent_name,
-    )
-    print(f"📦 Auto-generated rollout version: {rollout_version}")
-
-    # Construct full skill metadata path if skill_path is provided
-    skill_metadata_path = None
-    if skill_path:
-        # If skill_path already starts with "results/", use it as-is
-        if skill_path.startswith("results/"):
-            skill_metadata_path = skill_path
-        else:
-            # Otherwise, construct the full path
-            skill_metadata_path = f"results/{task_id}/{model_name}_{prompt_name}/{skill_path}"
-
-        # Append metadata.yaml if not already included
-        if not skill_metadata_path.endswith(".yaml"):
-            skill_metadata_path = f"{skill_metadata_path}/metadata.yaml"
-
-    # Discover and load skills for this rollout version
-    skills = discover_skills(
-        skill_path=skill_metadata_path,
-        skill_mode=skill_mode,
-        subset_mode=subset_mode,
-        subset_k=subset_k,
-        subset_seed=subset_seed,
-    )
+    print(f"📦 Rollout version: {rollout_version}")
 
     # Initialize data loader
     data_loader = CollectDataLoader(
@@ -255,11 +128,6 @@ def run_task(
         max_examples=max_examples,
         n_responses=n_responses,
         rollout_version=rollout_version,
-        skill_version=skill_path,
-        skill_mode=skill_mode,
-        subset_mode=subset_mode,
-        subset_k=subset_k,
-        subset_seed=subset_seed,
         resume=resume,
         data_path=data_path,
     )
@@ -283,12 +151,9 @@ def run_task(
     if agent_file is not None:
         print(f"🤖 Using custom agent builder from {agent_file}")
 
-    # Add skills and docker settings to agentic args
+    # Add docker settings to agentic args
     if is_agentic:
         for args in args_list:
-            if skills:
-                args["skills"] = skills
-                args["skill_mode"] = skill_mode
             args["use_docker"] = use_docker
             args["server_image"] = server_image
             args["tools"] = get_tools(task_id, args.get("workspace"))
@@ -345,22 +210,8 @@ if __name__ == "__main__":
     parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results.")
     parser.add_argument("--agent_file", type=str, default=None,
                         help="Path to a Python file defining build_agent(base_dir, lm_model, seed_prompt) -> Agent")
-
-    # Parameters for automatic rollout versioning
-    parser.add_argument("--skill_path", type=str, default=None,
-                        help="Path to skill folder containing metadata.yaml (e.g., 'skills/v1'), or None for no skills")
-    parser.add_argument("--skill_mode", type=str, default=None,
-                        choices=["all_loaded", "agent_decided", "monitor_decided"],
-                        help="Skill mode: all_loaded, agent_decided, or monitor_decided")
-
-    # Parameters for skill subset selection
-    parser.add_argument("--subset_mode", type=str, default=None,
-                        choices=["all", "top_k", "random"],
-                        help="Skill subset mode: all, top_k, or random")
-    parser.add_argument("--subset_k", type=int, default=None,
-                        help="Number of skills to select when subset_mode is 'top_k' or 'random'")
-    parser.add_argument("--subset_seed", type=int, default=None,
-                        help="Random seed for reproducibility when subset_mode is 'random'")
+    parser.add_argument("--rollout_version", type=str, default=None,
+                        help="Rollout version identifier (default: 'v0')")
 
     args = parser.parse_args()
 
@@ -379,11 +230,7 @@ if __name__ == "__main__":
     max_examples = args.max_examples if args.max_examples is not None else config.get("max_examples")
     n_responses = args.n_responses if args.n_responses is not None else config.get("n_responses", 1)
     batch_size = args.batch_size if args.batch_size is not None else config.get("batch_size", 16)
-    skill_path = args.skill_path if args.skill_path is not None else config.get("skill_path", config.get("skill_version"))
-    skill_mode = args.skill_mode if args.skill_mode is not None else config.get("skill_mode", "all_loaded")
-    subset_mode = args.subset_mode if args.subset_mode is not None else config.get("subset_mode", "all")
-    subset_k = args.subset_k if args.subset_k is not None else config.get("subset_k")
-    subset_seed = args.subset_seed if args.subset_seed is not None else config.get("subset_seed")
+    rollout_version = args.rollout_version if args.rollout_version is not None else config.get("rollout_version", "v0")
 
     # Handle boolean flags specially
     is_agentic = args.is_agentic or config.get("is_agentic", False)
@@ -410,11 +257,7 @@ if __name__ == "__main__":
         n_responses=n_responses,
         batch_size=batch_size,
         resume=resume,
-        skill_path=skill_path,
-        skill_mode=skill_mode,
-        subset_mode=subset_mode,
-        subset_k=subset_k,
-        subset_seed=subset_seed,
+        rollout_version=rollout_version,
         use_docker=use_docker,
         server_image=server_image,
         data_path=data_path,

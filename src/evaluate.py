@@ -2,11 +2,10 @@ import json
 import yaml
 import os
 import argparse
-from pathlib import Path
 from typing import Optional
 from .utils import batch_inference
 from .utils import LM_DICT
-from .dataloader import EvalDataLoader, generate_rollout_version
+from .dataloader import EvalDataLoader
 from .task_setups import get_eval_config, requires_eval_lm
 
 
@@ -33,9 +32,6 @@ def run_task_eval(
         batch_size: int = 16,
         resume: bool = True,
         rollout_version: str = "v0",
-        subset_mode: str = "all",
-        subset_k: Optional[int] = None,
-        subset_seed: Optional[int] = None,
         data_path: Optional[str] = None,
         docker_image: Optional[str] = None,
     ):
@@ -52,9 +48,6 @@ def run_task_eval(
         batch_size: Batch size for evaluation
         resume: Whether to resume from existing results
         rollout_version: Rollout version identifier (e.g., "v0", "v1")
-        subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
-        subset_k: Number of skills to select when subset_mode is "top_k" or "random"
-        subset_seed: Random seed for reproducibility when subset_mode is "random"
         docker_image: Docker image to use for evaluation (if applicable)
     """
     config = get_eval_config(task_id)
@@ -70,9 +63,6 @@ def run_task_eval(
         max_examples=max_examples,
         n_responses=n_responses,
         rollout_version=rollout_version,
-        subset_mode=subset_mode,
-        subset_k=subset_k,
-        subset_seed=subset_seed,
         resume=resume,
         output_path=output_path,
         data_path=data_path,
@@ -136,24 +126,8 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=None, help="Batch size for evaluation")
     parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results")
     parser.add_argument("--eval_lm", type=str, default=None, help="LM name for evaluation feedback (required for webtest)")
-    parser.add_argument("--agent_file", type=str, default=None,
-                        help="Path to the agent file used during collection (to resolve the correct rollout directory)")
-
-    # Parameters for automatic rollout versioning
-    parser.add_argument("--skill_version", type=str, default=None,
-                        help="Path to skill folder (e.g., 'skills/v1'), or None for no skills")
-    parser.add_argument("--skill_mode", type=str, default=None,
-                        choices=["all_loaded", "agent_decided", "monitor_decided"],
-                        help="Skill mode: all_loaded, agent_decided, or monitor_decided")
-
-    # Parameters for skill subset selection
-    parser.add_argument("--subset_mode", type=str, default=None,
-                        choices=["all", "top_k", "random"],
-                        help="Skill subset mode: all, top_k, or random")
-    parser.add_argument("--subset_k", type=int, default=None,
-                        help="Number of skills to select when subset_mode is 'top_k' or 'random'")
-    parser.add_argument("--subset_seed", type=int, default=None,
-                        help="Random seed for reproducibility when subset_mode is 'random'")
+    parser.add_argument("--rollout_version", type=str, default=None,
+                        help="Rollout version identifier (default: 'v0')")
 
     args = parser.parse_args()
 
@@ -172,35 +146,18 @@ if __name__ == "__main__":
     n_responses = args.n_responses if args.n_responses is not None else config.get("n_responses", 1)
     batch_size = args.batch_size if args.batch_size is not None else config.get("batch_size", 16)
     eval_lm_name = args.eval_lm if args.eval_lm is not None else config.get("eval_lm")
-    skill_version = args.skill_version if args.skill_version is not None else config.get("skill_version")
-    skill_mode = args.skill_mode if args.skill_mode is not None else config.get("skill_mode", "all_loaded")
-    subset_mode = args.subset_mode if args.subset_mode is not None else config.get("subset_mode", "all")
-    subset_k = args.subset_k if args.subset_k is not None else config.get("subset_k")
-    subset_seed = args.subset_seed if args.subset_seed is not None else config.get("subset_seed")
+    rollout_version = args.rollout_version if args.rollout_version is not None else config.get("rollout_version", "v0")
 
     # Handle boolean flag specially
     resume = args.resume if args.resume else config.get("resume", True)
     data_path = config.get("data_path")
     docker_image = config.get("docker_image")
-    agent_file = args.agent_file if args.agent_file is not None else config.get("agent_file")
 
     # Validate required arguments
     if not task_id:
         parser.error("--task_id is required (either via command line or config file)")
     if not model_name:
         parser.error("--model_name is required (either via command line or config file)")
-
-    # Auto-generate rollout_version from skill parameters
-    agent_name = Path(agent_file).stem if agent_file else None
-    rollout_version = generate_rollout_version(
-        skill_version=skill_version,
-        skill_mode=skill_mode,
-        subset_mode=subset_mode,
-        subset_k=subset_k,
-        subset_seed=subset_seed,
-        agent_name=agent_name,
-    )
-    print(f"📦 Auto-generated rollout version: {rollout_version}")
 
     run_task_eval(
         task_id=task_id,
@@ -212,9 +169,6 @@ if __name__ == "__main__":
         batch_size=batch_size,
         resume=resume,
         rollout_version=rollout_version,
-        subset_mode=subset_mode,
-        subset_k=subset_k,
-        subset_seed=subset_seed,
         data_path=data_path,
         docker_image=docker_image,
     )

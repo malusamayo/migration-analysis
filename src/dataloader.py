@@ -8,100 +8,6 @@ from pathlib import Path
 import re
 from .utils import LM_DICT
 
-def generate_rollout_version(
-    skill_version: str = "",
-    skill_mode: str = "all_loaded",
-    subset_mode: str = "all",
-    subset_k: Optional[int] = None,
-    subset_seed: Optional[int] = None,
-    agent_name: Optional[str] = None,
-) -> str:
-    """
-    Generate a rollout version name based on configuration parameters.
-
-    Args:
-        skill_version: Path to the skill folder or metadata file (e.g., "skills/v1" or "skills/v1/metadata_filtered.yaml"), or empty string for no skills
-        skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
-        subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
-        subset_k: Number of skills to select when subset_mode is "top_k" or "random"
-        subset_seed: Random seed for reproducibility when subset_mode is "random"
-        agent_name: Optional stem name of a custom agent file (e.g., "agent" from "agent.py")
-
-    Returns:
-        Rollout version string (e.g., "v0", "agent_v0", "v1_all", "agent_v1_all")
-
-    Examples:
-        >>> generate_rollout_version("", "all_loaded")
-        'v0'
-        >>> generate_rollout_version("", "all_loaded", agent_name="agent")
-        'agent_v0'
-        >>> generate_rollout_version("skills/v1", "all_loaded")
-        'v1_all'
-        >>> generate_rollout_version("skills/v1", "all_loaded", agent_name="agent")
-        'agent_v1_all'
-        >>> generate_rollout_version("skills/v1/metadata.yaml", "all_loaded")
-        'v1_all'
-        >>> generate_rollout_version("skills/v1/metadata_filtered.yaml", "all_loaded")
-        'v1_filtered_all'
-        >>> generate_rollout_version("skills/v1", "agent_decided")
-        'v1_agent'
-        >>> generate_rollout_version("skills/v1", "all_loaded", "top_k", 5)
-        'v1_all_top5'
-        >>> generate_rollout_version("skills/v1", "all_loaded", "random", 10, 42)
-        'v1_all_rand10s42'
-    """
-    # If no skills, always return v0 (possibly prefixed with agent name)
-    if skill_version == "" or skill_version is None:
-        version = "v0"
-        return f"{agent_name}_{version}" if agent_name else version
-
-    skill_path = Path(skill_version)
-
-    # Check if skill_version points to a file with pattern metadata_{id}.yaml
-    metadata_id = None
-    if skill_path.suffix in ['.yaml', '.yml']:
-        # Extract filename
-        filename = skill_path.stem  # e.g., "metadata" or "metadata_filtered"
-        # Check for pattern metadata_{id}
-        match = re.match(r'metadata_(.+)', filename)
-        if match:
-            metadata_id = match.group(1)
-
-        # Use parent directory name as base version
-        skill_version_name = skill_path.parent.parent.name
-    else:
-        # It's a directory path
-        skill_version_name = skill_path.parent.name
-
-    # Map skill_mode to short name
-    mode_map = {
-        "all_loaded": "all",
-        "agent_decided": "agent",
-        "monitor_decided": "monitor",
-    }
-
-    if skill_mode not in mode_map:
-        raise ValueError(f"Invalid skill_mode: {skill_mode}. Must be one of {list(mode_map.keys())}")
-
-    mode_short = mode_map[skill_mode]
-
-    # Base version string
-    if metadata_id:
-        # Include metadata ID in version string (e.g., "v1_filtered_all")
-        version_str = f"{skill_version_name}_{metadata_id}_{mode_short}"
-    else:
-        version_str = f"{skill_version_name}_{mode_short}"
-
-    # Add subset information if not using all skills
-    if subset_mode == "top_k" and subset_k is not None:
-        version_str += f"_top{subset_k}"
-    elif subset_mode == "random" and subset_k is not None:
-        version_str += f"_rand{subset_k}"
-        if subset_seed is not None:
-            version_str += f"s{subset_seed}"
-
-    return f"{agent_name}_{version_str}" if agent_name else version_str
-
 def prepare_task(
         task_id: str,
         model_name: str,
@@ -109,11 +15,6 @@ def prepare_task(
         prompt_name: str = "default",
         n_responses: int = 1,
         max_examples: Optional[int] = None,
-        skill_version: Optional[str] = None,
-        skill_mode: str = "all_loaded",
-        subset_mode: str = "all",
-        subset_k: Optional[int] = None,
-        subset_seed: Optional[int] = None,
         data_path: Optional[str] = None,
     ):
     """
@@ -126,11 +27,6 @@ def prepare_task(
         prompt_name: Prompt name
         n_responses: Number of rollouts per example
         max_examples: Maximum number of examples to process
-        skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
-        skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
-        subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
-        subset_k: Number of skills to select when subset_mode is "top_k" or "random"
-        subset_seed: Random seed for reproducibility when subset_mode is "random"
 
     Returns:
         Tuple of (data, task_prompt, eval_prompt)
@@ -163,11 +59,6 @@ def prepare_task(
             "model_name": model_name,
             "prompt_name": prompt_name,
             "rollout_version": rollout_version,
-            "skill_version": skill_version,
-            "skill_mode": skill_mode,
-            "subset_mode": subset_mode,
-            "subset_k": subset_k,
-            "subset_seed": subset_seed,
             "timestamp": datetime.now().isoformat(),
             "max_examples": max_examples,
             "n_responses": n_responses
@@ -207,11 +98,6 @@ class EvalDataLoader(BaseDataLoader):
         prompt_name: str = "default",
         max_examples: Optional[int] = None,
         n_responses: int = 1,
-        skill_version: Optional[str] = None,
-        skill_mode: str = "all_loaded",
-        subset_mode: str = "all",
-        subset_k: Optional[int] = None,
-        subset_seed: Optional[int] = None,
         resume: bool = True,
         output_path: Optional[str] = None,
         data_path: Optional[str] = None,
@@ -226,11 +112,6 @@ class EvalDataLoader(BaseDataLoader):
             prompt_name: Prompt name used for workspace directory
             max_examples: Maximum number of examples to load
             n_responses: Number of rollouts per example
-            skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
-            skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
-            subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
-            subset_k: Number of skills to select when subset_mode is "top_k" or "random"
-            subset_seed: Random seed for reproducibility when subset_mode is "random"
             resume: Whether to skip already-evaluated tasks
             output_path: Path to output file for resume checking (optional)
         """
@@ -246,11 +127,6 @@ class EvalDataLoader(BaseDataLoader):
             prompt_name=prompt_name,
             max_examples=max_examples,
             n_responses=n_responses,
-            skill_version=skill_version,
-            skill_mode=skill_mode,
-            subset_mode=subset_mode,
-            subset_k=subset_k,
-            subset_seed=subset_seed,
             data_path=data_path,
         )
 
@@ -422,11 +298,6 @@ class CollectDataLoader(BaseDataLoader):
         is_agentic: bool = False,
         max_examples: Optional[int] = None,
         n_responses: int = 1,
-        skill_version: Optional[str] = None,
-        skill_mode: str = "all_loaded",
-        subset_mode: str = "all",
-        subset_k: Optional[int] = None,
-        subset_seed: Optional[int] = None,
         resume: bool = True,
         data_path: Optional[str] = None,
     ):
@@ -441,11 +312,6 @@ class CollectDataLoader(BaseDataLoader):
             is_agentic: Whether to use agentic execution
             max_examples: Maximum number of examples to load
             n_responses: Number of rollouts per example
-            skill_version: Path to skill folder (e.g., "skills/v1"), or None for no skills
-            skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
-            subset_mode: One of ["all", "top_k", "random"] - method to select skill subset
-            subset_k: Number of skills to select when subset_mode is "top_k" or "random"
-            subset_seed: Random seed for reproducibility when subset_mode is "random"
             resume: Whether to skip already-completed tasks
             data_path: Path to the JSON data file (default: data/{task_id}.json)
         """
@@ -466,11 +332,6 @@ class CollectDataLoader(BaseDataLoader):
             prompt_name=prompt_name,
             max_examples=max_examples,
             n_responses=n_responses,
-            skill_version=skill_version,
-            skill_mode=skill_mode,
-            subset_mode=subset_mode,
-            subset_k=subset_k,
-            subset_seed=subset_seed,
             data_path=data_path,
         )
         self.lm = LM_DICT[model_name]
