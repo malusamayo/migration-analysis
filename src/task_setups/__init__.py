@@ -98,7 +98,7 @@ def setup_workspace(task_id: str, workspace_dir: str, log_dir: str, example: dic
 
     if task_id == "browsecomplongcontext":
         reader = get_corpus_reader()
-        all_docids = list(example["gold_docs"]) + list(example["negative_docs"])
+        all_docids = list(example.get("evidence_docs", example["gold_docs"])) + list(example["negative_docs"])
         rng = random.Random(int(example.get("query_id", 0)))
         rng.shuffle(all_docids)
         pages = []
