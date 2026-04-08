@@ -284,7 +284,14 @@ def run_single_instance_agentic(
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
             seed_prompt = Path(prompt_path).read_text()
-            return mod.build_agent(base_dir=str(base_dir), lm_model=lm.model, seed_prompt=seed_prompt)
+            agent = mod.build_agent(base_dir=str(base_dir), lm_model=lm.model, seed_prompt=seed_prompt)
+            fn = getattr(mod, "get_workspace_scripts", None)
+            if fn is not None:
+                for filename, content in fn().items():
+                    script_path = workspace_dir / filename
+                    script_path.parent.mkdir(parents=True, exist_ok=True)
+                    script_path.write_text(content)
+            return agent
         if tools is None:
             _tools = [
                 Tool(name=TerminalTool.name),

@@ -241,6 +241,8 @@ if __name__ == "__main__":
     start_servers = config.get("start_servers", False)
     server_start_timeout = config.get("server_start_timeout", 300)
     agent_file = args.agent_file if args.agent_file is not None else config.get("agent_file")
+    if agent_file is not None:
+        rollout_version += f"_{Path(agent_file).stem}"
 
     # Validate required arguments
     if not model_name:

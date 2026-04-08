@@ -2,6 +2,7 @@ import json
 import yaml
 import os
 import argparse
+from pathlib import Path
 from typing import Optional
 from .utils import batch_inference
 from .utils import LM_DICT
@@ -110,6 +111,7 @@ def run_task_eval(
     with open(output_path, "w") as f:
         yaml.dump(results, f, Dumper=_BlockDumper, indent=2, sort_keys=False, allow_unicode=True)
     print(f"✅ Completed all {len(results)}/{len(data_loader)} evaluations")
+    print(f"Final results saved to: {output_path}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run task evaluation")
@@ -126,9 +128,11 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=None, help="Batch size for evaluation")
     parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results")
     parser.add_argument("--eval_lm", type=str, default=None, help="LM name for evaluation feedback (required for webtest)")
+    parser.add_argument("--agent_file", type=str, default=None,
+                        help="Path to a Python file defining build_agent(base_dir, lm_model, seed_prompt) -> Agent")
     parser.add_argument("--rollout_version", type=str, default=None,
                         help="Rollout version identifier (default: 'v0')")
-
+    
     args = parser.parse_args()
 
     # Load config file if provided
@@ -147,6 +151,10 @@ if __name__ == "__main__":
     batch_size = args.batch_size if args.batch_size is not None else config.get("batch_size", 16)
     eval_lm_name = args.eval_lm if args.eval_lm is not None else config.get("eval_lm")
     rollout_version = args.rollout_version if args.rollout_version is not None else config.get("rollout_version", "v0")
+    agent_file = args.agent_file if args.agent_file is not None else config.get("agent_file")
+    if agent_file is not None:
+        rollout_version += f"_{Path(agent_file).stem}"
+
 
     # Handle boolean flag specially
     resume = args.resume if args.resume else config.get("resume", True)
