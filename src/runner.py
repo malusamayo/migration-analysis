@@ -96,6 +96,9 @@ def construct_docker_workspace(workspace_dir, system_prompt_path, skills):
     all_envs = os.environ.copy()
     env_config = dotenv_values(".env")
     forward_env = [key for key in env_config.keys() if key in all_envs]
+    # Forward USER so getpass.getuser() works inside containers running as a non-/etc/passwd UID
+    if "USER" in all_envs and "USER" not in forward_env:
+        forward_env.append("USER")
 
     docker_volumes = []
 
@@ -240,6 +243,7 @@ def run_single_instance_agentic(
         skill_mode: str = "",
         use_docker: bool = False,
         server_image: str = "",
+        docker_network: str = None,
         setup_commands: List[str] = [],
         tools: List[Tool] = None,
         workspace_fn = None,
@@ -283,8 +287,14 @@ def run_single_instance_agentic(
             spec = importlib.util.spec_from_file_location("_agent_module", agent_file)
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
-            seed_prompt = Path(prompt_path).read_text()
-            agent = mod.build_agent(base_dir=str(base_dir), lm_model=lm.model, seed_prompt=seed_prompt)
+            seed_prompt = Path(system_prompt_path).read_text()
+            agent = mod.build_agent(base_dir=str(workspace_dir), lm_model=lm.model, seed_prompt=seed_prompt)
+            if use_docker:
+                # workspace_dir is mounted as base_dir (/workspace/project) inside Docker.
+                # Remap system_prompt_filename from the host path to the Docker-internal path
+                # so the container server can read it.
+                fname = os.path.basename(agent.system_prompt_filename)
+                agent = agent.model_copy(update={"system_prompt_filename": os.path.join(base_dir, fname)})
             fn = getattr(mod, "get_workspace_scripts", None)
             if fn is not None:
                 for filename, content in fn().items():
@@ -321,14 +331,17 @@ def run_single_instance_agentic(
 
         agent = _build_agent(docker_workspace_path, docker_system_prompt_path)
 
-        with DockerWorkspace(
+        docker_kwargs = dict(
             working_dir=docker_workspace_path,
             server_image=server_image,
             platform=detect_platform(),
             volumes=docker_volumes,
             forward_env=forward_env,
             user=f"{os.getuid()}:{os.getgid()}",
-        ) as docker_workspace:
+        )
+        if docker_network:
+            docker_kwargs["network"] = docker_network
+        with DockerWorkspace(**docker_kwargs) as docker_workspace:
             for cmd in setup_commands:
                 docker_workspace.execute_command(cmd, timeout=90.0)
 

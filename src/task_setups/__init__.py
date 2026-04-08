@@ -12,8 +12,10 @@ from .webarena_servers import (
     preprocess_example as _webarena_preprocess_example,
     collect_required_sites,
     set_default_webarena_urls,
+    set_container_webarena_urls,
     start_webarena_servers,
     stop_webarena_servers,
+    WEBARENA_BASIC_SITES,
 )
 from . import ab_testing as _ab_testing
 from . import replicatorbench as _replicatorbench
@@ -120,16 +122,26 @@ def setup_servers(
     args_list: list = None,
     start_servers: bool = False,
     timeout: int = 300,
+    docker_network: str = None,
 ) -> dict:
     """Initialize task-specific server URLs and optionally start servers.
 
     Returns a dict to pass to teardown_servers.
+    When docker_network is set, WA_* URLs use container names (for Docker bridge networking)
+    instead of localhost ports.
     """
     if task_id == "webarena":
         required_sites = collect_required_sites(args_list) if args_list else None
-        set_default_webarena_urls(required_sites)
+        started = {}
         if start_servers:
-            return start_webarena_servers(sites=required_sites, timeout=timeout)
+            started = start_webarena_servers(sites=required_sites, timeout=timeout)
+        if docker_network:
+            set_container_webarena_urls(
+                required_sites or WEBARENA_BASIC_SITES, docker_network
+            )
+        else:
+            set_default_webarena_urls(required_sites)
+        return started
     if task_id == "browsecompplus" and start_servers:
         proc = _browsecompplus.start_server()
         return {"browsecompplus_server": proc}

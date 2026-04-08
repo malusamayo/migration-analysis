@@ -63,10 +63,23 @@ URL_PLACEHOLDER_MAP = {
 }
 
 
+WEBARENA_DOCKER_NETWORK = "webarena-net"
+
+
 def _default_url(site: str) -> str:
     port = DEFAULT_PORTS[site]
     suffix = URL_SUFFIXES.get(site, "")
     return f"http://localhost:{port}{suffix}"
+
+
+def _container_url(site: str) -> str:
+    """URL for accessing a site from within the Docker network (by container name)."""
+    name = _container_name(site)
+    container_port = CONTAINER_PORTS[site]
+    suffix = URL_SUFFIXES.get(site, "")
+    if container_port == 80:
+        return f"http://{name}{suffix}"
+    return f"http://{name}:{container_port}{suffix}"
 
 
 def _container_name(site: str) -> str:
@@ -267,3 +280,76 @@ def preprocess_example(example: dict) -> dict:
     start_url = replace_url_placeholders(str(example.get("start_url", "")))
     example["prompt"] = f"{example['prompt']}\n\nStarting URL: {start_url}"
     return example
+
+
+# Sites using Magento whose base URL must be reinitialized when accessed via Docker network.
+# Magento embeds its base URL in redirects, so it must match the URL the agent will use.
+MAGENTO_SITES = {"shopping", "shopping_admin"}
+
+
+def _ensure_network_exists(network: str) -> None:
+    result = _run_docker(["network", "inspect", network])
+    if result.returncode != 0:
+        _run_docker(["network", "create", network])
+
+
+def _connect_to_network(site: str, network: str) -> None:
+    """Connect a running container to the Docker network (no-op if already connected)."""
+    _run_docker(["network", "connect", network, _container_name(site)])
+
+
+def _get_container_ip(site: str, network: str) -> str:
+    """Get the container's IP on the specified Docker network."""
+    result = subprocess.run(
+        ["docker", "inspect", _container_name(site),
+         "--format", f'{{{{(index .NetworkSettings.Networks "{network}").IPAddress}}}}'],
+        capture_output=True, text=True, check=False,
+    )
+    return result.stdout.strip() if result.returncode == 0 else ""
+
+
+def _reinit_magento_base_url(site: str, base_url: str) -> None:
+    """Run env-ctrl init inside the container to update Magento's base URL.
+
+    Magento stores its base URL in the database. After connecting the container
+    to a Docker network, the agent accesses it via a container IP, so Magento
+    must be reconfigured to redirect to that IP instead of localhost.
+    """
+    print(f"  🔧 Reinitializing {site} base URL to {base_url}")
+    subprocess.run(
+        ["docker", "exec", _container_name(site), "env-ctrl", "init", "--base-url", base_url],
+        capture_output=True, text=True, check=False, timeout=120,
+    )
+
+
+def set_container_webarena_urls(sites: list, network: str) -> None:
+    """Create Docker network, connect running site containers, set WA_* to container IP URLs.
+
+    For Magento-based sites (shopping, shopping_admin), also reinitializes the Magento
+    base URL so that its internal redirects point to the container's IP on the network
+    rather than localhost. This is required because Magento embeds the base URL in all
+    redirects, and localhost is not resolvable from inside the agent's Docker container.
+
+    Call this instead of set_default_webarena_urls when the agent runs in Docker.
+    """
+    _ensure_network_exists(network)
+    for site in sites:
+        if site not in WEBARENA_IMAGES:
+            continue
+        if not _container_running(site):
+            continue
+        _connect_to_network(site, network)
+        env_var = WA_ENV_VARS.get(site)
+        if not env_var:
+            continue
+        if site in MAGENTO_SITES:
+            ip = _get_container_ip(site, network)
+            if ip:
+                base_url = f"http://{ip}/"
+                _reinit_magento_base_url(site, base_url)
+                suffix = URL_SUFFIXES.get(site, "")
+                os.environ[env_var] = f"http://{ip}{suffix}"
+            else:
+                os.environ[env_var] = _container_url(site)
+        else:
+            os.environ[env_var] = _container_url(site)

@@ -93,6 +93,7 @@ def run_task(
         rollout_version: str = "v0",
         use_docker: bool = True,
         server_image: str = "migration-analysis:latest",
+        docker_network: Optional[str] = None,
         data_path: Optional[str] = None,
         start_servers: bool = False,
         server_start_timeout: int = 300,
@@ -156,12 +157,14 @@ def run_task(
         for args in args_list:
             args["use_docker"] = use_docker
             args["server_image"] = server_image
+            args["docker_network"] = docker_network
             args["tools"] = get_tools(task_id, args.get("workspace"))
             if agent_file is not None:
                 args["agent_file"] = os.path.abspath(agent_file)
 
     servers_started = setup_servers(
-        task_id, args_list, start_servers=start_servers, timeout=server_start_timeout
+        task_id, args_list, start_servers=start_servers, timeout=server_start_timeout,
+        docker_network=docker_network if is_agentic else None,
     )
     for args in args_list:
         args["example"] = preprocess_example(task_id, args["example"])
@@ -237,6 +240,7 @@ if __name__ == "__main__":
     resume = args.resume if args.resume else config.get("resume", True)
     use_docker = config.get("use_docker", False)
     server_image = config.get("server_image", "migration-analysis:latest")
+    docker_network = config.get("docker_network", None)
     data_path = config.get("data_path")
     start_servers = config.get("start_servers", False)
     server_start_timeout = config.get("server_start_timeout", 300)
@@ -262,6 +266,7 @@ if __name__ == "__main__":
         rollout_version=rollout_version,
         use_docker=use_docker,
         server_image=server_image,
+        docker_network=docker_network,
         data_path=data_path,
         start_servers=start_servers,
         server_start_timeout=server_start_timeout,

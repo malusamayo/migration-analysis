@@ -1175,6 +1175,7 @@ def run_optimization(
     batch_size: Optional[int] = None,
     use_adaptation_guide: bool = True,
     adaptation_guide_markdown: Optional[str] = None,
+    docker_network: Optional[str] = None,
 ):
     # 0. Configure logging
     logging.basicConfig(
@@ -1194,7 +1195,7 @@ def run_optimization(
     )
 
     # Apply task-specific server setup and example preprocessing
-    setup_servers(task_id)
+    setup_servers(task_id, docker_network=docker_network)
     data = [preprocess_example(task_id, ex) for ex in data]
 
     # 2. Split train/val
@@ -1353,6 +1354,7 @@ if __name__ == "__main__":
     run_dir = args.run_dir or config.get("run_dir")
     data_path = config.get("data_path")
     batch_size = args.batch_size if args.batch_size is not None else config.get("batch_size")
+    docker_network = config.get("docker_network")
     use_adaptation_guide = config.get("use_adaptation_guide", True)
     adaptation_guide_markdown = (
         args.adaptation_guide_markdown
@@ -1380,6 +1382,7 @@ if __name__ == "__main__":
         run_dir=run_dir,
         data_path=data_path,
         batch_size=batch_size,
+        docker_network=docker_network,
         use_adaptation_guide=use_adaptation_guide,
         adaptation_guide_markdown=adaptation_guide_markdown,
     )

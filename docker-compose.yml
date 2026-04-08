@@ -19,3 +19,8 @@ services:
     build:
       context: .
       dockerfile: tasks/replicatorbench/Dockerfile
+  webarena:
+    image: webarena:latest
+    build:
+      context: .
+      dockerfile: tasks/webarena/Dockerfile
