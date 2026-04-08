@@ -13,6 +13,7 @@ uv.lock
 # Project-specific ignores
 data/
 results/
+analysis_results/
 .env
 .vertex-ai.json
 *.ipynb
