@@ -16,6 +16,7 @@ from pathlib import Path
 
 from gepa import optimize, GEPAAdapter, EvaluationBatch, GEPAResult
 from gepa import StopperProtocol
+from gepa.utils.stop_condition import NoImprovementStopper, ScoreThresholdStopper
 from gepa.core.state import GEPAState
 
 from openhands.sdk import LLM, Agent, Tool, Conversation
@@ -263,6 +264,7 @@ class CostBudgetStopper:
     def __call__(self, gepa_state: GEPAState) -> bool:
         total = sum(b["accumulated_cost"] for b in self._cost_tracker.values())
         return total >= self.max_cost
+
 
 
 def _extract_dspy_cost(lm, history_len_before: int) -> Optional[dict]:
@@ -1166,6 +1168,7 @@ def run_optimization(
     reflection_lm: str = "gemini-3-flash-preview",
     max_metric_calls: Optional[int] = 50,
     max_cost: Optional[float] = None,
+    no_improvement_patience: int = 10,
     seed: int = 0,
     run_dir: Optional[str] = None,
     data_path: Optional[str] = None,
@@ -1211,7 +1214,7 @@ def run_optimization(
     gepa_logger = GEPAFileLogger(run_dir)
     gepa_logger.log(f"Task: {task_id}, Model: {model_name}, Prompt: {prompt_name}")
     gepa_logger.log(f"Dataset: {len(data)} total, {len(trainset)} train, {len(valset)} val")
-    gepa_logger.log(f"Max metric calls: {max_metric_calls}, Max cost: {max_cost}, Reflection LM: {reflection_lm}")
+    gepa_logger.log(f"Max metric calls: {max_metric_calls}, Max cost: {max_cost}, No-improvement patience: {no_improvement_patience}, Reflection LM: {reflection_lm}")
     gepa_logger.log(f"Use adaptation guide: {use_adaptation_guide}")
     if use_adaptation_guide and adaptation_guide_markdown:
         gepa_logger.log(f"Adaptation guide markdown: {adaptation_guide_markdown}")
@@ -1237,9 +1240,12 @@ def run_optimization(
     )
 
     # 6. Build stop callbacks
-    cost_stopper: Optional[StopperProtocol] = (
-        CostBudgetStopper(max_cost, adapter._cost_tracker) if max_cost is not None else None
-    )
+    stoppers: list[StopperProtocol] = []
+    if max_cost is not None:
+        stoppers.append(CostBudgetStopper(max_cost, adapter._cost_tracker))
+    stoppers.append(NoImprovementStopper(no_improvement_patience))
+    stoppers.append(ScoreThresholdStopper(1.0))
+    stop_callbacks = stoppers
 
     # 7. Run GEPA optimization
     result: GEPAResult = optimize(
@@ -1248,7 +1254,7 @@ def run_optimization(
         valset=valset,
         adapter=adapter,
         max_metric_calls=max_metric_calls,
-        stop_callbacks=cost_stopper,
+        stop_callbacks=stop_callbacks,
         seed=seed,
         run_dir=run_dir,
         display_progress_bar=True,
@@ -1342,6 +1348,7 @@ if __name__ == "__main__":
     eval_lm_name = args.eval_lm or config.get("eval_lm")
     max_metric_calls = args.max_metric_calls if args.max_metric_calls is not None else config.get("max_metric_calls")
     max_cost = args.max_cost if args.max_cost is not None else config.get("max_cost")
+    no_improvement_patience = config.get("no_improvement_patience")
     seed = args.seed if args.seed is not None else config.get("seed", 0)
     run_dir = args.run_dir or config.get("run_dir")
     data_path = config.get("data_path")
@@ -1368,6 +1375,7 @@ if __name__ == "__main__":
         reflection_lm=reflection_lm,
         max_metric_calls=max_metric_calls,
         max_cost=max_cost,
+        no_improvement_patience=no_improvement_patience,
         seed=seed,
         run_dir=run_dir,
         data_path=data_path,
