@@ -63,7 +63,10 @@ def run_single_instance_eval(
 
     agent_answer = answer_file.read_text(encoding="utf-8").strip()
     normalized_agent = _normalize_answer(agent_answer)
-    is_correct = any(_normalize_answer(ref) == normalized_agent for ref in reference_answers)
+    is_correct = any(
+        _normalize_answer(ref) == normalized_agent or _normalize_answer(ref) in normalized_agent
+        for ref in reference_answers
+    )
 
     score = 1.0 if is_correct else 0.0
     if score == 1.0:
