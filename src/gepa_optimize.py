@@ -15,6 +15,8 @@ from typing import Any, Mapping, Sequence, Optional
 from pathlib import Path
 
 from gepa import optimize, GEPAAdapter, EvaluationBatch, GEPAResult
+from gepa import StopperProtocol
+from gepa.core.state import GEPAState
 
 from openhands.sdk import LLM, Agent, Tool, Conversation
 from openhands.sdk.context.agent_context import AgentContext
@@ -251,6 +253,18 @@ def _add_to_cost_bucket(bucket: dict, metrics: dict) -> None:
     bucket["reasoning_tokens"] += usage.get("reasoning_tokens", 0)
 
 
+class CostBudgetStopper:
+    """Stop optimization when total accumulated cost exceeds a budget (in USD)."""
+
+    def __init__(self, max_cost: float, cost_tracker: dict[str, dict]):
+        self.max_cost = max_cost
+        self._cost_tracker = cost_tracker
+
+    def __call__(self, gepa_state: GEPAState) -> bool:
+        total = sum(b["accumulated_cost"] for b in self._cost_tracker.values())
+        return total >= self.max_cost
+
+
 def _extract_dspy_cost(lm, history_len_before: int) -> Optional[dict]:
     """Extract cost incurred by a dspy LM since history_len_before."""
     if lm is None or not hasattr(lm, "history"):
@@ -334,8 +348,30 @@ def _create_skill_file(content: str, name: str, dest_dir: str) -> Skill:
     return skill
 
 
-def _load_proposer_skills(run_dir: str, use_adaptation_guide: bool = True) -> list[Skill]:
-    """Load proposer skills, swapping in the base SDK reference when adaptation is disabled."""
+def _resolve_markdown_path(markdown_path: str, docs_dir: str) -> str:
+    """Resolve a markdown path from either an absolute path, CWD-relative path, or docs-relative path."""
+    candidate = Path(markdown_path)
+    if candidate.is_absolute():
+        resolved = candidate
+    else:
+        cwd_relative = Path.cwd() / candidate
+        docs_relative = Path(docs_dir) / candidate
+        if cwd_relative.exists():
+            resolved = cwd_relative
+        else:
+            resolved = docs_relative
+    resolved = resolved.resolve()
+    if not resolved.exists():
+        raise FileNotFoundError(f"Markdown file not found: {markdown_path}")
+    return str(resolved)
+
+
+def _load_proposer_skills(
+    run_dir: str,
+    use_adaptation_guide: bool = True,
+    adaptation_guide_markdown: Optional[str] = None,
+) -> list[Skill]:
+    """Load proposer skills, optionally using a custom adaptation guide markdown file."""
     skills_dir = os.path.join(run_dir, "shared", "proposer_skills")
     os.makedirs(skills_dir, exist_ok=True)
 
@@ -355,6 +391,8 @@ def _load_proposer_skills(run_dir: str, use_adaptation_guide: bool = True) -> li
     # Adaptation guide
     if use_adaptation_guide:
         adaptation_path = os.path.join(docs_dir, "adaptation.md")
+        if adaptation_guide_markdown:
+            adaptation_path = _resolve_markdown_path(adaptation_guide_markdown, docs_dir)
         if os.path.exists(adaptation_path):
             with open(adaptation_path) as f:
                 adaptation_content = f.read()
@@ -473,6 +511,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         max_proposal_retries: int = 2,
         batch_size: Optional[int] = None,
         use_adaptation_guide: bool = True,
+        adaptation_guide_markdown: Optional[str] = None,
     ):
         self.task_id = task_id
         self.task_prompt = task_prompt
@@ -485,13 +524,16 @@ class AgentOptimizationAdapter(GEPAAdapter):
         self._max_proposal_retries = max_proposal_retries
         self._batch_size = batch_size
         self._use_adaptation_guide = use_adaptation_guide
+        self._adaptation_guide_markdown = adaptation_guide_markdown
 
         self.eval_config = get_eval_config(task_id)
         self.eval_function = self.eval_config["eval_function"]
 
         # Load proposer skills once
         self._proposer_skills = _load_proposer_skills(
-            run_dir, use_adaptation_guide=use_adaptation_guide
+            run_dir,
+            use_adaptation_guide=use_adaptation_guide,
+            adaptation_guide_markdown=adaptation_guide_markdown,
         )
 
         # Iteration tracking
@@ -1122,12 +1164,14 @@ def run_optimization(
     train_ratio: float = 0.7,
     eval_lm_name: Optional[str] = None,
     reflection_lm: str = "gemini-3-flash-preview",
-    max_metric_calls: int = 50,
+    max_metric_calls: Optional[int] = 50,
+    max_cost: Optional[float] = None,
     seed: int = 0,
     run_dir: Optional[str] = None,
     data_path: Optional[str] = None,
     batch_size: Optional[int] = None,
     use_adaptation_guide: bool = True,
+    adaptation_guide_markdown: Optional[str] = None,
 ):
     # 0. Configure logging
     logging.basicConfig(
@@ -1167,8 +1211,10 @@ def run_optimization(
     gepa_logger = GEPAFileLogger(run_dir)
     gepa_logger.log(f"Task: {task_id}, Model: {model_name}, Prompt: {prompt_name}")
     gepa_logger.log(f"Dataset: {len(data)} total, {len(trainset)} train, {len(valset)} val")
-    gepa_logger.log(f"Max metric calls: {max_metric_calls}, Reflection LM: {reflection_lm}")
+    gepa_logger.log(f"Max metric calls: {max_metric_calls}, Max cost: {max_cost}, Reflection LM: {reflection_lm}")
     gepa_logger.log(f"Use adaptation guide: {use_adaptation_guide}")
+    if use_adaptation_guide and adaptation_guide_markdown:
+        gepa_logger.log(f"Adaptation guide markdown: {adaptation_guide_markdown}")
 
     # Save seed candidate
     config_dir = os.path.join(run_dir, "shared", "config")
@@ -1187,15 +1233,22 @@ def run_optimization(
         run_dir=run_dir,
         batch_size=batch_size,
         use_adaptation_guide=use_adaptation_guide,
+        adaptation_guide_markdown=adaptation_guide_markdown,
     )
 
-    # 6. Run GEPA optimization
+    # 6. Build stop callbacks
+    cost_stopper: Optional[StopperProtocol] = (
+        CostBudgetStopper(max_cost, adapter._cost_tracker) if max_cost is not None else None
+    )
+
+    # 7. Run GEPA optimization
     result: GEPAResult = optimize(
         seed_candidate=seed_candidate,
         trainset=trainset,
         valset=valset,
         adapter=adapter,
         max_metric_calls=max_metric_calls,
+        stop_callbacks=cost_stopper,
         seed=seed,
         run_dir=run_dir,
         display_progress_bar=True,
@@ -1238,6 +1291,7 @@ def run_optimization(
     print(f"Best score: {best_score}")
     print(f"Best config saved to: {best_config_path}")
     print(f"Summary saved to: {summary_path}")
+    print(f"Log file: {gepa_logger.log_path}")
     print(f"Total cost: ${total_cost:.4f}")
 
     return result
@@ -1260,9 +1314,16 @@ if __name__ == "__main__":
     parser.add_argument("--reflection_lm", type=str, default=None, help="LM for proposer agent")
     parser.add_argument("--eval_lm", type=str, default=None, help="LM for evaluation")
     parser.add_argument("--max_metric_calls", type=int, default=None)
+    parser.add_argument("--max_cost", type=float, default=None, help="Hard cost budget in USD")
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--run_dir", type=str, default=None)
     parser.add_argument("--batch_size", type=int, default=None)
+    parser.add_argument(
+        "--adaptation_guide_markdown",
+        type=str,
+        default=None,
+        help="Optional custom markdown file to use instead of docs/adaptation.md",
+    )
 
     args = parser.parse_args()
 
@@ -1279,12 +1340,18 @@ if __name__ == "__main__":
     train_ratio = args.train_ratio if args.train_ratio is not None else config.get("train_ratio", 0.7)
     reflection_lm = args.reflection_lm or config.get("reflection_lm", "gemini-3-flash-preview")
     eval_lm_name = args.eval_lm or config.get("eval_lm")
-    max_metric_calls = args.max_metric_calls if args.max_metric_calls is not None else config.get("max_metric_calls", 50)
+    max_metric_calls = args.max_metric_calls if args.max_metric_calls is not None else config.get("max_metric_calls")
+    max_cost = args.max_cost if args.max_cost is not None else config.get("max_cost")
     seed = args.seed if args.seed is not None else config.get("seed", 0)
     run_dir = args.run_dir or config.get("run_dir")
     data_path = config.get("data_path")
     batch_size = args.batch_size if args.batch_size is not None else config.get("batch_size")
     use_adaptation_guide = config.get("use_adaptation_guide", True)
+    adaptation_guide_markdown = (
+        args.adaptation_guide_markdown
+        if args.adaptation_guide_markdown is not None
+        else config.get("adaptation_guide_markdown")
+    )
 
     if not task_id:
         parser.error("--task_id is required")
@@ -1300,9 +1367,11 @@ if __name__ == "__main__":
         eval_lm_name=eval_lm_name,
         reflection_lm=reflection_lm,
         max_metric_calls=max_metric_calls,
+        max_cost=max_cost,
         seed=seed,
         run_dir=run_dir,
         data_path=data_path,
         batch_size=batch_size,
         use_adaptation_guide=use_adaptation_guide,
+        adaptation_guide_markdown=adaptation_guide_markdown,
     )
