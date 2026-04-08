@@ -2,7 +2,7 @@
 
 Four-stage LLM-as-judge evaluation mirroring the original ReplicatorBench protocol:
 
-  1. Extraction  — post_registration.json vs expected_post_registration*.json
+  1. Extraction  — post_registration.json vs expected_post_registration.json
   2. Design      — replication_info.json vs human_preregistration.pdf
   3. Execution   — execution_results.json scored against a structured rubric
   4. Interpretation — interpret_results.json vs human_report.pdf
@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import dspy
+
+from ..utils import batch_inference
 
 
 # ---------------------------------------------------------------------------
@@ -372,16 +374,6 @@ def _score_eval_dict(result: dict, max_score: float = 3.0, raw_data: Optional[di
     return sum(scores) / len(scores), lines
 
 
-def _load_gt_variants(gt_dir: Path) -> List[dict]:
-    variants = []
-    for path in sorted(gt_dir.glob("expected_post_registration*.json")):
-        try:
-            variants.append(json.loads(path.read_text(encoding="utf-8")))
-        except json.JSONDecodeError:
-            continue
-    return variants
-
-
 # ---------------------------------------------------------------------------
 # Stage scorers
 # ---------------------------------------------------------------------------
@@ -395,28 +387,26 @@ def _score_extraction(
     if agent_data is None:
         return 0.0, f"extraction: post_registration.json {err}"
 
-    variants = _load_gt_variants(gt_dir)
-    if not variants:
-        return 0.0, "extraction: no expected_post_registration*.json found in groundtruth"
+    gt_path = gt_dir / "expected_post_registration.json"
+    if not gt_path.exists():
+        return 0.0, "extraction: expected_post_registration.json not found in groundtruth"
+    try:
+        expected = json.loads(gt_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return 0.0, f"extraction: expected_post_registration.json invalid json: {exc}"
 
-    best_score = 0.0
-    best_lines: List[str] = []
-    for variant in variants:
-        prompt = _EXTRACT_EVAL_PROMPT.format(
-            extraction_schema=_POST_REGISTRATION_SCHEMA,
-            extracted_json=json.dumps(agent_data, indent=2),
-            expected_json=json.dumps(variant, indent=2),
-        )
-        result, err = _call_lm_judge(lm, prompt)
-        if result is None:
-            continue
-        score, lines = _score_eval_dict(result, max_score=3.0, raw_data=agent_data)
-        if score > best_score:
-            best_score = score
-            best_lines = lines
+    prompt = _EXTRACT_EVAL_PROMPT.format(
+        extraction_schema=_POST_REGISTRATION_SCHEMA,
+        extracted_json=json.dumps(agent_data, indent=2),
+        expected_json=json.dumps(expected, indent=2),
+    )
+    result, err = _call_lm_judge(lm, prompt)
+    if result is None:
+        return 0.0, f"extraction: {err}"
 
-    feedback_lines = [f"extraction: {best_score:.3f}"] + best_lines
-    return best_score, "\n".join(feedback_lines)
+    score, lines = _score_eval_dict(result, max_score=3.0, raw_data=agent_data)
+    feedback_lines = [f"extraction: {score:.3f}"] + lines
+    return score, "\n".join(feedback_lines)
 
 
 def _score_design(
@@ -532,10 +522,20 @@ def run_single_instance_eval(
             "feedback": "Ground truth directory not found. Workspace setup may have failed.",
         }
 
-    extraction_score, extraction_feedback = _score_extraction(workspace, gt_dir, lm)
-    design_score, design_feedback = _score_design(workspace, gt_dir, lm)
-    execution_score, execution_feedback = _score_execution(workspace, lm)
-    interpretation_score, interpretation_feedback = _score_interpretation(workspace, gt_dir, lm)
+    def _run_stage(stage_fn, **kwargs):
+        return stage_fn(**kwargs)
+
+    stage_args = [
+        {"stage_fn": _score_extraction, "workspace": workspace, "gt_dir": gt_dir, "lm": lm},
+        {"stage_fn": _score_design,     "workspace": workspace, "gt_dir": gt_dir, "lm": lm},
+        {"stage_fn": _score_execution,  "workspace": workspace,                   "lm": lm},
+        {"stage_fn": _score_interpretation, "workspace": workspace, "gt_dir": gt_dir, "lm": lm},
+    ]
+    stage_results = batch_inference(_run_stage, stage_args, max_workers=4)
+    (extraction_score, extraction_feedback) = stage_results[0]
+    (design_score,     design_feedback)     = stage_results[1]
+    (execution_score,  execution_feedback)  = stage_results[2]
+    (interpretation_score, interpretation_feedback) = stage_results[3]
 
     overall = (extraction_score + design_score + execution_score + interpretation_score) / 4.0
 
