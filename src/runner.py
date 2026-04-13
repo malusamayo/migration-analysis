@@ -32,6 +32,9 @@ from openhands.sdk.conversation.conversation_stats import ConversationStats
 from openhands.sdk.context import (
     Skill,
 )
+from openhands.tools.delegate import (
+    DelegationVisualizer,
+)
 from openhands.workspace import DockerWorkspace
 
 from .debug_utils import patch_llm_for_debugging
@@ -522,7 +525,6 @@ def _run_agentic_conversation(
         log_dir: str,
         example: dict,
         skill_mode: str = "",
-        visualizer=None,
     ):
     """
     Core logic for running an agentic conversation.
@@ -540,6 +542,7 @@ def _run_agentic_conversation(
     conversation = None
     error = None
     try:
+        visualizer = DelegationVisualizer(name="main")
         conversation = Conversation(agent=agent, workspace=workspace_obj, visualizer=visualizer)
         instruction = example['prompt']
 
@@ -622,10 +625,7 @@ def run_single_instance_agentic(
     if task_id:
         setup_workspace(task_id, workspace, log_dir, example)
 
-    _agent_visualizer = None
-
     def _build_agent(base_dir, prompt_path):
-        nonlocal _agent_visualizer
         if agent_file is not None:
             import importlib.util
             spec = importlib.util.spec_from_file_location("_agent_module", agent_file)
@@ -645,9 +645,6 @@ def run_single_instance_agentic(
                     script_path = workspace_dir / filename
                     script_path.parent.mkdir(parents=True, exist_ok=True)
                     script_path.write_text(content)
-            get_vis_fn = getattr(mod, "get_visualizer", None)
-            if get_vis_fn is not None:
-                _agent_visualizer = get_vis_fn()
             return agent
         if tools is None:
             _tools = [
@@ -706,7 +703,6 @@ def run_single_instance_agentic(
                 log_dir=log_dir,
                 example=example,
                 skill_mode=skill_mode,
-                visualizer=_agent_visualizer,
             )
             if post_docker_fn:
                 post_docker_fn(
@@ -725,5 +721,4 @@ def run_single_instance_agentic(
             log_dir=log_dir,
             example=example,
             skill_mode=skill_mode,
-            visualizer=_agent_visualizer,
         )
