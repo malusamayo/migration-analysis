@@ -8,8 +8,8 @@ Build the index once before use:
 import json
 import mmap
 
-CORPUS_PATH = "/mnt/datasets/browsecomp-plus-corpus/corpus.jsonl"
-INDEX_PATH = "/mnt/datasets/browsecomp-plus-corpus/corpus_index.json"
+CORPUS_PATH = "/mnt/data_4tb/datasets/browsecomp-plus-corpus/corpus.jsonl"
+INDEX_PATH = "/mnt/data_4tb/datasets/browsecomp-plus-corpus/corpus_index.json"
 
 
 class CorpusReader:

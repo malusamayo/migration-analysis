@@ -7,7 +7,7 @@ across all parallel workers, so the BM25 index is loaded only once.
 import subprocess
 import time
 
-_BROWSECOMP_PLUS_ROOT = "/mnt/datasets/BrowseComp-Plus"
+_BROWSECOMP_PLUS_ROOT = "/mnt/data_4tb/datasets/BrowseComp-Plus"
 _BM25_INDEX_PATH = f"{_BROWSECOMP_PLUS_ROOT}/indexes/bm25"
 _SERVER_PORT = 18765
 _MCP_URL = f"http://localhost:{_SERVER_PORT}/mcp"
