@@ -195,6 +195,7 @@ def run_task(
     with open(output_path, "w") as f:
         json.dump(results, f, indent=2)
     print(f"✅ Completed all {len(results)}/{len(data_loader)} examples")
+    print(f"📂 Results saved to {output_path}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run task with specified model and prompt.")

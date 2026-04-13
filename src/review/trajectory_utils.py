@@ -11,70 +11,98 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 
 
-def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
-    """
-    Convert JSON evaluation trace to markdown format.
+def _extract_text_from_content(content: Any) -> str:
+    """Extract the first text block from message/observation content."""
+    if isinstance(content, list):
+        for item in content:
+            if isinstance(item, dict) and "text" in item:
+                return item["text"]
+        return ""
+    if content is None:
+        return ""
+    return str(content)
 
-    Keeps essential information like action, reasoning, and observation.
 
-    Args:
-        json_data: Dictionary containing evaluation trace data
+def _truncate_text(text: str, limit: int) -> str:
+    """Truncate long content for markdown readability."""
+    if len(text) > limit:
+        return text[:limit] + "...\n[Output truncated]"
+    return text
 
-    Returns:
-        Formatted markdown string
-    """
-    markdown_lines = []
 
-    assert "events" in json_data and json_data["events"]
-    markdown_lines.append("\n---\n\n### Agent Execution Trace\n")
+def _append_subagent_trace_markdown(
+    markdown_lines: list[str],
+    agent_id: str,
+    payload: Dict[str, Any],
+    *,
+    heading_level: int,
+) -> None:
+    """Append one subagent trace using headings nested under a parent step."""
+    heading = "#" * heading_level
+    nested_heading = "#" * min(heading_level + 1, 6)
 
+    markdown_lines.append(f"\n{heading} Delegated Subagent `{agent_id}`\n")
+
+    subagent_events = payload.get("events", [])
+    if subagent_events:
+        _append_event_stream_markdown(
+            markdown_lines,
+            subagent_events,
+            user_heading=f"{nested_heading} User Request",
+            step_heading_template=f"{nested_heading} Step {{step}}",
+        )
+    else:
+        markdown_lines.append("\n_No subagent events recorded._\n")
+
+
+def _append_event_stream_markdown(
+    markdown_lines: list[str],
+    events: list[Dict[str, Any]],
+    *,
+    user_heading: str = "#### User Request",
+    step_heading_template: str = "#### Step {step}",
+    subagents: Optional[Dict[str, Any]] = None,
+    rendered_subagents: Optional[set[str]] = None,
+) -> None:
+    """Append a sequence of events to markdown_lines."""
     action_count = 0
-    for event in json_data["events"]:
+    pending_delegate_agents: list[str] = []
+
+    for event in events:
         event_kind = event.get("kind", "Unknown")
 
-        # Skip system prompt events as they're just setup
         if event_kind == "SystemPromptEvent":
             continue
 
-        # Handle MessageEvent (user and assistant messages)
         if event_kind == "MessageEvent":
             if "llm_message" in event and event["llm_message"]:
                 msg = event["llm_message"]
                 role = msg.get("role", "")
+                content_text = _extract_text_from_content(msg.get("content"))
 
-                if msg.get("content"):
-                    content_text = ""
-                    if isinstance(msg["content"], list):
-                        for item in msg["content"]:
-                            if isinstance(item, dict) and "text" in item:
-                                content_text = item["text"]
-                                break
-                    else:
-                        content_text = str(msg["content"])
+                if content_text:
+                    if role == "user":
+                        markdown_lines.append(f"\n{user_heading}\n")
+                        markdown_lines.append(f"{content_text}\n")
+                    elif role == "assistant":
+                        action_count += 1
+                        markdown_lines.append(
+                            f"\n{step_heading_template.format(step=action_count)}\n"
+                        )
 
-                    if content_text:
-                        if role == "user":
-                            markdown_lines.append(f"\n#### User Request\n")
-                            markdown_lines.append(f"{content_text}\n")
-                        elif role == "assistant":
-                            action_count += 1
-                            markdown_lines.append(f"\n#### Step {action_count}\n")
+                        if "reasoning_content" in msg and msg["reasoning_content"]:
+                            markdown_lines.append("**Reasoning:**\n")
+                            markdown_lines.append(f"{msg['reasoning_content']}\n")
 
-                            # Add reasoning if available
-                            if "reasoning_content" in msg and msg["reasoning_content"]:
-                                markdown_lines.append(f"**Reasoning:**\n")
-                                markdown_lines.append(f"{msg['reasoning_content']}\n")
+                        markdown_lines.append("**Response:**\n")
+                        markdown_lines.append(f"{content_text}\n")
 
-                            # Add the assistant's message
-                            markdown_lines.append(f"**Response:**\n")
-                            markdown_lines.append(f"{content_text}\n")
-
-        # Handle ActionEvent (agent actions with reasoning)
         elif event_kind == "ActionEvent":
             action_count += 1
-            markdown_lines.append(f"\n#### Step {action_count}\n")
+            markdown_lines.append(
+                f"\n{step_heading_template.format(step=action_count)}\n"
+            )
 
-            # Extract and add thought content if present
             thought_text = ""
             if "thought" in event and event["thought"]:
                 if isinstance(event["thought"], list):
@@ -86,21 +114,18 @@ def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
                     thought_text = event["thought"]
 
             if thought_text:
-                markdown_lines.append(f"**Thought:**\n")
+                markdown_lines.append("**Thought:**\n")
                 markdown_lines.append(f"{thought_text}\n")
 
-            # Add reasoning content
             if "reasoning_content" in event and event["reasoning_content"]:
-                markdown_lines.append(f"**Reasoning:**\n")
+                markdown_lines.append("**Reasoning:**\n")
                 markdown_lines.append(f"{event['reasoning_content']}\n")
 
-            # Add action details
             if "action" in event and event["action"]:
                 action = event["action"]
                 action_kind = action.get("kind", "Unknown")
                 markdown_lines.append(f"**Action:** `{action_kind}`\n")
 
-                # Add specific action details based on type
                 if action_kind == "FileEditorAction":
                     command = action.get("command", "")
                     path = action.get("path", "")
@@ -108,13 +133,15 @@ def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
                     markdown_lines.append(f"- Path: `{path}`")
                     if command == "str_replace":
                         if "old_str" in action and action["old_str"]:
-                            markdown_lines.append(f"- Old content:\n```\n{action['old_str']}\n```")
+                            markdown_lines.append(
+                                f"- Old content:\n```\n{action['old_str']}\n```"
+                            )
                         if "new_str" in action and action["new_str"]:
-                            markdown_lines.append(f"- New content:\n```\n{action['new_str']}\n```")
+                            markdown_lines.append(
+                                f"- New content:\n```\n{action['new_str']}\n```"
+                            )
                     elif command == "create" and action.get("file_text"):
-                        content = action["file_text"]
-                        if len(content) > 1000:
-                            content = content[:1000] + "...\n[Content truncated]"
+                        content = _truncate_text(action["file_text"], 1000)
                         markdown_lines.append(f"- File content:\n```\n{content}\n```")
 
                 elif action_kind == "TerminalAction":
@@ -127,9 +154,7 @@ def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
 
                 elif action_kind == "ThinkAction":
                     if "thought" in action:
-                        thought = action["thought"]
-                        if len(thought) > 2000:
-                            thought = thought[:2000] + "...\n[Thought truncated]"
+                        thought = _truncate_text(action["thought"], 2000)
                         markdown_lines.append(f"- Thought:\n```\n{thought}\n```")
 
                 elif action_kind == "MCPToolAction":
@@ -146,70 +171,83 @@ def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
                     if message:
                         markdown_lines.append(f"- Message: {message}")
 
+                elif action_kind == "DelegateAction":
+                    command = action.get("command", "")
+                    if command:
+                        markdown_lines.append(f"- Command: `{command}`")
+                    ids = action.get("ids") or []
+                    if ids:
+                        markdown_lines.append(
+                            f"- Agent IDs: {', '.join(f'`{agent_id}`' for agent_id in ids)}"
+                        )
+                    tasks = action.get("tasks") or {}
+                    if tasks:
+                        for agent_id, task in tasks.items():
+                            markdown_lines.append(
+                                f"- Task for `{agent_id}`: {task}"
+                            )
+                    if command == "delegate" and tasks:
+                        pending_delegate_agents = [
+                            agent_id
+                            for agent_id in tasks
+                            if subagents
+                            and agent_id in subagents
+                            and (
+                                rendered_subagents is None
+                                or agent_id not in rendered_subagents
+                            )
+                        ]
+                    else:
+                        pending_delegate_agents = []
+
                 markdown_lines.append("")
 
-        # Handle ObservationEvent (results from actions)
         elif event_kind == "ObservationEvent":
             if "observation" in event and event["observation"]:
                 obs = event["observation"]
                 obs_kind = obs.get("kind", "Unknown")
 
-                markdown_lines.append(f"**Observation:**\n")
+                markdown_lines.append("**Observation:**\n")
 
-                # Handle MCPToolObservation
                 if obs_kind == "MCPToolObservation":
                     if "content" in obs and isinstance(obs["content"], list):
                         for item in obs["content"]:
                             if isinstance(item, dict) and item.get("type") == "text":
                                 text = item.get("text", "")
-                                # Skip the placeholder tag line
-                                if text.startswith("[Tool ") and text.endswith(" executed.]"):
+                                if text.startswith("[Tool ") and text.endswith(
+                                    " executed.]"
+                                ):
                                     continue
-                                if len(text) > 1000:
-                                    text = text[:1000] + "...\n[Output truncated]"
+                                text = _truncate_text(text, 1000)
                                 markdown_lines.append("```")
                                 markdown_lines.append(text)
                                 markdown_lines.append("```\n")
 
-                # Handle FileEditorObservation
                 elif obs_kind == "FileEditorObservation":
-                    # Extract the text content from the content array
                     if "content" in obs and isinstance(obs["content"], list):
                         for item in obs["content"]:
                             if isinstance(item, dict) and item.get("type") == "text":
-                                text_content = item.get("text", "")
-                                # Truncate if too long
-                                if len(text_content) > 1000:
-                                    text_content = text_content[:1000] + "...\n[Output truncated]"
+                                text_content = _truncate_text(item.get("text", ""), 1000)
                                 markdown_lines.append("```")
                                 markdown_lines.append(text_content)
                                 markdown_lines.append("```\n")
                                 break
                     else:
-                        # Fallback to string representation
-                        obs_str = str(obs)
-                        if len(obs_str) > 500:
-                            obs_str = obs_str[:500] + "...\n[Output truncated]"
+                        obs_str = _truncate_text(str(obs), 500)
                         markdown_lines.append("```")
                         markdown_lines.append(obs_str)
                         markdown_lines.append("```\n")
 
-                # Handle TerminalObservation
                 elif obs_kind == "TerminalObservation":
-                    # Extract the text content from the content array
                     if "content" in obs and isinstance(obs["content"], list):
                         for item in obs["content"]:
                             if isinstance(item, dict) and item.get("type") == "text":
-                                text_content = item.get("text", "")
-                                # Truncate if too long
-                                if len(text_content) > 1000:
-                                    text_content = text_content[:1000] + "...\n[Output truncated]"
+                                text_content = _truncate_text(item.get("text", ""), 1000)
                                 markdown_lines.append("```")
                                 markdown_lines.append(text_content)
                                 markdown_lines.append("```")
                                 break
 
-                    # Add metadata if present (exit code, error status, etc.)
                     metadata_parts = []
                     if "is_error" in obs:
                         metadata_parts.append(f"Error: {obs['is_error']}")
@@ -223,9 +261,7 @@ def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
                     else:
                         markdown_lines.append("")
 
-                # Handle other observation types (fallback)
                 else:
-                    # Extract text content if available
                     text_content = None
                     if "content" in obs and isinstance(obs["content"], list):
                         for item in obs["content"]:
@@ -234,22 +270,30 @@ def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
                                 break
 
                     if text_content:
-                        # Truncate if too long
-                        if len(text_content) > 1000:
-                            text_content = text_content[:1000] + "...\n[Output truncated]"
+                        text_content = _truncate_text(text_content, 1000)
                         markdown_lines.append("```")
                         markdown_lines.append(text_content)
                         markdown_lines.append("```\n")
                     else:
-                        # Fallback to string representation
-                        obs_str = str(obs)
-                        if len(obs_str) > 500:
-                            obs_str = obs_str[:500] + "...\n[Output truncated]"
+                        obs_str = _truncate_text(str(obs), 500)
                         markdown_lines.append("```")
                         markdown_lines.append(obs_str)
                         markdown_lines.append("```\n")
 
-        # Handle AgentErrorEvent (errors from tool validation or execution)
+                if pending_delegate_agents:
+                    for agent_id in pending_delegate_agents:
+                        if subagents is None or agent_id not in subagents:
+                            continue
+                        _append_subagent_trace_markdown(
+                            markdown_lines,
+                            agent_id,
+                            subagents[agent_id],
+                            heading_level=5,
+                        )
+                        if rendered_subagents is not None:
+                            rendered_subagents.add(agent_id)
+                    pending_delegate_agents = []
+
         elif event_kind == "AgentErrorEvent":
             error_msg = event.get("error", "Unknown error")
             tool_name = event.get("tool_name", "Unknown tool")
@@ -259,9 +303,49 @@ def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
             markdown_lines.append(error_msg)
             markdown_lines.append("```\n")
 
-        # Handle any uncaptured event types
         else:
             assert False, f"Unhandled event kind: {event_kind}"
+
+
+def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
+    """
+    Convert JSON evaluation trace to markdown format.
+
+    Keeps essential information like action, reasoning, and observation.
+
+    Args:
+        json_data: Dictionary containing evaluation trace data
+
+    Returns:
+        Formatted markdown string
+    """
+    markdown_lines = []
+
+    assert "events" in json_data and json_data["events"]
+    markdown_lines.append("\n---\n\n### Agent Execution Trace\n")
+    subagents = json_data.get("subagents", {})
+    rendered_subagents: set[str] = set()
+    _append_event_stream_markdown(
+        markdown_lines,
+        json_data["events"],
+        subagents=subagents,
+        rendered_subagents=rendered_subagents,
+    )
+
+    remaining_subagents = [
+        (agent_id, payload)
+        for agent_id, payload in subagents.items()
+        if agent_id not in rendered_subagents
+    ]
+    if remaining_subagents:
+        markdown_lines.append("\n---\n\n### Additional Subagent Traces\n")
+        for agent_id, payload in remaining_subagents:
+            _append_subagent_trace_markdown(
+                markdown_lines,
+                agent_id,
+                payload,
+                heading_level=4,
+            )
 
     return "\n".join(markdown_lines)
 

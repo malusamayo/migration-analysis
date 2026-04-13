@@ -28,6 +28,7 @@ from openhands.sdk import (
 )
 from openhands.tools.file_editor import FileEditorTool
 from openhands.tools.terminal import TerminalTool
+from openhands.sdk.conversation.conversation_stats import ConversationStats
 from openhands.sdk.context import (
     Skill,
 )
@@ -35,6 +36,40 @@ from openhands.workspace import DockerWorkspace
 
 from .debug_utils import patch_llm_for_debugging
 from .task_setups import setup_workspace, get_mcp_config
+
+
+_TRACE_DELEGATE_EXECUTOR_ATTR = "_trace_delegate_executor"
+_SUBAGENTS_DIR = "subagents"
+
+
+def _get_delegate_executor(conversation: Conversation):
+    """Return the live delegate executor when available.
+
+    During long runs the agent's tool definitions may be replaced or
+    reinitialized, which can leave ``conversation.agent.tools_map['delegate']``
+    pointing at a fresh executor with no sub-agent state. Fall back to the
+    executor cached on the conversation object by DelegateExecutor.
+    """
+    try:
+        delegate_tool = conversation.agent.tools_map.get("delegate")
+    except RuntimeError:
+        delegate_tool = None
+
+    delegate_executor = getattr(delegate_tool, "executor", None)
+    cached_executor = getattr(conversation, _TRACE_DELEGATE_EXECUTOR_ATTR, None)
+
+    live_sub_agents = getattr(delegate_executor, "_sub_agents", None)
+    if live_sub_agents:
+        return delegate_executor
+
+    cached_sub_agents = getattr(cached_executor, "_sub_agents", None)
+    if cached_sub_agents:
+        return cached_executor
+
+    if delegate_executor is not None:
+        return delegate_executor
+
+    return cached_executor
 
 
 def run_with_agent(
@@ -117,10 +152,286 @@ def construct_docker_workspace(workspace_dir, system_prompt_path, skills):
         docker_volumes.append(f"{skill_dir}:{docker_skill_dir}:ro")
         skill.source = os.path.join(docker_skill_dir, "SKILL.md")
 
+    # Mount updated SDK code so Docker container uses latest code instead of image-baked version
+    # The Dockerfile does `COPY software-agent-sdk /software-agent-sdk` and editable install,
+    # so Python imports resolve to /software-agent-sdk/openhands-tools/openhands/...
+    tools_source = os.path.abspath("software-agent-sdk/openhands-tools")
+    if os.path.exists(tools_source):
+        docker_volumes.append(f"{tools_source}:/software-agent-sdk/openhands-tools")
+
     return (docker_workspace_path, docker_system_prompt_path, docker_volumes, forward_env, workspace_dir)
 
 
-def save_conversation_trace(conversation: Conversation, 
+def _fetch_remote_conversation_info(client, conversation_id: str) -> dict[str, Any]:
+    """Fetch a remote conversation info snapshot."""
+    resp = client.get(f"/api/conversations/{conversation_id}")
+    resp.raise_for_status()
+    return resp.json()
+
+
+def _fetch_remote_conversation_events(client, conversation_id: str) -> list[dict[str, Any]]:
+    """Fetch all non-state-update events for a remote conversation."""
+    events: list[dict[str, Any]] = []
+    page_id = None
+    while True:
+        params = {"limit": 100}
+        if page_id:
+            params["page_id"] = page_id
+        resp = client.get(
+            f"/api/conversations/{conversation_id}/events/search",
+            params=params,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        events.extend(data.get("items", []))
+        page_id = data.get("next_page_id")
+        if not page_id:
+            break
+
+    return [
+        event for event in events
+        if event.get("kind") != "ConversationStateUpdateEvent"
+    ]
+
+
+def _extract_text_content(content: list[dict[str, Any]] | None) -> str:
+    """Extract plain text from event/message content blocks."""
+    if not content:
+        return ""
+    text_parts = []
+    for block in content:
+        if block.get("type") == "text" and block.get("text"):
+            text_parts.append(block["text"])
+    return "\n".join(text_parts).strip()
+
+
+def _extract_first_user_message_text(events: list[dict[str, Any]]) -> str:
+    """Return the first user-authored message text in a conversation."""
+    for event in events:
+        if event.get("kind") != "MessageEvent" or event.get("source") != "user":
+            continue
+        llm_message = event.get("llm_message") or {}
+        text = _extract_text_content(llm_message.get("content"))
+        if text:
+            return text
+    return ""
+
+
+def _extract_delegate_tasks(conversation: Conversation) -> dict[str, str]:
+    """Collect the first delegated task text for each sub-agent."""
+    tasks_by_agent: dict[str, str] = {}
+    for event in conversation.state.events:
+        event_dict = event.model_dump()
+        if event_dict.get("kind") != "ActionEvent" or event_dict.get("tool_name") != "delegate":
+            continue
+        action = event_dict.get("action") or {}
+        if action.get("command") != "delegate":
+            continue
+        for agent_id, task in (action.get("tasks") or {}).items():
+            tasks_by_agent.setdefault(agent_id, task)
+    return tasks_by_agent
+
+
+def _extract_spawn_order(conversation: Conversation) -> list[str]:
+    """Collect sub-agent IDs in first-seen spawn order."""
+    seen: set[str] = set()
+    spawn_order: list[str] = []
+    for event in conversation.state.events:
+        event_dict = event.model_dump()
+        if event_dict.get("kind") != "ActionEvent" or event_dict.get("tool_name") != "delegate":
+            continue
+        action = event_dict.get("action") or {}
+        if action.get("command") != "spawn":
+            continue
+        for agent_id in action.get("ids") or []:
+            if agent_id in seen:
+                continue
+            seen.add(agent_id)
+            spawn_order.append(agent_id)
+    return spawn_order
+
+
+def _extract_metrics_from_remote_info(info: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Recover metrics and per-usage breakdown from remote conversation info."""
+    metrics = info.get("metrics") or {}
+    raw_usage = (info.get("stats") or {}).get("usage_to_metrics") or {}
+    metrics_breakdown = raw_usage
+
+    if raw_usage:
+        try:
+            stats = ConversationStats.model_validate({"usage_to_metrics": raw_usage})
+            metrics_breakdown = {
+                usage_id: usage_metrics.get()
+                for usage_id, usage_metrics in stats.usage_to_metrics.items()
+            }
+            if not metrics:
+                metrics = stats.get_combined_metrics().get()
+        except Exception as e:
+            print(f"Warning: Failed to derive metrics from remote stats: {e}")
+
+    return metrics or {}, metrics_breakdown or {}
+
+
+def _read_subagent_events_from_docker(workspace, subagent_dir: str) -> list[dict]:
+    """Read all event JSON files from a sub-agent's events directory inside Docker."""
+    cmd = f"""python3 -c "
+import json
+from pathlib import Path
+
+events_dir = Path('{subagent_dir}') / 'events'
+if not events_dir.exists():
+    print('[]')
+else:
+    events = []
+    for event_file in sorted(events_dir.glob('*.json')):
+        try:
+            with open(event_file) as f:
+                events.append(json.load(f))
+        except Exception:
+            pass
+    print(json.dumps(events))
+"
+"""
+    try:
+        result = workspace.execute_command(cmd, timeout=30.0)
+        if result.exit_code == 0:
+            return json.loads(result.stdout)
+        return []
+    except Exception:
+        return []
+
+
+def _fetch_remote_subagent_data(conversation) -> dict:
+    """Fetch sub-agent data for RemoteConversation by reading files from Docker.
+
+    Sub-agents created by DelegateExecutor are not registered in ConversationService,
+    so we can't use the HTTP API to fetch them. Instead, we use workspace.execute_command
+    to read the event files directly from /workspace/workspace/conversations/subagents/
+    inside the running Docker container.
+
+    Metrics are available from the parent conversation's metrics_breakdown under
+    keys like "delegate:agent_id", so we extract them from there.
+
+    Returns a dict keyed by agent_id with "conversation_id", "metrics",
+    and "events" for each sub-agent. Returns an empty dict if no sub-agents found.
+    """
+    workspace = getattr(conversation, "workspace", None)
+    if workspace is None:
+        return {}
+
+    # Check if workspace has execute_command (RemoteWorkspace/DockerWorkspace)
+    if not hasattr(workspace, "execute_command"):
+        return {}
+
+    # Extract delegate tasks to match sub-agent directories to agent IDs
+    delegate_tasks = _extract_delegate_tasks(conversation)
+    spawn_order = _extract_spawn_order(conversation)
+
+    # Get sub-agent metrics from parent conversation's metrics_breakdown
+    # Metrics are stored under keys like "delegate:agent_id"
+    client = getattr(conversation, "_client", None)
+    subagent_metrics_by_id = {}
+    if client:
+        try:
+            info = _fetch_remote_conversation_info(client, str(conversation.id))
+            _, metrics_breakdown = _extract_metrics_from_remote_info(info)
+            for key, metrics in metrics_breakdown.items():
+                if key.startswith("delegate:"):
+                    agent_id = key[len("delegate:"):]
+                    subagent_metrics_by_id[agent_id] = metrics
+        except Exception as e:
+            print(f"Warning: Failed to extract subagent metrics from parent conversation: {e}")
+
+    # List sub-agent directories in Docker
+    # Sub-agents are stored under: /workspace/workspace/conversations/{parent_conv_id_hex}/subagents/{sub_agent_id_hex}/
+    parent_conv_id_hex = conversation.id.hex
+    subagents_root = f"/workspace/workspace/conversations/{parent_conv_id_hex}/subagents"
+    cmd = f"ls -1 {subagents_root} 2>/dev/null || true"
+    try:
+        result = workspace.execute_command(cmd, timeout=10.0)
+        if result.exit_code != 0 or not result.stdout.strip():
+            return {}
+
+        subagent_dirs = [line.strip() for line in result.stdout.strip().split('\n') if line.strip()]
+    except Exception as e:
+        print(f"Warning: Failed to list sub-agent directories: {e}")
+        return {}
+
+    if not subagent_dirs:
+        return {}
+
+    # Read each sub-agent's data
+    subagent_data = {}
+    for subagent_hex_id in subagent_dirs:
+        subagent_dir = f"{subagents_root}/{subagent_hex_id}"
+
+        # Read events
+        events = _read_subagent_events_from_docker(workspace, subagent_dir)
+        if not events:
+            continue
+
+        # Match to agent_id by comparing first user message with delegate tasks
+        first_user_text = _extract_first_user_message_text(events)
+        agent_id = None
+
+        if first_user_text:
+            # Try to match by task text
+            for aid, task_text in delegate_tasks.items():
+                if task_text == first_user_text and aid not in subagent_data:
+                    agent_id = aid
+                    break
+
+        # Fallback: match by spawn order
+        if agent_id is None and len(subagent_data) < len(spawn_order):
+            agent_id = spawn_order[len(subagent_data)]
+
+        if agent_id is None:
+            print(f"Warning: Could not match sub-agent directory {subagent_hex_id} to agent_id")
+            continue
+
+        # Get metrics for this agent from parent conversation's breakdown
+        metrics = subagent_metrics_by_id.get(agent_id, {})
+
+        subagent_data[agent_id] = {
+            "conversation_id": subagent_hex_id,
+            "metrics": metrics,
+            "events": events,
+        }
+
+    return subagent_data
+
+
+def _get_subagent_data(conversation: Conversation) -> dict:
+    """Extract per-subagent cost breakdown and events from the DelegateExecutor.
+
+    Returns a dict keyed by agent_id with "metrics" and "events" for each subagent.
+    Returns an empty dict if the conversation has no DelegateTool.
+    """
+    delegate_executor = _get_delegate_executor(conversation)
+    if delegate_executor is None:
+        # LocalConversation path failed — try fetching from server (RemoteConversation).
+        return _fetch_remote_subagent_data(conversation)
+
+    sub_agents = getattr(delegate_executor, "_sub_agents", {})
+
+    # For RemoteConversation, sub_agents dict is empty because sub-agents run server-side
+    # Fall back to reading from Docker filesystem
+    if not sub_agents:
+        return _fetch_remote_subagent_data(conversation)
+
+    subagent_data = {}
+    for agent_id, sub_conv in sub_agents.items():
+        events = [e.model_dump() for e in sub_conv.state.events]
+        events = [e for e in events if e["kind"] != "ConversationStateUpdateEvent"]
+        subagent_data[agent_id] = {
+            "conversation_id": str(sub_conv.id),
+            "metrics": sub_conv.conversation_stats.get_combined_metrics().get(),
+            "events": events,
+        }
+    return subagent_data
+
+
+def save_conversation_trace(conversation: Conversation,
                             log_dir: str,
                             error: Optional[Exception] = None) -> str:
     events = [event.model_dump() for event in conversation.state.events]
@@ -139,6 +450,8 @@ def save_conversation_trace(conversation: Conversation,
             "eval_output": "",
             "events": [],
             "metrics": {},
+            "metrics_breakdown": {},
+            "subagents": {},
             "error": str(error) if error else "No events captured",
         }
     else:
@@ -151,21 +464,48 @@ def save_conversation_trace(conversation: Conversation,
             print(f"Unexpected final event type {events[-1]['kind']}")
             return None
 
-        # export cost and total tokens
-        metrics = conversation.conversation_stats.get_combined_metrics().get()
+        # Combined cost across orchestrator + all subagents.
+        # For RemoteConversation the client-side stats cache is stale
+        # (the server never sends a stats update over WebSocket), so fetch
+        # a fresh snapshot directly from the server HTTP API instead.
+        client = getattr(conversation, "_client", None)
+        if client is not None:
+            try:
+                info = _fetch_remote_conversation_info(client, str(conversation.id))
+                metrics, metrics_breakdown = _extract_metrics_from_remote_info(info)
+            except Exception as e:
+                print(f"Warning: Failed to fetch fresh metrics from server: {e}")
+                metrics = conversation.conversation_stats.get_combined_metrics().get()
+                metrics_breakdown = {
+                    usage_id: m.get()
+                    for usage_id, m in conversation.conversation_stats.usage_to_metrics.items()
+                }
+        else:
+            metrics = conversation.conversation_stats.get_combined_metrics().get()
+            # Per-agent cost breakdown from usage_to_metrics
+            # Keys: "default" (orchestrator), "delegate:<agent_id>" (each subagent)
+            metrics_breakdown = {
+                usage_id: m.get()
+                for usage_id, m in conversation.conversation_stats.usage_to_metrics.items()
+            }
+
+        # Subagent conversations and their per-agent metrics
+        subagents = _get_subagent_data(conversation)
 
         conversation_data = {
             "conversation_id": str(conversation.id),
             "eval_output": final_message,
             "events": events,
             "metrics": metrics,
+            "metrics_breakdown": metrics_breakdown,
+            "subagents": subagents,
             "error": str(error) if error else None,
         }
-    
+
     trace_path = os.path.join(log_dir, f"trace_{conversation.id}.json")
     with open(trace_path, "w") as trace_file:
         json.dump(conversation_data, trace_file, indent=2)
-    
+
     try:
         markdown_content = convert_json_to_markdown(conversation_data)
         markdown_path = os.path.join(log_dir, f"trace_{conversation.id}.md")
@@ -173,7 +513,7 @@ def save_conversation_trace(conversation: Conversation,
             md_file.write(markdown_content)
     except Exception as e:
         print(f"Error converting JSON to markdown: {e}")
-    
+
     return conversation_data
 
 def _run_agentic_conversation(
@@ -182,6 +522,7 @@ def _run_agentic_conversation(
         log_dir: str,
         example: dict,
         skill_mode: str = "",
+        visualizer=None,
     ):
     """
     Core logic for running an agentic conversation.
@@ -199,7 +540,7 @@ def _run_agentic_conversation(
     conversation = None
     error = None
     try:
-        conversation = Conversation(agent=agent, workspace=workspace_obj)
+        conversation = Conversation(agent=agent, workspace=workspace_obj, visualizer=visualizer)
         instruction = example['prompt']
 
         if skill_mode == "agent_decided":
@@ -281,7 +622,10 @@ def run_single_instance_agentic(
     if task_id:
         setup_workspace(task_id, workspace, log_dir, example)
 
+    _agent_visualizer = None
+
     def _build_agent(base_dir, prompt_path):
+        nonlocal _agent_visualizer
         if agent_file is not None:
             import importlib.util
             spec = importlib.util.spec_from_file_location("_agent_module", agent_file)
@@ -289,18 +633,21 @@ def run_single_instance_agentic(
             spec.loader.exec_module(mod)
             seed_prompt = Path(system_prompt_path).read_text()
             agent = mod.build_agent(base_dir=str(workspace_dir), lm_model=lm.model, seed_prompt=seed_prompt)
-            if use_docker:
-                # workspace_dir is mounted as base_dir (/workspace/project) inside Docker.
-                # Remap system_prompt_filename from the host path to the Docker-internal path
-                # so the container server can read it.
-                fname = os.path.basename(agent.system_prompt_filename)
-                agent = agent.model_copy(update={"system_prompt_filename": os.path.join(base_dir, fname)})
+            # Remap system_prompt_filename to an absolute path under base_dir so that
+            # render_template can find it regardless of the CWD.
+            # In Docker mode, base_dir is the container-internal path (/workspace/project).
+            # In non-Docker mode, base_dir is workspace_dir.absolute() (the host path).
+            fname = os.path.basename(agent.system_prompt_filename)
+            agent = agent.model_copy(update={"system_prompt_filename": os.path.join(base_dir, fname)})
             fn = getattr(mod, "get_workspace_scripts", None)
             if fn is not None:
                 for filename, content in fn().items():
                     script_path = workspace_dir / filename
                     script_path.parent.mkdir(parents=True, exist_ok=True)
                     script_path.write_text(content)
+            get_vis_fn = getattr(mod, "get_visualizer", None)
+            if get_vis_fn is not None:
+                _agent_visualizer = get_vis_fn()
             return agent
         if tools is None:
             _tools = [
@@ -359,6 +706,7 @@ def run_single_instance_agentic(
                 log_dir=log_dir,
                 example=example,
                 skill_mode=skill_mode,
+                visualizer=_agent_visualizer,
             )
             if post_docker_fn:
                 post_docker_fn(
@@ -377,4 +725,5 @@ def run_single_instance_agentic(
             log_dir=log_dir,
             example=example,
             skill_mode=skill_mode,
+            visualizer=_agent_visualizer,
         )
