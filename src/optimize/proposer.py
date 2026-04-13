@@ -22,6 +22,9 @@ from .common import (
 )
 from ..utils import LM_DICT
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DOCS_DIR = REPO_ROOT / "docs"
+
 
 PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an AI agent's task performance by analyzing execution trajectories and modifying the agent's configuration code.
 
@@ -32,6 +35,9 @@ PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an
 - `trajectories/` — Markdown traces of the agent's recent execution on training examples.
 - `eval_results.yaml` — Per-example scores and detailed evaluation feedback.
 - `proposal_memory/rejected_proposals.yaml` — Recent rejected edits, mainly for this exact parent candidate. Treat these as soft evidence about strategies that already failed to improve scores.
+- `docs/sdk_reference.md` — High-level SDK map with numbered sections.
+- `docs/sdk_reference_details/` — Per-section SDK signatures, examples, and implementation details.
+{adaptation_guide_layout}
 
 ## Your Task
 
@@ -39,7 +45,7 @@ PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an
 2. Read the trajectory files in `trajectories/` to understand the agent's step-by-step behavior.
 3. Read `proposal_memory/rejected_proposals.yaml` before editing. Avoid repeating the same non-improving strategy unless the current trajectories provide strong new evidence that the earlier rejection was minibatch-specific.
 4. Identify failure modes: wrong actions, missing capabilities, excessive context, stuck loops, missing tools, poor instructions, etc.
-5. Modify `project/agent.py` to address the identified failures. You have the full OpenHands SDK at your disposal — consult the SDK Reference skill for available APIs.
+5. Modify `project/agent.py` to address the identified failures. Consult `docs/sdk_reference.md` to navigate the API surface, then read the relevant files under `docs/sdk_reference_details/` for concrete signatures and examples.
 6. Optionally add/modify `get_workspace_scripts()` to deploy helper scripts to the agent's workspace.
 
 ## Constraints on agent.py
@@ -49,7 +55,7 @@ PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an
 - `lm_model` is the model string to use (e.g., "vertex_ai/gemini-3-flash-preview").
 - `seed_prompt` is the original task prompt text (passed as a parameter, also available in `project/seed_prompt.txt`).
 - Code must be valid, self-contained Python with explicit imports at the top.
-- Refer to the **SDK Reference** skill for the full API surface.
+- Use the staged SDK docs in `docs/` for the full API surface.
 {adaptation_guide_line}
 
 ## Output
@@ -59,14 +65,18 @@ After modifying agent.py, read it back to verify there are no syntax errors. Mak
 
 
 def build_proposer_system_prompt(use_adaptation_guide: bool) -> str:
+    adaptation_guide_layout = ""
     adaptation_guide_line = ""
     if use_adaptation_guide:
+        adaptation_guide_layout = "- `docs/adaptation.md` — Adaptation selection guide that maps failure modes to SDK sections and files."
         adaptation_guide_line = (
-            "- Refer to the **Adaptation Guide** skill for strategies "
-            "(augment context, trim context, adapt actions, adapt observations, "
-            "adapt orchestration)."
+            "- If you need strategy guidance, use `docs/adaptation.md` to map failure modes "
+            "to the relevant SDK sections and detail files."
         )
-    return PROPOSER_SYSTEM_PROMPT.format(adaptation_guide_line=adaptation_guide_line)
+    return PROPOSER_SYSTEM_PROMPT.format(
+        adaptation_guide_layout=adaptation_guide_layout,
+        adaptation_guide_line=adaptation_guide_line,
+    )
 
 
 def build_proposer_instruction(use_adaptation_guide: bool) -> str:
@@ -74,18 +84,62 @@ def build_proposer_instruction(use_adaptation_guide: bool) -> str:
         "Analyze the agent's performance by reading eval_results.yaml and the trajectory files "
         "in trajectories/. Read proposal_memory/rejected_proposals.yaml before editing so you "
         "can avoid repeating non-improving changes. Then improve the agent configuration in "
-        "project/agent.py to address the identified failure modes. Use the SDK Reference"
+        "project/agent.py to address the identified failure modes. Use docs/sdk_reference.md "
+        "as the SDK index and docs/sdk_reference_details/ for the concrete APIs"
     )
     if use_adaptation_guide:
-        instruction += " and Adaptation Guide skills"
-    else:
-        instruction += " skill"
-    instruction += " for available APIs"
+        instruction += ", and use docs/adaptation.md"
     if use_adaptation_guide:
-        instruction += " and strategies."
+        instruction += " for adaptation strategies."
     else:
         instruction += "."
     return instruction
+
+
+def _resolve_reference_doc_paths(
+    use_adaptation_guide: bool = True,
+    adaptation_guide_markdown: Optional[str] = None,
+) -> dict[str, Path]:
+    paths = {
+        "docs_dir": DOCS_DIR,
+        "sdk_reference": DOCS_DIR / "sdk_reference.md",
+        "sdk_reference_details": DOCS_DIR / "sdk_reference_details",
+    }
+    if use_adaptation_guide:
+        adaptation_path = DOCS_DIR / "adaptation.md"
+        if adaptation_guide_markdown:
+            adaptation_path = Path(resolve_markdown_path(adaptation_guide_markdown, str(DOCS_DIR)))
+        paths["adaptation"] = adaptation_path
+    return paths
+
+
+def stage_proposer_reference_docs(
+    workspace: str,
+    use_adaptation_guide: bool = True,
+    adaptation_guide_markdown: Optional[str] = None,
+) -> None:
+    source_paths = _resolve_reference_doc_paths(
+        use_adaptation_guide=use_adaptation_guide,
+        adaptation_guide_markdown=adaptation_guide_markdown,
+    )
+    docs_dest = Path(workspace) / "docs"
+    docs_dest.mkdir(parents=True, exist_ok=True)
+
+    sdk_reference = source_paths["sdk_reference"]
+    if sdk_reference.exists():
+        shutil.copy2(sdk_reference, docs_dest / "sdk_reference.md")
+
+    sdk_reference_details = source_paths["sdk_reference_details"]
+    if sdk_reference_details.exists():
+        shutil.copytree(
+            sdk_reference_details,
+            docs_dest / "sdk_reference_details",
+            dirs_exist_ok=True,
+        )
+
+    adaptation_path = source_paths.get("adaptation")
+    if adaptation_path is not None and adaptation_path.exists():
+        shutil.copy2(adaptation_path, docs_dest / "adaptation.md")
 
 
 def _create_skill_file(content: str, name: str, dest_dir: str) -> Skill:
@@ -109,21 +163,19 @@ def load_proposer_skills(
     os.makedirs(skills_dir, exist_ok=True)
 
     skills: list[Skill] = []
-    docs_dir = Path(__file__).resolve().parent.parent / "docs"
+    source_paths = _resolve_reference_doc_paths(
+        use_adaptation_guide=use_adaptation_guide,
+        adaptation_guide_markdown=adaptation_guide_markdown,
+    )
 
-    sdk_ref_filename = "sdk_reference.md" if use_adaptation_guide else "sdk_reference_base.md"
-    sdk_ref_path = docs_dir / sdk_ref_filename
-    if not sdk_ref_path.exists() and not use_adaptation_guide:
-        sdk_ref_path = docs_dir / "sdk_reference.md"
+    sdk_ref_path = source_paths["sdk_reference"]
     if sdk_ref_path.exists():
         with open(sdk_ref_path) as f:
             sdk_content = f.read()
         skills.append(_create_skill_file(sdk_content, "sdk_reference", skills_dir))
 
     if use_adaptation_guide:
-        adaptation_path = docs_dir / "adaptation.md"
-        if adaptation_guide_markdown:
-            adaptation_path = Path(resolve_markdown_path(adaptation_guide_markdown, str(docs_dir)))
+        adaptation_path = source_paths["adaptation"]
         if adaptation_path.exists():
             with open(adaptation_path) as f:
                 adaptation_content = f.read()
@@ -369,6 +421,12 @@ class AgentProposer:
         ]
         with open(os.path.join(memory_dir, "rejected_proposals.yaml"), "w") as f:
             yaml.dump(memory_payload, f, sort_keys=False, default_flow_style=False)
+
+        stage_proposer_reference_docs(
+            workspace,
+            use_adaptation_guide=self.use_adaptation_guide,
+            adaptation_guide_markdown=self.adaptation_guide_markdown,
+        )
 
         return workspace
 
