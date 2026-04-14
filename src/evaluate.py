@@ -23,6 +23,11 @@ def _str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
 _BlockDumper.add_representer(str, _str_representer)
 
 
+def _print_effective_config(config: dict) -> None:
+    print("Effective config:")
+    print(yaml.safe_dump(config, sort_keys=False).rstrip())
+
+
 def run_task_eval(
         task_id: str,
         model_name: str,
@@ -30,7 +35,7 @@ def run_task_eval(
         prompt_name: str = "default",
         max_examples: Optional[int] = None,
         n_responses: int = 1,
-        batch_size: int = 16,
+        eval_batch_size: Optional[int] = None,
         resume: bool = True,
         rollout_version: str = "v0",
         data_path: Optional[str] = None,
@@ -46,12 +51,29 @@ def run_task_eval(
         prompt_name: Prompt name used for workspace directory
         max_examples: Maximum number of examples to evaluate
         n_responses: Number of rollouts per example
-        batch_size: Batch size for evaluation
+        eval_batch_size: Maximum number of concurrent evaluation workers
         resume: Whether to resume from existing results
         rollout_version: Rollout version identifier (e.g., "v0", "v1")
         docker_image: Docker image to use for evaluation (if applicable)
     """
     config = get_eval_config(task_id)
+    max_workers = eval_batch_size if eval_batch_size is not None else config["max_workers"]
+    _print_effective_config(
+        {
+            "task_id": task_id,
+            "model_name": model_name,
+            "prompt_name": prompt_name,
+            "max_examples": max_examples,
+            "n_responses": n_responses,
+            "eval_lm": eval_lm_name,
+            "eval_batch_size": max_workers,
+            "eval_use_process": config["use_process"],
+            "resume": resume,
+            "rollout_version": rollout_version,
+            "data_path": data_path,
+            "docker_image": docker_image,
+        }
+    )
 
     workspace_base_dir = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}"
     output_path = os.path.join(workspace_base_dir, "eval_results.yaml")
@@ -102,7 +124,7 @@ def run_task_eval(
             eval_function,
             args_list,
             use_process=config["use_process"],
-            max_workers=config["max_workers"],
+            max_workers=max_workers,
             on_batch_complete=write_partial_results,
         )
         results.extend(batch_results)
@@ -125,8 +147,19 @@ if __name__ == "__main__":
     parser.add_argument("--prompt_name", type=str, default=None, help="Prompt name used for workspace directory")
     parser.add_argument("--max_examples", type=int, default=None, help="Maximum number of examples to evaluate")
     parser.add_argument("--n_responses", type=int, default=None, help="Number of rollouts per example")
-    parser.add_argument("--batch_size", type=int, default=None, help="Batch size for evaluation")
-    parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results")
+    parser.add_argument(
+        "--eval_batch_size",
+        type=int,
+        default=None,
+        help="Maximum number of concurrent evaluation workers.",
+    )
+    parser.add_argument(
+        "--no-resume",
+        dest="resume",
+        action="store_false",
+        default=None,
+        help="Start fresh instead of resuming from existing results",
+    )
     parser.add_argument("--eval_lm", type=str, default=None, help="LM name for evaluation feedback (required for webtest)")
     parser.add_argument("--agent_file", type=str, default=None,
                         help="Path to a Python file defining build_agent(base_dir, lm_model, seed_prompt) -> Agent")
@@ -148,7 +181,11 @@ if __name__ == "__main__":
     prompt_name = args.prompt_name if args.prompt_name is not None else config.get("prompt_name", "default")
     max_examples = args.max_examples if args.max_examples is not None else config.get("max_examples")
     n_responses = args.n_responses if args.n_responses is not None else config.get("n_responses", 1)
-    batch_size = args.batch_size if args.batch_size is not None else config.get("batch_size", 16)
+    eval_batch_size = (
+        args.eval_batch_size
+        if args.eval_batch_size is not None
+        else config.get("eval_batch_size")
+    )
     eval_lm_name = args.eval_lm if args.eval_lm is not None else config.get("eval_lm")
     rollout_version = args.rollout_version if args.rollout_version is not None else config.get("rollout_version", "v0")
     agent_file = args.agent_file if args.agent_file is not None else config.get("agent_file")
@@ -157,7 +194,7 @@ if __name__ == "__main__":
 
 
     # Handle boolean flag specially
-    resume = args.resume if args.resume else config.get("resume", True)
+    resume = args.resume if args.resume is not None else config.get("resume", True)
     data_path = config.get("data_path")
     docker_image = config.get("docker_image")
 
@@ -174,7 +211,7 @@ if __name__ == "__main__":
         prompt_name=prompt_name,
         max_examples=max_examples,
         n_responses=n_responses,
-        batch_size=batch_size,
+        eval_batch_size=eval_batch_size,
         resume=resume,
         rollout_version=rollout_version,
         data_path=data_path,

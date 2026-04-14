@@ -28,6 +28,12 @@ from pathlib import Path
 from .runner import run_single_instance_agentic
 from .task_setups import preprocess_example, get_tools, setup_servers, teardown_servers
 
+
+def _print_effective_config(config: dict) -> None:
+    print("Effective config:")
+    print(yaml.safe_dump(config, sort_keys=False).rstrip())
+
+
 def run_single_instance(
         lm: dspy.LM,
         system_prompt: str,
@@ -88,7 +94,7 @@ def run_task(
         is_agentic: bool = False,
         max_examples: Optional[int] = None,
         n_responses: int = 1,
-        batch_size: int = 16,
+        agent_batch_size: int = 16,
         resume: bool = True,
         rollout_version: str = "v0",
         use_docker: bool = True,
@@ -109,7 +115,7 @@ def run_task(
         is_agentic: Whether to use agentic execution
         max_examples: Maximum number of examples to process
         n_responses: Number of responses to generate per example
-        batch_size: Batch size for collection
+        agent_batch_size: Maximum number of concurrent agent/example workers
         resume: Whether to resume from existing results
         rollout_version: Rollout version identifier (default: "v0")
 
@@ -119,6 +125,26 @@ def run_task(
         - Workspace path (mounted as /workspace/data)
     """
     print(f"📦 Rollout version: {rollout_version}")
+    _print_effective_config(
+        {
+            "task_id": task_id,
+            "model_name": model_name,
+            "prompt_name": prompt_name,
+            "max_examples": max_examples,
+            "n_responses": n_responses,
+            "is_agentic": is_agentic,
+            "agent_batch_size": agent_batch_size,
+            "resume": resume,
+            "rollout_version": rollout_version,
+            "use_docker": use_docker,
+            "server_image": server_image,
+            "docker_network": docker_network,
+            "data_path": data_path,
+            "start_servers": start_servers,
+            "server_start_timeout": server_start_timeout,
+            "agent_file": agent_file,
+        }
+    )
 
     # Initialize data loader
     data_loader = CollectDataLoader(
@@ -147,7 +173,7 @@ def run_task(
     else:
         run_function = run_single_instance
         use_process = False
-    max_workers = batch_size
+    max_workers = agent_batch_size
 
     if agent_file is not None:
         print(f"🤖 Using custom agent builder from {agent_file}")
@@ -210,8 +236,19 @@ if __name__ == "__main__":
     parser.add_argument("--max_examples", type=int, default=None, help="Maximum number of examples to process.")
     parser.add_argument("--n_responses", type=int, default=None, help="Number of responses to generate per example.")
     parser.add_argument("--is_agentic", action="store_true", help="Whether to use agentic execution.")
-    parser.add_argument("--batch_size", type=int, default=None, help="Batch size for collection.")
-    parser.add_argument("--no-resume", dest="resume", action="store_false", help="Start fresh instead of resuming from existing results.")
+    parser.add_argument(
+        "--agent_batch_size",
+        type=int,
+        default=None,
+        help="Maximum number of concurrent agent/example workers.",
+    )
+    parser.add_argument(
+        "--no-resume",
+        dest="resume",
+        action="store_false",
+        default=None,
+        help="Start fresh instead of resuming from existing results.",
+    )
     parser.add_argument("--agent_file", type=str, default=None,
                         help="Path to a Python file defining build_agent(base_dir, lm_model, seed_prompt) -> Agent")
     parser.add_argument("--rollout_version", type=str, default=None,
@@ -233,12 +270,16 @@ if __name__ == "__main__":
     prompt_name = args.prompt_name if args.prompt_name is not None else config.get("prompt_name", "default")
     max_examples = args.max_examples if args.max_examples is not None else config.get("max_examples")
     n_responses = args.n_responses if args.n_responses is not None else config.get("n_responses", 1)
-    batch_size = args.batch_size if args.batch_size is not None else config.get("batch_size", 16)
+    agent_batch_size = (
+        args.agent_batch_size
+        if args.agent_batch_size is not None
+        else config.get("agent_batch_size", 16)
+    )
     rollout_version = args.rollout_version if args.rollout_version is not None else config.get("rollout_version", "v0")
 
     # Handle boolean flags specially
     is_agentic = args.is_agentic or config.get("is_agentic", False)
-    resume = args.resume if args.resume else config.get("resume", True)
+    resume = args.resume if args.resume is not None else config.get("resume", True)
     use_docker = config.get("use_docker", False)
     server_image = config.get("server_image", "migration-analysis:latest")
     docker_network = config.get("docker_network", None)
@@ -262,7 +303,7 @@ if __name__ == "__main__":
         is_agentic=is_agentic,
         max_examples=max_examples,
         n_responses=n_responses,
-        batch_size=batch_size,
+        agent_batch_size=agent_batch_size,
         resume=resume,
         rollout_version=rollout_version,
         use_docker=use_docker,
