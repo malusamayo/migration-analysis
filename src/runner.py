@@ -37,6 +37,8 @@ from openhands.tools.delegate import (
 )
 from openhands.workspace import DockerWorkspace
 
+from contextlib import contextmanager
+
 from .debug_utils import patch_llm_for_debugging
 from .docker_utils import get_forward_env, make_docker_kwargs
 from .task_setups import setup_workspace, get_mcp_config
@@ -45,6 +47,58 @@ from .utils import build_sdk_llm
 
 _TRACE_DELEGATE_EXECUTOR_ATTR = "_trace_delegate_executor"
 _SUBAGENTS_DIR = "subagents"
+
+
+@contextmanager
+def get_workspace_context(
+    workspace_path: str,
+    use_docker: bool = False,
+    server_image: str = "migration-analysis:latest",
+    docker_network: Optional[str] = None,
+    docker_workspace_path: str = "/workspace/project",
+    skills: list = None,
+):
+    """Context manager that returns the appropriate workspace object.
+
+    Args:
+        workspace_path: Local filesystem path to workspace directory
+        use_docker: Whether to use Docker workspace
+        server_image: Docker image to use
+        docker_network: Docker network to connect to
+        docker_workspace_path: Path inside Docker container
+        skills: List of skills to mount (will be modified in-place for Docker paths)
+
+    Yields:
+        tuple: (workspace_obj, workspace_path_for_agent)
+            - workspace_obj: DockerWorkspace or string path for Conversation
+            - workspace_path_for_agent: Path to use in agent config (Docker path or local path)
+    """
+    if use_docker:
+        docker_volumes = [f"{os.path.abspath(workspace_path)}:{docker_workspace_path}"]
+
+        # Mount vertex-ai.json if it exists
+        vertex_ai_path = os.path.abspath('.vertex-ai.json')
+        if os.path.exists(vertex_ai_path):
+            docker_volumes.append(f"{vertex_ai_path}:/workspace/.vertex-ai.json:ro")
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/workspace/.vertex-ai.json"
+
+        # Mount skills and update their paths for Docker
+        if skills:
+            for skill in skills:
+                skill_dir = os.path.dirname(os.path.abspath(skill.source))
+                docker_skill_dir = f"/workspace/skills/{os.path.basename(skill_dir)}"
+                docker_volumes.append(f"{skill_dir}:{docker_skill_dir}:ro")
+                skill.source = os.path.join(docker_skill_dir, "SKILL.md")
+
+        with DockerWorkspace(**make_docker_kwargs(
+            docker_workspace_path,
+            server_image,
+            docker_volumes,
+            docker_network
+        )) as docker_workspace:
+            yield docker_workspace, docker_workspace_path
+    else:
+        yield workspace_path, workspace_path
 
 
 def _get_delegate_executor(conversation: Conversation):

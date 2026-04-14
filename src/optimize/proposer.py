@@ -21,6 +21,8 @@ from .common import (
     validate_agent_candidate,
 )
 from ..utils import LM_DICT, build_sdk_llm
+from ..task_setups import get_mcp_config
+from ..runner import get_workspace_context
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DOCS_DIR = REPO_ROOT / "docs"
@@ -197,6 +199,10 @@ class AgentProposer:
         max_proposal_retries: int = 2,
         use_adaptation_guide: bool = True,
         adaptation_guide_markdown: Optional[str] = None,
+        task_id: Optional[str] = None,
+        use_docker: bool = False,
+        server_image: str = "migration-analysis:latest",
+        docker_network: Optional[str] = None,
     ):
         self.run_dir = run_dir
         self.task_prompt = task_prompt
@@ -208,6 +214,10 @@ class AgentProposer:
         self.max_proposal_retries = max_proposal_retries
         self.use_adaptation_guide = use_adaptation_guide
         self.adaptation_guide_markdown = adaptation_guide_markdown
+        self.task_id = task_id
+        self.use_docker = use_docker
+        self.server_image = server_image
+        self.docker_network = docker_network
         self._proposer_skills = load_proposer_skills(
             run_dir,
             use_adaptation_guide=use_adaptation_guide,
@@ -430,7 +440,7 @@ class AgentProposer:
 
         return workspace
 
-    def _build_agent(self) -> Agent:
+    def _build_agent(self, workspace: str) -> Agent:
         lm = LM_DICT[self.reflection_lm_name]
         proposer_llm = build_sdk_llm(lm)
         proposer_tools = [
@@ -439,18 +449,20 @@ class AgentProposer:
         ]
         agent_context = AgentContext(skills=self._proposer_skills)
 
-        prompt_dir = os.path.join(self.run_dir, "shared", "proposer_prompt")
-        os.makedirs(prompt_dir, exist_ok=True)
-        prompt_path = os.path.join(prompt_dir, "system_prompt.md")
-        with open(prompt_path, "w") as f:
-            f.write(build_proposer_system_prompt(self.use_adaptation_guide))
+        # workspace is the docker path (e.g., /workspace/proposer) in docker mode
+        # The prompt file should be relative to the workspace
+        prompt_path = os.path.join(workspace, "system_prompt.md")
 
-        return Agent(
+        mcp_cfg = get_mcp_config(self.task_id, workspace) if self.task_id else {}
+        agent_kwargs = dict(
             llm=proposer_llm,
             tools=proposer_tools,
-            system_prompt_filename=os.path.abspath(prompt_path),
+            system_prompt_filename=prompt_path,
             agent_context=agent_context,
         )
+        if mcp_cfg:
+            agent_kwargs["mcp_config"] = mcp_cfg
+        return Agent(**agent_kwargs)
 
     def propose(
         self,
@@ -469,12 +481,41 @@ class AgentProposer:
         workspace = self._setup_workspace(iteration, iter_dir, candidate, reflective_dataset)
         self.logger.log(f"[iter {iteration}] Proposer workspace: {workspace}")
 
-        proposer_agent = self._build_agent()
-        instruction = build_proposer_instruction(self.use_adaptation_guide)
+        # Write prompt file to the host workspace directory
+        prompt_path = os.path.join(workspace, "system_prompt.md")
+        with open(prompt_path, "w") as f:
+            f.write(build_proposer_system_prompt(self.use_adaptation_guide))
 
-        conversation = Conversation(agent=proposer_agent, workspace=workspace)
-        conversation.send_message(instruction)
+        with get_workspace_context(
+            workspace_path=workspace,
+            use_docker=self.use_docker,
+            server_image=self.server_image,
+            docker_network=self.docker_network,
+            docker_workspace_path="/workspace/proposer",
+            skills=self._proposer_skills,
+        ) as (workspace_obj, workspace_path_for_agent):
+            proposer_agent = self._build_agent(workspace_path_for_agent)
+            instruction = build_proposer_instruction(self.use_adaptation_guide)
 
+            conversation = Conversation(agent=proposer_agent, workspace=workspace_obj)
+            conversation.send_message(instruction)
+            self._run_proposer_loop(
+                conversation, iteration, workspace, candidate, new_candidate, iter_dir, components_to_update
+            )
+            conversation.close()
+
+        return new_candidate
+
+    def _run_proposer_loop(
+        self,
+        conversation: Conversation,
+        iteration: int,
+        workspace: str,
+        candidate: dict[str, str],
+        new_candidate: dict[str, str],
+        iter_dir: str,
+        components_to_update: list[str],
+    ) -> None:
         last_error = None
         for attempt in range(1 + self.max_proposal_retries):
             if attempt > 0:
@@ -543,6 +584,3 @@ class AgentProposer:
             self.save_cost_summary()
         except Exception as e:
             self.logger.log(f"[iter {iteration}] Failed to collect proposer cost: {e}")
-
-        conversation.close()
-        return new_candidate

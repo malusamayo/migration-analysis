@@ -39,9 +39,6 @@ def make_docker_kwargs(
     platform, forward_env, and user automatically.
     """
     volumes = list(volumes)
-    tools_source = os.path.abspath("software-agent-sdk/openhands-tools")
-    if os.path.exists(tools_source):
-        volumes.append(f"{tools_source}:/software-agent-sdk/openhands-tools")
 
     kwargs: dict = dict(
         working_dir=working_dir,

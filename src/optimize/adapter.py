@@ -219,6 +219,10 @@ class AgentOptimizationAdapter(GEPAAdapter):
             max_proposal_retries=max_proposal_retries,
             use_adaptation_guide=use_adaptation_guide,
             adaptation_guide_markdown=adaptation_guide_markdown,
+            task_id=task_id,
+            use_docker=use_docker,
+            server_image=server_image,
+            docker_network=docker_network,
         )
 
         os.makedirs(run_dir, exist_ok=True)
@@ -251,8 +255,10 @@ class AgentOptimizationAdapter(GEPAAdapter):
             json.dump(summary, f, indent=2)
         self.logger.log(
             f"[cost] total=${total['accumulated_cost']:.4f} "
-            f"(rollout_reflection=${self._cost_tracker['rollout_reflection']['accumulated_cost']:.4f}, "
+            f"(rollout_seed=${self._cost_tracker['rollout_seed']['accumulated_cost']:.4f}, "
+            f"rollout_reflection=${self._cost_tracker['rollout_reflection']['accumulated_cost']:.4f}, "
             f"rollout_candidate=${self._cost_tracker['rollout_candidate']['accumulated_cost']:.4f}, "
+            f"rollout_valset=${self._cost_tracker['rollout_valset']['accumulated_cost']:.4f}, "
             f"eval_lm=${self._cost_tracker['eval_lm']['accumulated_cost']:.4f}, "
             f"proposer=${self._cost_tracker['proposer']['accumulated_cost']:.4f})"
         )
@@ -317,7 +323,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         uncached_indices = []
         n_hits = 0
         for idx, args in enumerate(args_list):
-            cached = self._cache.get(candidate["agent_code"], args["example"], capture_traces)
+            cached = self._cache.get(candidate["agent_code"], args["example"])
             if cached is not None:
                 results_list[idx] = cached
                 n_hits += 1
@@ -353,7 +359,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
                         "error_message": rollout_result["error_message"],
                     }
                     results_list[idx] = result
-                    self._cache.put(candidate["agent_code"], args_list[idx]["example"], capture_traces, result)
+                    self._cache.put(candidate["agent_code"], args_list[idx]["example"], result)
                 else:
                     eval_indices.append(idx)
                     eval_args.append(
@@ -382,7 +388,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
 
             for idx, result in zip(eval_indices, fresh_results):
                 results_list[idx] = result
-                self._cache.put(candidate["agent_code"], args_list[idx]["example"], capture_traces, result)
+                self._cache.put(candidate["agent_code"], args_list[idx]["example"], result)
                 if result.get("eval_metrics"):
                     add_to_cost_bucket(self._cost_tracker["eval_lm"], result["eval_metrics"])
             self._cache.save()
