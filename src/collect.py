@@ -104,6 +104,7 @@ def run_task(
         start_servers: bool = False,
         server_start_timeout: int = 300,
         agent_file: Optional[str] = None,
+        max_time: Optional[float] = None,
     ):
     """
     Run a task with specified model and prompt.
@@ -143,6 +144,7 @@ def run_task(
             "start_servers": start_servers,
             "server_start_timeout": server_start_timeout,
             "agent_file": agent_file,
+            "max_time": max_time,
         }
     )
 
@@ -185,6 +187,7 @@ def run_task(
             args["server_image"] = server_image
             args["docker_network"] = docker_network
             args["tools"] = get_tools(task_id, args.get("workspace"))
+            args["max_time"] = max_time
             if agent_file is not None:
                 args["agent_file"] = os.path.abspath(agent_file)
 
@@ -253,6 +256,12 @@ if __name__ == "__main__":
                         help="Path to a Python file defining build_agent(base_dir, lm_model, seed_prompt) -> Agent")
     parser.add_argument("--rollout_version", type=str, default=None,
                         help="Rollout version identifier (default: 'v0')")
+    parser.add_argument(
+        "--max_time",
+        type=float,
+        default=None,
+        help="Maximum runtime in seconds for each agentic task conversation.",
+    )
 
     args = parser.parse_args()
 
@@ -287,6 +296,7 @@ if __name__ == "__main__":
     start_servers = config.get("start_servers", False)
     server_start_timeout = config.get("server_start_timeout", 300)
     agent_file = args.agent_file if args.agent_file is not None else config.get("agent_file")
+    max_time = args.max_time if args.max_time is not None else config.get("max_time")
     if agent_file is not None:
         rollout_version += f"_{Path(agent_file).stem}"
 
@@ -313,4 +323,5 @@ if __name__ == "__main__":
         start_servers=start_servers,
         server_start_timeout=server_start_timeout,
         agent_file=agent_file,
+        max_time=max_time,
     )

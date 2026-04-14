@@ -58,6 +58,7 @@ def run_optimization(
     docker_network: Optional[str] = None,
     use_docker: bool = False,
     server_image: str = "migration-analysis:latest",
+    max_time: Optional[float] = None,
 ):
     logging.basicConfig(
         level=logging.INFO,
@@ -109,6 +110,7 @@ def run_optimization(
         "docker_network": docker_network,
         "use_docker": use_docker,
         "server_image": server_image,
+        "max_time": max_time,
     }
     _print_effective_config(effective_config)
 
@@ -149,6 +151,7 @@ def run_optimization(
         use_docker=use_docker,
         server_image=server_image,
         docker_network=docker_network,
+        max_time=max_time,
     )
 
     stoppers: list[StopperProtocol] = []
@@ -249,6 +252,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Run agent rollouts inside Docker containers",
     )
+    parser.add_argument(
+        "--max_time",
+        type=float,
+        default=None,
+        help="Maximum runtime in seconds for each agentic task conversation.",
+    )
     return parser
 
 
@@ -286,6 +295,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     docker_network = config.get("docker_network")
     use_docker = args.use_docker if args.use_docker is not None else config.get("use_docker", False)
     server_image = config.get("server_image", "migration-analysis:latest")
+    max_time = args.max_time if args.max_time is not None else config.get("max_time")
     use_adaptation_guide = config.get("use_adaptation_guide", True)
     adaptation_guide_markdown = (
         args.adaptation_guide_markdown
@@ -317,6 +327,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         docker_network=docker_network,
         use_docker=use_docker,
         server_image=server_image,
+        max_time=max_time,
         use_adaptation_guide=use_adaptation_guide,
         adaptation_guide_markdown=adaptation_guide_markdown,
     )

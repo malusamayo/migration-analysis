@@ -4,23 +4,10 @@ import os
 import argparse
 from pathlib import Path
 from typing import Optional
-from .utils import batch_inference
-from .utils import LM_DICT
+from .utils import batch_inference, LM_DICT
+from .optimize.common import LiteralBlockDumper
 from .dataloader import EvalDataLoader
 from .task_setups import get_eval_config, requires_eval_lm
-
-
-class _BlockDumper(yaml.Dumper):
-    """YAML dumper that renders multiline strings as block literals (|)."""
-
-
-def _str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
-    if "\n" in data:
-        return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
-    return dumper.represent_scalar("tag:yaml.org,2002:str", data)
-
-
-_BlockDumper.add_representer(str, _str_representer)
 
 
 def _print_effective_config(config: dict) -> None:
@@ -115,7 +102,7 @@ def run_task_eval(
         # Combine already-completed results with new completions
         all_results = results + completed_results
         with open(output_path, "w") as f:
-            yaml.dump(all_results, f, Dumper=_BlockDumper, indent=2, sort_keys=False, allow_unicode=True)
+            yaml.dump(all_results, f, Dumper=LiteralBlockDumper, indent=2, sort_keys=False, allow_unicode=True)
         print(f"💾 Saved partial results ({len(all_results)}/{len(data_loader)} completed)")
 
     # Process all remaining data with periodic callbacks
@@ -131,7 +118,7 @@ def run_task_eval(
 
     # Write final results
     with open(output_path, "w") as f:
-        yaml.dump(results, f, Dumper=_BlockDumper, indent=2, sort_keys=False, allow_unicode=True)
+        yaml.dump(results, f, Dumper=LiteralBlockDumper, indent=2, sort_keys=False, allow_unicode=True)
     print(f"✅ Completed all {len(results)}/{len(data_loader)} evaluations")
     print(f"Final results saved to: {output_path}")
 

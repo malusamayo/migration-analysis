@@ -559,6 +559,7 @@ def _run_agentic_conversation(
         log_dir: str,
         example: dict,
         skill_mode: str = "",
+        max_time: Optional[float] = None,
     ):
     """
     Core logic for running an agentic conversation.
@@ -569,6 +570,7 @@ def _run_agentic_conversation(
         log_dir: Directory to save conversation trace
         example: Example data dictionary containing 'prompt' field
         skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
+        max_time: Optional maximum runtime in seconds for RemoteConversation.run()
 
     Returns:
         dict: Example with added 'eval_result' field containing evaluation output and scores
@@ -587,7 +589,7 @@ def _run_agentic_conversation(
 
         kwargs = {}
         if isinstance(conversation, RemoteConversation):
-            kwargs["timeout"] = 1200  # seconds
+            kwargs["timeout"] = max_time if max_time is not None else 1200
         
         conversation.run(**kwargs)
 
@@ -627,6 +629,7 @@ def run_single_instance_agentic(
         workspace_fn = None,
         agent_file: str = None,
         post_docker_fn = None,
+        max_time: Optional[float] = None,
     ):
     """
     Run a single instance using OpenHands agents.
@@ -639,6 +642,7 @@ def run_single_instance_agentic(
         skills: Optional list of pre-loaded Skill objects
         skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
         use_docker: If True, use DockerWorkspace for containerized execution
+        max_time: Optional maximum runtime in seconds for the task conversation
 
     Returns:
         dict: Example with added 'eval_result' field containing evaluation output and scores
@@ -726,6 +730,7 @@ def run_single_instance_agentic(
                 log_dir=log_dir,
                 example=example,
                 skill_mode=skill_mode,
+                max_time=max_time,
             )
             if post_docker_fn:
                 post_docker_fn(
@@ -744,4 +749,5 @@ def run_single_instance_agentic(
             log_dir=log_dir,
             example=example,
             skill_mode=skill_mode,
+            max_time=max_time,
         )

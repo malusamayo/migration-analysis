@@ -48,6 +48,7 @@ def _run_agent_worker(
     use_docker: bool = False,
     server_image: Optional[str] = None,
     docker_network: Optional[str] = None,
+    max_time: Optional[float] = None,
 ) -> dict:
     """Run the candidate agent for one example and persist workspace artifacts."""
     example = copy.deepcopy(example)
@@ -75,6 +76,7 @@ def _run_agent_worker(
             server_image=server_image,
             docker_network=docker_network,
             agent_file=agent_file,
+            max_time=max_time,
         )
 
         rollout_metrics = None
@@ -176,6 +178,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         use_docker: bool = False,
         server_image: str = "migration-analysis:latest",
         docker_network: Optional[str] = None,
+        max_time: Optional[float] = None,
     ):
         self.task_id = task_id
         self.task_prompt = task_prompt
@@ -189,6 +192,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         self.use_docker = use_docker
         self.server_image = server_image
         self.docker_network = docker_network
+        self.max_time = max_time
 
         self.eval_config = get_eval_config(task_id)
         self.eval_function = self.eval_config["eval_function"]
@@ -315,6 +319,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
                 "use_docker": self.use_docker,
                 "server_image": self.server_image,
                 "docker_network": self.docker_network,
+                "max_time": self.max_time,
             }
             for i, ex in enumerate(batch)
         ]

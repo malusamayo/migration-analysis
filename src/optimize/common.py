@@ -1,11 +1,25 @@
 import copy
 import difflib
 import hashlib
+import yaml
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any, Optional, Sequence
 
 from openhands.sdk import Agent
+
+
+class LiteralBlockDumper(yaml.Dumper):
+    """YAML dumper that renders multiline strings as block literals (|)."""
+
+
+def _literal_str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
+    if "\n" in data:
+        return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data)
+
+
+LiteralBlockDumper.add_representer(str, _literal_str_representer)
 
 
 def execute_agent_candidate(
