@@ -12,6 +12,7 @@ from openhands.sdk import LLM, Agent, Conversation, Tool
 from openhands.tools.browser_use import BrowserToolSet
 from openhands.workspace import DockerWorkspace
 from ..runner import run_single_instance_agentic, _run_agentic_conversation
+from ..utils import build_sdk_llm
 
 
 DEV_SERVER_PORT = 3000
@@ -399,7 +400,7 @@ def run_ui_agent(
         )
         example['prompt'] = instruction
 
-        llm = LLM(model=lm.model)
+        llm = build_sdk_llm(lm)
         agent = Agent(
             llm=llm,
             temperature=0.2,

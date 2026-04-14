@@ -196,17 +196,17 @@ def get_seed_candidate(task_id: str) -> dict[str, str]:
     """Return the seed agent candidate code for a task."""
     if task_id == "webarena":
         code = '''\
-from openhands.sdk import LLM, Agent, Tool
+from openhands.sdk import Agent, Tool
 from openhands.tools.browser_use import BrowserToolSet
 import os
 
-def build_agent(base_dir, lm_model, seed_prompt):
+def build_agent(base_dir, llm, seed_prompt):
     prompt_path = os.path.join(base_dir, "system_prompt.md")
     with open(prompt_path, "w") as f:
         f.write(seed_prompt)
     browser_root = os.path.join(base_dir, ".browser_use")
     return Agent(
-        llm=LLM(model=lm_model),
+        llm=llm,
         tools=[Tool(
             name=BrowserToolSet.name,
             params={
@@ -219,19 +219,19 @@ def build_agent(base_dir, lm_model, seed_prompt):
 '''
     elif task_id == "ab_testing":
         code = '''\
-from openhands.sdk import LLM, Agent, Tool
+from openhands.sdk import Agent, Tool
 from openhands.tools.terminal import TerminalTool
 from openhands.tools.file_editor import FileEditorTool
 import os
 
-def build_agent(base_dir, lm_model, seed_prompt):
+def build_agent(base_dir, llm, seed_prompt):
     prompt_path = os.path.join(base_dir, "system_prompt.md")
     with open(prompt_path, "w") as f:
         f.write(seed_prompt)
     from src.task_setups.ab_testing import get_mcp_config
     mcp_config = get_mcp_config(base_dir)
     return Agent(
-        llm=LLM(model=lm_model),
+        llm=llm,
         tools=[Tool(name=TerminalTool.name), Tool(name=FileEditorTool.name)],
         system_prompt_filename=prompt_path,
         mcp_config=mcp_config,
@@ -239,17 +239,17 @@ def build_agent(base_dir, lm_model, seed_prompt):
 '''
     else:
         code = '''\
-from openhands.sdk import LLM, Agent, Tool
+from openhands.sdk import Agent, Tool
 from openhands.tools.terminal import TerminalTool
 from openhands.tools.file_editor import FileEditorTool
 import os
 
-def build_agent(base_dir, lm_model, seed_prompt):
+def build_agent(base_dir, llm, seed_prompt):
     prompt_path = os.path.join(base_dir, "system_prompt.md")
     with open(prompt_path, "w") as f:
         f.write(seed_prompt)
     return Agent(
-        llm=LLM(model=lm_model),
+        llm=llm,
         tools=[Tool(name=TerminalTool.name), Tool(name=FileEditorTool.name)],
         system_prompt_filename=prompt_path,
     )
