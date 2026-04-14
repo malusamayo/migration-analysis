@@ -23,6 +23,7 @@ analysis_results/
 .vscode/
 wandb/
 
+experiments/
 scripts/
 plots/
 .roar/
