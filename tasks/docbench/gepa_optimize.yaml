@@ -5,19 +5,21 @@ prompt_name: "default"
 
 # GEPA settings
 reflection_lm: "gemini-3.1-pro-preview"
-max_cost: 5.0
-seed: 1
+max_cost: 10.0
+seed: 0
 
 # Evaluation
 eval_lm: "gemini-3-flash-preview"
+agent_batch_size: 8
+eval_batch_size: 16
 
 # Data
-max_examples: 20
-train_ratio: 0.6
+max_examples: 40
+train_ratio: 0.5
 
 # Reflection
 use_adaptation_guide: true
 
 # Docker
-use_docker: false
-server_image: ""
+use_docker: true
+server_image: "docbench:latest"

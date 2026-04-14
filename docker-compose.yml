@@ -24,3 +24,8 @@ services:
     build:
       context: .
       dockerfile: tasks/webarena/Dockerfile
+  docbench:
+    image: docbench:latest
+    build:
+      context: .
+      dockerfile: tasks/docbench/Dockerfile
