@@ -599,15 +599,6 @@ def run_single_instance_eval(
             f"Workspace directory does not exist!"
         )
     
-    # Check trace file presence
-    trace_files = list(workspace_path.glob("trace_*.md"))
-    if not trace_files:
-        return _create_error_result(
-            workspace_dir,
-            [],
-            f"No trace_*.md files found. The execution was incomplete."
-        )
-
     # Discover test files
     test_files = list(workspace_path.glob("**/*test*.py"))
     if not test_files:

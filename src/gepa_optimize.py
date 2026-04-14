@@ -32,6 +32,11 @@ __all__ = [
 ]
 
 
+def _print_effective_config(config: dict) -> None:
+    print("Effective config:")
+    print(yaml.safe_dump(config, sort_keys=False).rstrip())
+
+
 def run_optimization(
     task_id: str,
     model_name: str,
@@ -46,10 +51,13 @@ def run_optimization(
     seed: int = 0,
     run_dir: Optional[str] = None,
     data_path: Optional[str] = None,
-    batch_size: Optional[int] = None,
+    agent_batch_size: Optional[int] = None,
+    eval_batch_size: Optional[int] = None,
     use_adaptation_guide: bool = True,
     adaptation_guide_markdown: Optional[str] = None,
     docker_network: Optional[str] = None,
+    use_docker: bool = False,
+    server_image: str = "migration-analysis:latest",
 ):
     logging.basicConfig(
         level=logging.INFO,
@@ -80,6 +88,30 @@ def run_optimization(
         run_dir = f"results/{task_id}/{model_name}_{prompt_name}/gepa/seed{seed}"
     os.makedirs(run_dir, exist_ok=True)
 
+    effective_config = {
+        "task_id": task_id,
+        "model_name": model_name,
+        "prompt_name": prompt_name,
+        "max_examples": max_examples,
+        "train_ratio": train_ratio,
+        "eval_lm": eval_lm_name,
+        "reflection_lm": reflection_lm,
+        "max_metric_calls": max_metric_calls,
+        "max_cost": max_cost,
+        "no_improvement_patience": no_improvement_patience,
+        "seed": seed,
+        "run_dir": run_dir,
+        "data_path": data_path,
+        "agent_batch_size": agent_batch_size,
+        "eval_batch_size": eval_batch_size,
+        "use_adaptation_guide": use_adaptation_guide,
+        "adaptation_guide_markdown": adaptation_guide_markdown,
+        "docker_network": docker_network,
+        "use_docker": use_docker,
+        "server_image": server_image,
+    }
+    _print_effective_config(effective_config)
+
     gepa_logger = GEPAFileLogger(run_dir)
     gepa_logger.log(f"Task: {task_id}, Model: {model_name}, Prompt: {prompt_name}")
     gepa_logger.log(f"Dataset: {len(data)} total, {len(trainset)} train, {len(valset)} val")
@@ -88,12 +120,17 @@ def run_optimization(
         f"{max_metric_calls}, Max cost: {max_cost}, "
         f"No-improvement patience: {no_improvement_patience}, Reflection LM: {reflection_lm}"
     )
+    gepa_logger.log(
+        f"Agent batch size: {agent_batch_size}, Eval batch size: {eval_batch_size}"
+    )
     gepa_logger.log(f"Use adaptation guide: {use_adaptation_guide}")
     if use_adaptation_guide and adaptation_guide_markdown:
         gepa_logger.log(f"Adaptation guide markdown: {adaptation_guide_markdown}")
 
     config_dir = os.path.join(run_dir, "shared", "config")
     os.makedirs(config_dir, exist_ok=True)
+    with open(os.path.join(config_dir, "used_config.yaml"), "w") as f:
+        yaml.safe_dump(effective_config, f, sort_keys=False)
     with open(os.path.join(config_dir, "seed_config.py"), "w") as f:
         f.write(seed_code)
 
@@ -105,9 +142,13 @@ def run_optimization(
         task_prompt=task_prompt,
         eval_lm_name=eval_lm_name,
         run_dir=run_dir,
-        batch_size=batch_size,
+        agent_batch_size=agent_batch_size,
+        eval_batch_size=eval_batch_size,
         use_adaptation_guide=use_adaptation_guide,
         adaptation_guide_markdown=adaptation_guide_markdown,
+        use_docker=use_docker,
+        server_image=server_image,
+        docker_network=docker_network,
     )
 
     stoppers: list[StopperProtocol] = []
@@ -184,12 +225,29 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max_cost", type=float, default=None, help="Hard cost budget in USD")
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--run_dir", type=str, default=None)
-    parser.add_argument("--batch_size", type=int, default=None)
+    parser.add_argument(
+        "--agent_batch_size",
+        type=int,
+        default=None,
+        help="Maximum number of agent/example workers to run concurrently.",
+    )
+    parser.add_argument(
+        "--eval_batch_size",
+        type=int,
+        default=None,
+        help="GEPA reflection minibatch size used for candidate evaluation.",
+    )
     parser.add_argument(
         "--adaptation_guide_markdown",
         type=str,
         default=None,
         help="Optional custom markdown file to use instead of docs/adaptation.md",
+    )
+    parser.add_argument(
+        "--use_docker",
+        action="store_true",
+        default=None,
+        help="Run agent rollouts inside Docker containers",
     )
     return parser
 
@@ -219,8 +277,15 @@ def main(argv: Optional[list[str]] = None) -> int:
     seed = args.seed if args.seed is not None else config.get("seed", 0)
     run_dir = args.run_dir or config.get("run_dir")
     data_path = config.get("data_path")
-    batch_size = args.batch_size if args.batch_size is not None else config.get("batch_size")
+    agent_batch_size = (
+        args.agent_batch_size if args.agent_batch_size is not None else config.get("agent_batch_size")
+    )
+    eval_batch_size = (
+        args.eval_batch_size if args.eval_batch_size is not None else config.get("eval_batch_size")
+    )
     docker_network = config.get("docker_network")
+    use_docker = args.use_docker if args.use_docker is not None else config.get("use_docker", False)
+    server_image = config.get("server_image", "migration-analysis:latest")
     use_adaptation_guide = config.get("use_adaptation_guide", True)
     adaptation_guide_markdown = (
         args.adaptation_guide_markdown
@@ -247,8 +312,11 @@ def main(argv: Optional[list[str]] = None) -> int:
         seed=seed,
         run_dir=run_dir,
         data_path=data_path,
-        batch_size=batch_size,
+        agent_batch_size=agent_batch_size,
+        eval_batch_size=eval_batch_size,
         docker_network=docker_network,
+        use_docker=use_docker,
+        server_image=server_image,
         use_adaptation_guide=use_adaptation_guide,
         adaptation_guide_markdown=adaptation_guide_markdown,
     )
