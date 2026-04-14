@@ -13,19 +13,21 @@ seed: 10
 # Data
 max_examples: 10
 n_responses: 1
-agent_batch_size: 1
-train_ratio: 0.6
+train_ratio: 0.5
 
 # Evaluation
 eval_lm: "gemini-3-flash-preview"
+agent_batch_size: 8
+eval_batch_size: 16
 
 # Reflection
 use_adaptation_guide: true
 
 # Docker
 is_agentic: true
-use_docker: false
-server_image: ""
+use_docker: true
+server_image: "webarena:latest"
+max_time: 600
 
 start_servers: false
 server_start_timeout: 300  # seconds per container; increase if containers are slow to start

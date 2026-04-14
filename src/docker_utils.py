@@ -46,7 +46,6 @@ def make_docker_kwargs(
         platform=detect_platform(),
         volumes=volumes,
         forward_env=get_forward_env(),
-        user=f"{os.getuid()}:{os.getgid()}",
     )
     if docker_network:
         kwargs["network"] = docker_network

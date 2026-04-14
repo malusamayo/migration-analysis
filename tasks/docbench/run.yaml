@@ -4,7 +4,7 @@ data_path: "data/docbench_dedup.json"
 model_name: "qwen3-coder-30b-a3b"
 prompt_name: "default"
 
-max_examples: 1
+max_examples: 2
 n_responses: 1
 agent_batch_size: 4
 resume: true

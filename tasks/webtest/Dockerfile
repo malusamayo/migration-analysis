@@ -1,36 +1,41 @@
+# syntax=docker/dockerfile:1.7
+
 FROM python:3.14-slim
 
-# Install additional Python dependencies needed for your project
+ENV HOME=/workspace \
+    VIRTUAL_ENV=/workspace/.venv \
+    PATH="/workspace/.venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /workspace
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates \
-    gcc g++ make \
+    ca-certificates \
+    curl \
+    gcc \
+    g++ \
+    make \
     python3-dev \
  && rm -rf /var/lib/apt/lists/*
 
-COPY --from=ghcr.io/astral-sh/uv:0.9.2 /uv /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.9.2 /uv /bin/uv
 
-RUN uv venv /workspace/.venv
+RUN useradd --create-home --home-dir /workspace --shell /bin/bash appuser \
+ && chown appuser:appuser /workspace
 
-ENV VIRTUAL_ENV=/workspace/.venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-ENV HOME=/workspace
+COPY --chown=appuser:appuser pyproject.toml uv.lock ./
+COPY --chown=appuser:appuser software-agent-sdk ./software-agent-sdk
 
-COPY pyproject.toml uv.lock ./
-COPY software-agent-sdk /software-agent-sdk
-RUN uv sync --frozen --no-dev --active
+USER appuser
+RUN uv venv /workspace/.venv \
+ && uv sync --frozen --no-dev --active
 
-# Install playwright browsers (required for playwright)
-RUN playwright install --with-deps chromium
+USER root
+RUN python -m playwright install --with-deps chromium
 
-# Make workspace writable for non-root users
-RUN chmod -R 777 /workspace
+USER appuser
 
-# Set working directory
-WORKDIR /workspace
-
-# Expose the default agent server port
 EXPOSE 8000
 
-# Run the OpenHands agent server
 ENTRYPOINT ["python", "-m", "openhands.agent_server"]

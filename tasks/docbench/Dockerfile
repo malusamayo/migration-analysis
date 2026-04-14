@@ -1,33 +1,43 @@
+# syntax=docker/dockerfile:1.7
+
 FROM python:3.14-slim
+
+ENV HOME=/workspace \
+    VIRTUAL_ENV=/workspace/.venv \
+    PATH="/workspace/.venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /workspace
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
-    gcc g++ make \
+    gcc \
+    g++ \
+    make \
     python3-dev \
     poppler-utils \
  && rm -rf /var/lib/apt/lists/*
 
-COPY --from=ghcr.io/astral-sh/uv:0.9.2 /uv /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.9.2 /uv /bin/uv
 
-RUN uv venv /workspace/.venv
+RUN useradd --create-home --home-dir /workspace --shell /bin/bash appuser \
+ && chown appuser:appuser /workspace
 
-ENV VIRTUAL_ENV=/workspace/.venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-ENV HOME=/workspace/project
+COPY --chown=appuser:appuser pyproject.toml uv.lock ./
+COPY --chown=appuser:appuser software-agent-sdk ./software-agent-sdk
 
-COPY pyproject.toml uv.lock ./
-COPY software-agent-sdk /software-agent-sdk
-RUN uv sync --frozen --no-dev --active
+USER appuser
+RUN uv venv /workspace/.venv \
+ && uv sync --frozen --no-dev --active
 
-# Copy task code used by the remote agent workflow.
-COPY src /workspace/src
 ENV PYTHONPATH=/workspace
 
-# Make workspace writable for non-root users.
-RUN chmod -R 777 /workspace
+USER root
+RUN python -m playwright install --with-deps chromium
 
-WORKDIR /workspace
+USER appuser
 
 EXPOSE 8000
 

@@ -1,5 +1,5 @@
 task_id: "docbench"
-data_path: "data/docbench.json"
+data_path: "data/docbench_dedup.json"
 model_name: "qwen3-coder-30b-a3b"
 prompt_name: "default"
 
@@ -23,3 +23,4 @@ use_adaptation_guide: true
 # Docker
 use_docker: true
 server_image: "docbench:latest"
+max_time: 600

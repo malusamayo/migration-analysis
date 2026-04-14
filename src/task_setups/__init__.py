@@ -83,6 +83,7 @@ def setup_workspace(task_id: str, workspace_dir: str, log_dir: str, example: dic
     if os.path.exists(workspace_dir):
         shutil.rmtree(workspace_dir)
     os.makedirs(workspace_dir, exist_ok=True)
+    os.chmod(workspace_dir, 0o777)
     if os.path.exists(log_dir):
         shutil.rmtree(log_dir)
     os.makedirs(log_dir, exist_ok=True)

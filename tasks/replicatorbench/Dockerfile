@@ -1,8 +1,22 @@
+# syntax=docker/dockerfile:1.7
+
 FROM python:3.14-slim
 
+ENV HOME=/workspace \
+    VIRTUAL_ENV=/workspace/.venv \
+    PATH="/workspace/.venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /workspace
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ca-certificates \
-    gcc g++ make cmake \
+    ca-certificates \
+    curl \
+    gcc \
+    g++ \
+    make \
+    cmake \
     python3-dev \
     r-base r-base-dev \
     libcurl4-openssl-dev libssl-dev libxml2-dev \
@@ -30,30 +44,21 @@ RUN Rscript -e "install.packages('BiocManager', repos='https://cloud.r-project.o
     Rscript -e "BiocManager::install(c('multtest', 'metaRNASeq'), ask=FALSE)" && \
     Rscript -e "install.packages('metap', repos='https://cloud.r-project.org')"
 
-COPY --from=ghcr.io/astral-sh/uv:0.9.2 /uv /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.9.2 /uv /bin/uv
 
-RUN uv venv /workspace/.venv
+RUN useradd --create-home --home-dir /workspace --shell /bin/bash appuser \
+ && chown appuser:appuser /workspace
 
-ENV VIRTUAL_ENV=/workspace/.venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-ENV HOME=/workspace/project
+COPY --chown=appuser:appuser pyproject.toml uv.lock ./
+COPY --chown=appuser:appuser software-agent-sdk ./software-agent-sdk
+COPY --chown=appuser:appuser src ./src
 
-COPY pyproject.toml uv.lock ./
-COPY software-agent-sdk /software-agent-sdk
-RUN uv sync --frozen --no-dev --active
+USER appuser
+RUN uv venv /workspace/.venv \
+ && uv sync --frozen --no-dev --active
 
-# Copy task code used by the remote agent workflow
-COPY src /workspace/src
 ENV PYTHONPATH=/workspace
 
-# Make workspace writable for non-root users
-RUN chmod -R 777 /workspace
-
-# Set working directory
-WORKDIR /workspace
-
-# Expose the default agent server port
 EXPOSE 8000
 
-# Run the OpenHands agent server
 ENTRYPOINT ["python", "-m", "openhands.agent_server"]

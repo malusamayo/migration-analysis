@@ -6,7 +6,7 @@ prompt_name: "static"
 
 # GEPA settings
 reflection_lm: "gemini-3.1-pro-preview"
-max_cost: 10.0
+max_cost: 6.0
 seed: 0
 
 # Evaluation
@@ -24,3 +24,4 @@ use_adaptation_guide: true
 # Docker
 use_docker: true
 server_image: "webtest:latest"
+max_time: 600

@@ -385,6 +385,8 @@ class AgentProposer:
         workspace = os.path.join(iter_dir, "proposer", "workspace")
         if os.path.exists(workspace):
             shutil.rmtree(workspace)
+        os.makedirs(workspace, exist_ok=True)
+        os.chmod(workspace, 0o777)
 
         project_dir = os.path.join(workspace, "project")
         os.makedirs(project_dir)
