@@ -1,4 +1,5 @@
 import os
+import subprocess
 from typing import List, Any
 import dspy
 import litellm
@@ -8,6 +9,7 @@ import json
 import tqdm
 from dotenv import load_dotenv
 import yaml
+from openhands.sdk import LLM
 
 def use_lm(lm, n=1):
     def decorator(program):
@@ -115,6 +117,26 @@ def load_lmdict(yaml_path: str):
         lm_dict[name] = dspy.LM(model_id, **kwargs)
 
     return lm_dict
+
+
+def resolve_api_key(lm: dspy.LM) -> str | None:
+    api_key = lm.kwargs.get("api_key")
+    if api_key == "gcloud":
+        return subprocess.check_output(["gcloud", "auth", "print-access-token"]).decode().strip()
+    return api_key
+
+
+def build_sdk_llm(lm: dspy.LM) -> LLM:
+    """Construct an OpenHands SDK LLM from a DSPy LM, including custom pricing."""
+
+    return LLM(
+        model=lm.model,
+        base_url=lm.kwargs.get("api_base"),
+        api_key=resolve_api_key(lm),
+        input_cost_per_token=lm.kwargs.get("input_cost_per_token"),
+        output_cost_per_token=lm.kwargs.get("output_cost_per_token"),
+    )
+
 
 load_dotenv(override=True)
 LM_DICT = load_lmdict("configs/models.yaml")

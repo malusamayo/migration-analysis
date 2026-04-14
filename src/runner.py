@@ -38,7 +38,9 @@ from openhands.tools.delegate import (
 from openhands.workspace import DockerWorkspace
 
 from .debug_utils import patch_llm_for_debugging
+from .docker_utils import get_forward_env, make_docker_kwargs
 from .task_setups import setup_workspace, get_mcp_config
+from .utils import build_sdk_llm
 
 
 _TRACE_DELEGATE_EXECUTOR_ATTR = "_trace_delegate_executor"
@@ -116,28 +118,13 @@ def run_with_agent(
     )
 
 
-def detect_platform() -> str:
-    """Detects the correct platform string for container images."""
-    machine = platform.machine().lower()
-    if "arm" in machine or "aarch64" in machine:
-        return "linux/arm64"
-    return "linux/amd64"
-
-
 def construct_docker_workspace(workspace_dir, system_prompt_path, skills):
     """
-    Construct Docker workspace configuration with volumes and environment variables.
+    Construct Docker workspace volumes and paths for the collect/agent path.
 
     Returns:
-        Tuple of (docker_workspace_path, docker_system_prompt_path, docker_volumes, forward_env, workspace_dir)
+        Tuple of (docker_workspace_path, docker_system_prompt_path, docker_volumes, workspace_dir)
     """
-    all_envs = os.environ.copy()
-    env_config = dotenv_values(".env")
-    forward_env = [key for key in env_config.keys() if key in all_envs]
-    # Forward USER so getpass.getuser() works inside containers running as a non-/etc/passwd UID
-    if "USER" in all_envs and "USER" not in forward_env:
-        forward_env.append("USER")
-
     docker_volumes = []
 
     docker_workspace_path = "/workspace/project"
@@ -155,14 +142,7 @@ def construct_docker_workspace(workspace_dir, system_prompt_path, skills):
         docker_volumes.append(f"{skill_dir}:{docker_skill_dir}:ro")
         skill.source = os.path.join(docker_skill_dir, "SKILL.md")
 
-    # Mount updated SDK code so Docker container uses latest code instead of image-baked version
-    # The Dockerfile does `COPY software-agent-sdk /software-agent-sdk` and editable install,
-    # so Python imports resolve to /software-agent-sdk/openhands-tools/openhands/...
-    tools_source = os.path.abspath("software-agent-sdk/openhands-tools")
-    if os.path.exists(tools_source):
-        docker_volumes.append(f"{tools_source}:/software-agent-sdk/openhands-tools")
-
-    return (docker_workspace_path, docker_system_prompt_path, docker_volumes, forward_env, workspace_dir)
+    return (docker_workspace_path, docker_system_prompt_path, docker_volumes, workspace_dir)
 
 
 def _fetch_remote_conversation_info(client, conversation_id: str) -> dict[str, Any]:
@@ -617,7 +597,7 @@ def run_single_instance_agentic(
     """
     example = copy.deepcopy(example)
 
-    llm = LLM(model=lm.model) #, temperature=lm.kwargs.get("temperature"))
+    llm = build_sdk_llm(lm)
     system_prompt_path = os.path.abspath(system_prompt_path)
 
     workspace_dir = Path(workspace)
@@ -632,7 +612,7 @@ def run_single_instance_agentic(
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
             seed_prompt = Path(system_prompt_path).read_text()
-            agent = mod.build_agent(base_dir=str(workspace_dir), lm_model=lm.model, seed_prompt=seed_prompt)
+            agent = mod.build_agent(base_dir=str(workspace_dir), llm=llm, seed_prompt=seed_prompt)
             # Remap system_prompt_filename to an absolute path under base_dir so that
             # render_template can find it regardless of the CWD.
             # In Docker mode, base_dir is the container-internal path (/workspace/project).
@@ -670,22 +650,11 @@ def run_single_instance_agentic(
         (docker_workspace_path,
             docker_system_prompt_path,
             docker_volumes,
-            forward_env,
             workspace_dir) = construct_docker_workspace(workspace_dir.absolute(), system_prompt_path, skills)
 
         agent = _build_agent(docker_workspace_path, docker_system_prompt_path)
 
-        docker_kwargs = dict(
-            working_dir=docker_workspace_path,
-            server_image=server_image,
-            platform=detect_platform(),
-            volumes=docker_volumes,
-            forward_env=forward_env,
-            user=f"{os.getuid()}:{os.getgid()}",
-        )
-        if docker_network:
-            docker_kwargs["network"] = docker_network
-        with DockerWorkspace(**docker_kwargs) as docker_workspace:
+        with DockerWorkspace(**make_docker_kwargs(docker_workspace_path, server_image, docker_volumes, docker_network)) as docker_workspace:
             for cmd in setup_commands:
                 docker_workspace.execute_command(cmd, timeout=90.0)
 

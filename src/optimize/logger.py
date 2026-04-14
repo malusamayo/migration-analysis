@@ -7,9 +7,7 @@ class GEPAFileLogger:
 
     def __init__(self, run_dir: str):
         self.run_dir = run_dir
-        state_dir = os.path.join(run_dir, "shared", "state")
-        os.makedirs(state_dir, exist_ok=True)
-        self.log_path = os.path.join(state_dir, "gepa.log")
+        self.log_path = os.path.join(run_dir, "gepa.log")
 
         self._logger = logging.getLogger(f"gepa.{id(self)}")
         self._logger.setLevel(logging.DEBUG)

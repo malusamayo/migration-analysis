@@ -20,7 +20,7 @@ from .common import (
     summarize_score_changes,
     validate_agent_candidate,
 )
-from ..utils import LM_DICT
+from ..utils import LM_DICT, build_sdk_llm
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DOCS_DIR = REPO_ROOT / "docs"
@@ -30,7 +30,7 @@ PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an
 
 ## Workspace Layout
 
-- `project/agent.py` — The current agent configuration code. Defines `build_agent(base_dir, lm_model, seed_prompt) -> Agent` using the OpenHands SDK, and optionally `get_workspace_scripts() -> dict[str, str]` for helper scripts deployed to the agent's workspace at runtime.
+- `project/agent.py` — The current agent configuration code. Defines `build_agent(base_dir, llm, seed_prompt) -> Agent` using the OpenHands SDK, and optionally `get_workspace_scripts() -> dict[str, str]` for helper scripts deployed to the agent's workspace at runtime.
 - `project/seed_prompt.txt` — The original task prompt (passed to `build_agent` as the `seed_prompt` parameter).
 - `trajectories/` — Markdown traces of the agent's recent execution on training examples.
 - `eval_results.yaml` — Per-example scores and detailed evaluation feedback.
@@ -50,9 +50,9 @@ PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an
 
 ## Constraints on agent.py
 
-- MUST define `build_agent(base_dir: str, lm_model: str, seed_prompt: str) -> Agent`.
+- MUST define `build_agent(base_dir: str, llm: LLM, seed_prompt: str) -> Agent`.
 - `base_dir` is a temp directory where the function can write files (prompts, skills, etc.).
-- `lm_model` is the model string to use (e.g., "vertex_ai/gemini-3-flash-preview").
+- `llm` is the language model instance to use.
 - `seed_prompt` is the original task prompt text (passed as a parameter, also available in `project/seed_prompt.txt`).
 - Code must be valid, self-contained Python with explicit imports at the top.
 - Use the staged SDK docs in `docs/` for the full API surface.
@@ -432,7 +432,7 @@ class AgentProposer:
 
     def _build_agent(self) -> Agent:
         lm = LM_DICT[self.reflection_lm_name]
-        proposer_llm = LLM(model=lm.model)
+        proposer_llm = build_sdk_llm(lm)
         proposer_tools = [
             Tool(name=TerminalTool.name),
             Tool(name=FileEditorTool.name),
@@ -482,7 +482,7 @@ class AgentProposer:
                     "Your modified agent.py failed validation with this error:\n"
                     f"```\n{last_error}\n```\n"
                     "Please fix the code in project/agent.py and ensure "
-                    "`build_agent(base_dir, lm_model, seed_prompt)` returns a valid Agent."
+                    "`build_agent(base_dir, llm, seed_prompt)` returns a valid Agent."
                 )
 
             try:
