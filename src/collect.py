@@ -253,7 +253,7 @@ if __name__ == "__main__":
         help="Start fresh instead of resuming from existing results.",
     )
     parser.add_argument("--agent_file", type=str, default=None,
-                        help="Path to a Python file defining build_agent(base_dir, lm_model, seed_prompt) -> Agent")
+                        help="Path to a Python file defining build_agent(base_dir, llm) -> Agent")
     parser.add_argument("--rollout_version", type=str, default=None,
                         help="Rollout version identifier (default: 'v0')")
     parser.add_argument(

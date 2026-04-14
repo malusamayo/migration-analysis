@@ -13,6 +13,7 @@ from openhands.tools.file_editor import FileEditorTool
 from openhands.tools.terminal import TerminalTool
 
 from .common import (
+    LiteralBlockDumper,
     add_to_cost_bucket,
     build_code_diff,
     hash_text,
@@ -27,44 +28,33 @@ from ..runner import get_workspace_context
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DOCS_DIR = REPO_ROOT / "docs"
 
-
 PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an AI agent's task performance by analyzing execution trajectories and modifying the agent's configuration code.
 
 ## Workspace Layout
 
-- `project/agent.py` — The current agent configuration code. Defines `build_agent(base_dir, llm, seed_prompt) -> Agent` using the OpenHands SDK, and optionally `get_workspace_scripts() -> dict[str, str]` for helper scripts deployed to the agent's workspace at runtime.
-- `project/seed_prompt.txt` — The original task prompt (passed to `build_agent` as the `seed_prompt` parameter).
+- `project/agent.py` — The current agent configuration code.
 - `trajectories/` — Markdown traces of the agent's recent execution on training examples.
 - `eval_results.yaml` — Per-example scores and detailed evaluation feedback.
-- `proposal_memory/rejected_proposals.yaml` — Recent rejected edits, mainly for this exact parent candidate. Treat these as soft evidence about strategies that already failed to improve scores.
+- `proposal_memory/rejected_proposals.yaml` — Recent rejected edits for this candidate.
 - `docs/sdk_reference.md` — High-level SDK map with numbered sections.
 - `docs/sdk_reference_details/` — Per-section SDK signatures, examples, and implementation details.
 {adaptation_guide_layout}
 
 ## Your Task
 
-1. Read `eval_results.yaml` to understand overall performance and per-example scores.
-2. Read the trajectory files in `trajectories/` to understand the agent's step-by-step behavior.
-3. Read `proposal_memory/rejected_proposals.yaml` before editing. Avoid repeating the same non-improving strategy unless the current trajectories provide strong new evidence that the earlier rejection was minibatch-specific.
-4. Identify failure modes: wrong actions, missing capabilities, excessive context, stuck loops, missing tools, poor instructions, etc.
-5. Modify `project/agent.py` to address the identified failures. Consult `docs/sdk_reference.md` to navigate the API surface, then read the relevant files under `docs/sdk_reference_details/` for concrete signatures and examples.
-6. Optionally add/modify `get_workspace_scripts()` to deploy helper scripts to the agent's workspace.
+Diagnose why the agent is underperforming, then fix `project/agent.py` to improve it. Consult `docs/sdk_reference.md` to navigate the API surface, then read the relevant files under `docs/sdk_reference_details/` for concrete signatures and examples. Check `proposal_memory/rejected_proposals.yaml` before editing to avoid repeating non-improving changes.
 
 ## Constraints on agent.py
 
-- MUST define `build_agent(base_dir: str, llm: LLM, seed_prompt: str) -> Agent`.
-- `base_dir` is a temp directory where the function can write files (prompts, skills, etc.).
-- `llm` is the language model instance to use.
-- `seed_prompt` is the original task prompt text (passed as a parameter, also available in `project/seed_prompt.txt`).
+- MUST define `build_agent(base_dir: str, llm: LLM) -> Agent`.
+    - `base_dir` is a temp directory where the function can write files (prompts, skills, etc.).
+    - `llm` is the language model instance to use.
 - Code must be valid, self-contained Python with explicit imports at the top.
 - Use the staged SDK docs in `docs/` for the full API surface.
+- After modifying agent.py, verify there are no syntax errors. Make sure the code is complete and self-contained.
+
 {adaptation_guide_line}
-
-## Output
-
-After modifying agent.py, read it back to verify there are no syntax errors. Make sure the code is complete and self-contained.
 """
-
 
 def build_proposer_system_prompt(use_adaptation_guide: bool) -> str:
     adaptation_guide_layout = ""
@@ -79,24 +69,6 @@ def build_proposer_system_prompt(use_adaptation_guide: bool) -> str:
         adaptation_guide_layout=adaptation_guide_layout,
         adaptation_guide_line=adaptation_guide_line,
     )
-
-
-def build_proposer_instruction(use_adaptation_guide: bool) -> str:
-    instruction = (
-        "Analyze the agent's performance by reading eval_results.yaml and the trajectory files "
-        "in trajectories/. Read proposal_memory/rejected_proposals.yaml before editing so you "
-        "can avoid repeating non-improving changes. Then improve the agent configuration in "
-        "project/agent.py to address the identified failure modes. Use docs/sdk_reference.md "
-        "as the SDK index and docs/sdk_reference_details/ for the concrete APIs"
-    )
-    if use_adaptation_guide:
-        instruction += ", and use docs/adaptation.md"
-    if use_adaptation_guide:
-        instruction += " for adaptation strategies."
-    else:
-        instruction += "."
-    return instruction
-
 
 def _resolve_reference_doc_paths(
     use_adaptation_guide: bool = True,
@@ -392,8 +364,6 @@ class AgentProposer:
         os.makedirs(project_dir)
         with open(os.path.join(project_dir, "agent.py"), "w") as f:
             f.write(candidate["agent_code"])
-        with open(os.path.join(project_dir, "seed_prompt.txt"), "w") as f:
-            f.write(self.task_prompt)
 
         traj_dir = os.path.join(workspace, "trajectories")
         os.makedirs(traj_dir)
@@ -420,7 +390,7 @@ class AgentProposer:
                     entry[key] = eval_out[key]
             eval_summary.append(entry)
         with open(os.path.join(workspace, "eval_results.yaml"), "w") as f:
-            yaml.dump(eval_summary, f, sort_keys=False, default_flow_style=False)
+            yaml.dump(eval_summary, f, Dumper=LiteralBlockDumper, sort_keys=False, default_flow_style=False)
 
         memory_dir = os.path.join(workspace, "proposal_memory")
         os.makedirs(memory_dir)
@@ -432,7 +402,7 @@ class AgentProposer:
             }
         ]
         with open(os.path.join(memory_dir, "rejected_proposals.yaml"), "w") as f:
-            yaml.dump(memory_payload, f, sort_keys=False, default_flow_style=False)
+            yaml.dump(memory_payload, f, Dumper=LiteralBlockDumper, sort_keys=False, default_flow_style=False)
 
         stage_proposer_reference_docs(
             workspace,
@@ -497,7 +467,7 @@ class AgentProposer:
             skills=self._proposer_skills,
         ) as (workspace_obj, workspace_path_for_agent):
             proposer_agent = self._build_agent(workspace_path_for_agent)
-            instruction = build_proposer_instruction(self.use_adaptation_guide)
+            instruction = "Diagnose why the agent is underperforming, then fix project/agent.py to improve it."
 
             conversation = Conversation(agent=proposer_agent, workspace=workspace_obj)
             conversation.send_message(instruction)
@@ -525,7 +495,7 @@ class AgentProposer:
                     "Your modified agent.py failed validation with this error:\n"
                     f"```\n{last_error}\n```\n"
                     "Please fix the code in project/agent.py and ensure "
-                    "`build_agent(base_dir, llm, seed_prompt)` returns a valid Agent."
+                    "`build_agent(base_dir, llm)` returns a valid Agent."
                 )
 
             try:
@@ -543,7 +513,7 @@ class AgentProposer:
                 self.logger.log(f"[iter {iteration}] Proposer did not produce agent.py")
                 break
 
-            success, error = validate_agent_candidate(new_code, self.model_name, self.task_prompt)
+            success, error = validate_agent_candidate(new_code, self.model_name)
             if success:
                 new_candidate["agent_code"] = new_code
                 proposal_record = {

@@ -82,7 +82,7 @@ def run_optimization(
     trainset = data[:split_idx]
     valset = data[split_idx:] if split_idx < len(data) else data
 
-    seed_candidate = get_seed_candidate(task_id)
+    seed_candidate = get_seed_candidate(task_id, task_prompt)
     seed_code = seed_candidate["agent_code"]
 
     if run_dir is None:

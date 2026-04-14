@@ -26,12 +26,11 @@ def execute_agent_candidate(
     code: str,
     base_dir: str,
     lm_model: str,
-    seed_prompt: str,
 ) -> Agent:
     """Execute candidate code and return the constructed Agent."""
     namespace = {}
     exec(code, namespace)
-    return namespace["build_agent"](base_dir, lm_model, seed_prompt)
+    return namespace["build_agent"](base_dir, lm_model)
 
 
 def extract_workspace_scripts(code: str) -> dict[str, str]:
@@ -44,7 +43,7 @@ def extract_workspace_scripts(code: str) -> dict[str, str]:
     return fn()
 
 
-def _validate_worker(code: str, lm_model: str, seed_prompt: str) -> tuple[bool, str]:
+def _validate_worker(code: str, lm_model: str) -> tuple[bool, str]:
     """Subprocess worker for validate_agent_candidate."""
     import tempfile
 
@@ -55,7 +54,7 @@ def _validate_worker(code: str, lm_model: str, seed_prompt: str) -> tuple[bool, 
         try:
             namespace = {}
             exec(code, namespace)
-            agent = namespace["build_agent"](tmp_dir, lm_model, seed_prompt)
+            agent = namespace["build_agent"](tmp_dir, lm_model)
             if not isinstance(agent, _Agent):
                 return False, f"build_agent returned {type(agent).__name__}, expected Agent"
         except Exception as e:
@@ -80,7 +79,6 @@ def _validate_worker(code: str, lm_model: str, seed_prompt: str) -> tuple[bool, 
 def validate_agent_candidate(
     code: str,
     lm_model: str,
-    seed_prompt: str,
 ) -> tuple[bool, str]:
     """Validate candidate code by compiling, executing, and building the Agent."""
     try:
@@ -89,7 +87,7 @@ def validate_agent_candidate(
         return False, f"SyntaxError: {e}"
 
     with ProcessPoolExecutor(max_workers=1, max_tasks_per_child=1) as pool:
-        future = pool.submit(_validate_worker, code, lm_model, seed_prompt)
+        future = pool.submit(_validate_worker, code, lm_model)
         return future.result()
 
 

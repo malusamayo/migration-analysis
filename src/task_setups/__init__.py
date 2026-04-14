@@ -193,18 +193,26 @@ def get_eval_config(task_id: str) -> dict:
         raise ValueError(f"Unknown task_id: {task_id!r}")
 
 
-def get_seed_candidate(task_id: str) -> dict[str, str]:
-    """Return the seed agent candidate code for a task."""
+def _embed_prompt(code_template: str, seed_prompt: str) -> str:
+    """Replace the <<<SEED_PROMPT>>> placeholder with the actual prompt content."""
+    escaped = seed_prompt.replace('\\', '\\\\').replace('"""', '\\"\\"\\"')
+    return code_template.replace("<<<SEED_PROMPT>>>", escaped)
+
+
+def get_seed_candidate(task_id: str, seed_prompt: str) -> dict[str, str]:
+    """Return the seed agent candidate code for a task with the prompt embedded."""
     if task_id == "webarena":
         code = '''\
 from openhands.sdk import Agent, Tool
 from openhands.tools.browser_use import BrowserToolSet
 import os
 
-def build_agent(base_dir, llm, seed_prompt):
+SEED_PROMPT = """<<<SEED_PROMPT>>>"""
+
+def build_agent(base_dir, llm):
     prompt_path = os.path.join(base_dir, "system_prompt.md")
     with open(prompt_path, "w") as f:
-        f.write(seed_prompt)
+        f.write(SEED_PROMPT)
     browser_root = os.path.join(base_dir, ".browser_use")
     return Agent(
         llm=llm,
@@ -225,10 +233,12 @@ from openhands.tools.terminal import TerminalTool
 from openhands.tools.file_editor import FileEditorTool
 import os
 
-def build_agent(base_dir, llm, seed_prompt):
+SEED_PROMPT = """<<<SEED_PROMPT>>>"""
+
+def build_agent(base_dir, llm):
     prompt_path = os.path.join(base_dir, "system_prompt.md")
     with open(prompt_path, "w") as f:
-        f.write(seed_prompt)
+        f.write(SEED_PROMPT)
     from src.task_setups.ab_testing import get_mcp_config
     mcp_config = get_mcp_config(base_dir)
     return Agent(
@@ -245,17 +255,19 @@ from openhands.tools.terminal import TerminalTool
 from openhands.tools.file_editor import FileEditorTool
 import os
 
-def build_agent(base_dir, llm, seed_prompt):
+SEED_PROMPT = """<<<SEED_PROMPT>>>"""
+
+def build_agent(base_dir, llm):
     prompt_path = os.path.join(base_dir, "system_prompt.md")
     with open(prompt_path, "w") as f:
-        f.write(seed_prompt)
+        f.write(SEED_PROMPT)
     return Agent(
         llm=llm,
         tools=[Tool(name=TerminalTool.name), Tool(name=FileEditorTool.name)],
         system_prompt_filename=prompt_path,
     )
 '''
-    return {"agent_code": code}
+    return {"agent_code": _embed_prompt(code, seed_prompt)}
 
 
 def requires_eval_lm(task_id: str) -> bool:

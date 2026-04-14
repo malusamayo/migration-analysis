@@ -149,7 +149,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--eval_lm", type=str, default=None, help="LM name for evaluation feedback (required for webtest)")
     parser.add_argument("--agent_file", type=str, default=None,
-                        help="Path to a Python file defining build_agent(base_dir, lm_model, seed_prompt) -> Agent")
+                        help="Path to a Python file defining build_agent(base_dir, llm) -> Agent")
     parser.add_argument("--rollout_version", type=str, default=None,
                         help="Rollout version identifier (default: 'v0')")
     

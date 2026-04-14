@@ -116,6 +116,24 @@ class ToolAnnotations(BaseModel):
     openWorldHint: bool = True
 ```
 
+## Deploying Helper Scripts via get_workspace_scripts
+
+`agent.py` can optionally define `get_workspace_scripts() -> dict[str, str]` to provision files into the agent's working directory at runtime. The keys are relative file paths and the values are the file contents.
+
+```python
+def get_workspace_scripts() -> dict[str, str]:
+    return {
+        "helpers/parse_output.py": """\
+import sys, json
+
+data = json.load(sys.stdin)
+print(data["result"])
+""",
+    }
+```
+
+These scripts are written to the agent's workspace before execution, so the agent can call them via the terminal tool. This is useful for injecting small utilities the agent can rely on without requiring them to be installed globally.
+
 ## Replacing the Built-in FinishTool
 
 To replace the default `FinishTool`:

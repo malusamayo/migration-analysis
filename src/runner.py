@@ -669,8 +669,7 @@ def run_single_instance_agentic(
             spec = importlib.util.spec_from_file_location("_agent_module", agent_file)
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
-            seed_prompt = Path(system_prompt_path).read_text()
-            agent = mod.build_agent(base_dir=str(workspace_dir), llm=llm, seed_prompt=seed_prompt)
+            agent = mod.build_agent(base_dir=str(workspace_dir), llm=llm)
             # Remap system_prompt_filename to an absolute path under base_dir so that
             # render_template can find it regardless of the CWD.
             # In Docker mode, base_dir is the container-internal path (/workspace/project).
