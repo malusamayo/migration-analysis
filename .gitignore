@@ -19,6 +19,7 @@ analysis_results/
 *.ipynb
 *.html
 
+.claude/
 .vscode/
 wandb/
 
