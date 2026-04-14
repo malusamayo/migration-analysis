@@ -9,7 +9,7 @@ prompt_name: "cursor"
 
 max_examples: 1
 n_responses: 1
-batch_size: 32
+agent_batch_size: 32
 resume: true
 
 is_agentic: true

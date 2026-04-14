@@ -5,15 +5,15 @@ prompt_name: "default"
 
 # GEPA settings
 reflection_lm: "gemini-3.1-pro-preview"
-max_metric_calls: 60
-seed: 0
+max_cost: 5.0
+seed: 1
 
 # Evaluation
 eval_lm: "gemini-3-flash-preview"
 
 # Data
 max_examples: 20
-train_ratio: 0.7
+train_ratio: 0.6
 
 # Reflection
 use_adaptation_guide: true

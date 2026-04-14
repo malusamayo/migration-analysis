@@ -6,13 +6,14 @@ prompt_name: "shopping_admin"
 
 # GEPA settings
 reflection_lm: "gemini-3.1-pro-preview"
-max_metric_calls: 60
-seed: 1
+# max_metric_calls: 60
+max_cost: 10.0
+seed: 10
 
 # Data
 max_examples: 10
 n_responses: 1
-batch_size: 1
+agent_batch_size: 1
 train_ratio: 0.6
 
 # Evaluation

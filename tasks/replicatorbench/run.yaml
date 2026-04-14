@@ -1,15 +1,16 @@
 task_id: "replicatorbench"
 data_path: "data/replicatorbench.json"
-model_name: "gemini-3.1-pro-preview"
-# model_name: "qwen3-coder-30b-a3b"
+# model_name: "gemini-3.1-pro-preview"
+model_name: "qwen3-coder-30b-a3b"
 prompt_name: "default"
-max_examples: 4
+max_examples: 8
 n_responses: 1
-batch_size: 4
+agent_batch_size: 4
 resume: true
 
 is_agentic: true
 use_docker: true
 server_image: "replicatorbench:latest"
 
+agent_file: "scripts/agents/multi_agent_rb_no_validation.py"
 eval_lm: "gemini-3-flash-preview"

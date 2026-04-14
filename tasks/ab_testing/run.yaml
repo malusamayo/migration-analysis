@@ -7,7 +7,7 @@ prompt_name: "default"
 
 max_examples: 1
 n_responses: 1
-batch_size: 2
+agent_batch_size: 2
 resume: true
 
 is_agentic: true
