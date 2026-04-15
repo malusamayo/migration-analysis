@@ -3,9 +3,8 @@ import os
 import shutil
 import traceback
 from pathlib import Path
-from typing import Any, Callable, Mapping, Optional, Sequence
+from typing import Any, Callable, Optional
 
-import yaml
 from openhands.sdk import Agent, Conversation, LLM, Tool
 from openhands.sdk.context import Skill
 from openhands.sdk.context.agent_context import AgentContext
@@ -13,14 +12,13 @@ from openhands.tools.file_editor import FileEditorTool
 from openhands.tools.terminal import TerminalTool
 
 from .common import (
-    LiteralBlockDumper,
     add_to_cost_bucket,
     build_code_diff,
     hash_text,
     resolve_markdown_path,
-    summarize_score_changes,
     validate_agent_candidate,
 )
+from .memory import ProposerMemory
 from ..utils import LM_DICT, build_sdk_llm
 from ..task_setups import get_mcp_config
 from ..runner import get_workspace_context
@@ -33,16 +31,13 @@ PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an
 ## Workspace Layout
 
 - `project/agent.py` — The current agent configuration code.
-- `trajectories/` — Markdown traces of the agent's recent execution on training examples.
-- `eval_results.yaml` — Per-example scores and detailed evaluation feedback.
-- `proposal_memory/rejected_proposals.yaml` — Recent rejected edits for this candidate.
+- `memory/scoreboard.md` — Succinct optimization history table: scores and status per candidate.
+- `memory/current/overview.md` — Current candidate's code and evaluation results.
+- `memory/current/trajectories/` — Markdown traces of the agent's recent execution on training examples.
+- `memory/past_agents.md` — Past candidate summaries with scores, evaluation results, and agent code.
 - `docs/sdk_reference.md` — High-level SDK map with numbered sections.
 - `docs/sdk_reference_details/` — Per-section SDK signatures, examples, and implementation details.
 {adaptation_guide_layout}
-
-## Your Task
-
-Diagnose why the agent is underperforming, then fix `project/agent.py` to improve it. Consult `docs/sdk_reference.md` to navigate the API surface, then read the relevant files under `docs/sdk_reference_details/` for concrete signatures and examples. Check `proposal_memory/rejected_proposals.yaml` before editing to avoid repeating non-improving changes.
 
 ## Constraints on agent.py
 
@@ -168,6 +163,7 @@ class AgentProposer:
         logger,
         cost_tracker: dict[str, dict],
         save_cost_summary: Callable[[], None],
+        memory: ProposerMemory,
         max_proposal_retries: int = 2,
         use_adaptation_guide: bool = True,
         adaptation_guide_markdown: Optional[str] = None,
@@ -183,6 +179,7 @@ class AgentProposer:
         self.logger = logger
         self.cost_tracker = cost_tracker
         self.save_cost_summary = save_cost_summary
+        self.memory = memory
         self.max_proposal_retries = max_proposal_retries
         self.use_adaptation_guide = use_adaptation_guide
         self.adaptation_guide_markdown = adaptation_guide_markdown
@@ -195,70 +192,9 @@ class AgentProposer:
             use_adaptation_guide=use_adaptation_guide,
             adaptation_guide_markdown=adaptation_guide_markdown,
         )
-        self._last_reflection_context: Optional[dict[str, Any]] = None
-        self._pending_proposal_context: Optional[dict[str, Any]] = None
-
-    def _proposal_memory_dir(self) -> str:
-        return os.path.join(self.run_dir, "shared", "proposal_memory")
-
-    def _proposal_memory_path(self) -> str:
-        return os.path.join(self._proposal_memory_dir(), "rejected_proposals.jsonl")
 
     def _iter_proposal_metadata_path(self, iter_dir: str) -> str:
         return os.path.join(iter_dir, "proposer", "proposal_metadata.json")
-
-    def _iter_proposal_outcome_path(self, iter_dir: str) -> str:
-        return os.path.join(iter_dir, "proposer", "proposal_outcome.json")
-
-    def _load_rejected_proposals(self, iteration: int) -> list[dict[str, Any]]:
-        path = self._proposal_memory_path()
-        if not os.path.exists(path):
-            return []
-
-        records = []
-        with open(path) as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    records.append(json.loads(line))
-                except json.JSONDecodeError:
-                    self.logger.log(f"[iter {iteration}] Skipping invalid proposal memory record")
-        return records
-
-    def _save_rejected_proposals(self, records: list[dict[str, Any]]):
-        path = self._proposal_memory_path()
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w") as f:
-            for record in records[-200:]:
-                f.write(json.dumps(record, default=str))
-                f.write("\n")
-
-    def _append_rejected_proposal(self, iteration: int, record: dict[str, Any]):
-        records = self._load_rejected_proposals(iteration)
-        records.append(record)
-        self._save_rejected_proposals(records)
-
-    def _select_relevant_rejections(
-        self,
-        iteration: int,
-        candidate: dict[str, str],
-        limit: int = 8,
-    ) -> list[dict[str, Any]]:
-        candidate_hash = hash_text(candidate["agent_code"])
-        records = self._load_rejected_proposals(iteration)
-        if not records:
-            return []
-
-        same_parent = [r for r in records if r.get("parent_candidate_hash") == candidate_hash]
-        recent_other = [r for r in records if r.get("parent_candidate_hash") != candidate_hash]
-
-        selected = same_parent[-limit:]
-        remaining = max(0, limit - len(selected))
-        if remaining > 0:
-            selected.extend(recent_other[-min(2, remaining):])
-        return selected
 
     def _write_proposal_metadata(self, iter_dir: str, record: dict[str, Any]):
         path = self._iter_proposal_metadata_path(iter_dir)
@@ -266,93 +202,11 @@ class AgentProposer:
         with open(path, "w") as f:
             json.dump(record, f, indent=2)
 
-    def _write_proposal_outcome(self, iter_dir: str, record: dict[str, Any]):
-        path = self._iter_proposal_outcome_path(iter_dir)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w") as f:
-            json.dump(record, f, indent=2)
-
-    def record_reflection_context(
-        self,
-        iteration: int,
-        batch: Sequence[dict[str, Any]],
-        candidate: dict[str, str],
-        scores: Sequence[float],
-    ) -> None:
-        self._pending_proposal_context = None
-        self._last_reflection_context = {
-            "iteration": iteration,
-            "parent_candidate_hash": hash_text(candidate["agent_code"]),
-            "before_scores": list(scores),
-            "before_score_sum": sum(scores),
-            "batch_prompts": [example.get("prompt", "")[:300] for example in batch],
-        }
-
-    def record_candidate_outcome(
-        self,
-        iteration: int,
-        iter_dir: str,
-        batch: Sequence[dict[str, Any]],
-        candidate: dict[str, str],
-        scores: Sequence[float],
-        outputs: Sequence[dict[str, Any]],
-    ) -> None:
-        pending = self._pending_proposal_context
-        reflection = self._last_reflection_context
-        if pending is None or reflection is None:
-            return
-
-        proposed_hash = hash_text(candidate["agent_code"])
-        if proposed_hash != pending.get("proposed_candidate_hash"):
-            return
-
-        before_scores = list(reflection.get("before_scores", []))
-        if len(before_scores) != len(scores):
-            self.logger.log(
-                f"[iter {iteration}] Skipping proposal outcome record due to score length mismatch"
-            )
-            self._pending_proposal_context = None
-            return
-
-        before_sum = float(reflection.get("before_score_sum", 0.0))
-        after_score_list = list(scores)
-        after_sum = sum(after_score_list)
-        delta = after_sum - before_sum
-
-        per_example_feedback = [
-            {
-                "prompt": example.get("prompt", "")[:300],
-                "score": score,
-                "feedback": output.get("feedback", "") if isinstance(output, dict) else "",
-            }
-            for example, score, output in zip(batch, scores, outputs)
-        ]
-
-        outcome = {
-            **pending,
-            "status": "accepted_on_subsample" if delta > 0 else "rejected_on_subsample",
-            "batch_prompts": list(reflection.get("batch_prompts", [])),
-            "before_scores": before_scores,
-            "after_scores": after_score_list,
-            "before_score_sum": before_sum,
-            "after_score_sum": after_sum,
-            "score_delta": delta,
-            "score_delta_examples": summarize_score_changes(batch, before_scores, after_score_list),
-            "per_example_feedback": per_example_feedback,
-        }
-        self._write_proposal_outcome(iter_dir, outcome)
-
-        if delta <= 0:
-            self._append_rejected_proposal(iteration, outcome)
-
-        self._pending_proposal_context = None
-
     def _setup_workspace(
         self,
         iteration: int,
         iter_dir: str,
         candidate: dict[str, str],
-        reflective_dataset: Mapping[str, Sequence[Mapping[str, Any]]],
     ) -> str:
         workspace = os.path.join(iter_dir, "proposer", "workspace")
         if os.path.exists(workspace):
@@ -365,50 +219,19 @@ class AgentProposer:
         with open(os.path.join(project_dir, "agent.py"), "w") as f:
             f.write(candidate["agent_code"])
 
-        traj_dir = os.path.join(workspace, "trajectories")
-        os.makedirs(traj_dir)
-        dataset = reflective_dataset.get("agent_code", [])
-        for i, record in enumerate(dataset):
-            md_parts = [f"# Example {i}"]
-            md_parts.append(f"\n## Task Input\n{record.get('Task Input', '')}")
-            md_parts.append(f"\n## Evaluation Feedback\n{record.get('Evaluation Feedback', '')}")
-            trajectory_md = record.get("Agent Trajectory", "")
-            if trajectory_md:
-                md_parts.append(f"\n## Agent Trajectory\n{trajectory_md}")
-            with open(os.path.join(traj_dir, f"example_{i:02d}.md"), "w") as f:
-                f.write("\n".join(md_parts))
-
-        eval_summary = []
-        for i, record in enumerate(dataset):
-            eval_out = record.get("eval_output", {})
-            entry = {
-                "example": i,
-                "feedback": record.get("Evaluation Feedback", ""),
-            }
-            for key in ("task_id", "score", "answer", "reference_answers", "eval_types"):
-                if key in eval_out:
-                    entry[key] = eval_out[key]
-            eval_summary.append(entry)
-        with open(os.path.join(workspace, "eval_results.yaml"), "w") as f:
-            yaml.dump(eval_summary, f, Dumper=LiteralBlockDumper, sort_keys=False, default_flow_style=False)
-
-        memory_dir = os.path.join(workspace, "proposal_memory")
-        os.makedirs(memory_dir)
-        rejected_proposals = self._select_relevant_rejections(iteration, candidate)
-        memory_payload = rejected_proposals or [
-            {
-                "status": "no_prior_rejections",
-                "note": "No prior rejected proposals recorded for this candidate yet.",
-            }
-        ]
-        with open(os.path.join(memory_dir, "rejected_proposals.yaml"), "w") as f:
-            yaml.dump(memory_payload, f, Dumper=LiteralBlockDumper, sort_keys=False, default_flow_style=False)
+        self.memory.stage_workspace(workspace)
 
         stage_proposer_reference_docs(
             workspace,
             use_adaptation_guide=self.use_adaptation_guide,
             adaptation_guide_markdown=self.adaptation_guide_markdown,
         )
+
+        # Make entire workspace world-writable so Docker's appuser can modify files
+        for root, dirs, files in os.walk(workspace):
+            os.chmod(root, 0o777)
+            for f in files:
+                os.chmod(os.path.join(root, f), 0o666)
 
         return workspace
 
@@ -441,16 +264,14 @@ class AgentProposer:
         iteration: int,
         iter_dir: str,
         candidate: dict[str, str],
-        reflective_dataset: Mapping[str, Sequence[Mapping[str, Any]]],
         components_to_update: list[str],
     ) -> dict[str, str]:
         new_candidate = dict(candidate)
-        self._pending_proposal_context = None
 
         if "agent_code" not in components_to_update:
             return new_candidate
 
-        workspace = self._setup_workspace(iteration, iter_dir, candidate, reflective_dataset)
+        workspace = self._setup_workspace(iteration, iter_dir, candidate)
         self.logger.log(f"[iter {iteration}] Proposer workspace: {workspace}")
 
         # Write prompt file to the host workspace directory
@@ -513,17 +334,25 @@ class AgentProposer:
                 self.logger.log(f"[iter {iteration}] Proposer did not produce agent.py")
                 break
 
-            success, error = validate_agent_candidate(new_code, self.model_name)
+            agent_llm = build_sdk_llm(LM_DICT[self.model_name])
+            success, error = validate_agent_candidate(new_code, agent_llm)
             if success:
                 new_candidate["agent_code"] = new_code
+                code_diff = build_code_diff(candidate["agent_code"], new_code)
+                self.memory.record_proposal(
+                    iteration=iteration,
+                    parent_code=candidate["agent_code"],
+                    proposed_code=new_code,
+                    components_updated=list(components_to_update),
+                    code_diff=code_diff,
+                )
                 proposal_record = {
                     "iteration": iteration,
                     "parent_candidate_hash": hash_text(candidate["agent_code"]),
                     "proposed_candidate_hash": hash_text(new_code),
                     "components_to_update": list(components_to_update),
-                    "code_diff": build_code_diff(candidate["agent_code"], new_code),
+                    "code_diff": code_diff,
                 }
-                self._pending_proposal_context = proposal_record
                 self._write_proposal_metadata(iter_dir, proposal_record)
                 if attempt > 0:
                     self.logger.log(f"[iter {iteration}] Proposal succeeded on attempt {attempt + 1}")

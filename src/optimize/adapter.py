@@ -15,7 +15,9 @@ from .common import (
     empty_cost_bucket,
     extract_dspy_cost,
     format_eval_feedback,
+    hash_text,
 )
+from .memory import ProposerMemory
 from .proposer import AgentProposer
 from ..review.trajectory_utils import convert_json_to_markdown
 from ..runner import run_single_instance_agentic
@@ -212,6 +214,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
             "proposer": empty_cost_bucket(),
         }
 
+        self.memory = ProposerMemory(run_dir)
         self.proposer = AgentProposer(
             run_dir=run_dir,
             task_prompt=task_prompt,
@@ -220,6 +223,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
             logger=logger,
             cost_tracker=self._cost_tracker,
             save_cost_summary=self._save_cost_summary,
+            memory=self.memory,
             max_proposal_retries=max_proposal_retries,
             use_adaptation_guide=use_adaptation_guide,
             adaptation_guide_markdown=adaptation_guide_markdown,
@@ -413,17 +417,44 @@ class AgentOptimizationAdapter(GEPAAdapter):
         avg_score = sum(scores) / len(scores) if scores else 0.0
         self.logger.log(f"[iter {self._gepa_iter}, {self._phase}] scores: {scores}, avg: {avg_score:.3f}")
 
-        if capture_traces:
-            self.proposer.record_reflection_context(self._gepa_iter, batch, candidate, scores)
-        elif self._phase == "candidate":
-            self.proposer.record_candidate_outcome(
-                self._gepa_iter,
-                self._iter_dir(),
-                batch,
-                candidate,
-                scores,
+        if self._phase == "seed":
+            self.memory.record_seed(
+                candidate["agent_code"],
+                list(scores),
                 outputs,
+                batch,
+                trajectory_dir=str(phase_dir),
             )
+            self.memory.write_iteration_overview(self._iter_dir(), 0)
+        elif capture_traces:
+            self.memory.record_reflection(
+                self._gepa_iter,
+                candidate["agent_code"],
+                list(scores),
+                [ex.get("prompt", "")[:300] for ex in batch],
+                str(self._phase_dir()),
+            )
+        elif self._phase == "candidate":
+            self.memory.record_outcome(
+                self._gepa_iter,
+                candidate["agent_code"],
+                list(scores),
+                outputs,
+                batch,
+                trajectory_dir=str(phase_dir),
+            )
+            self.memory.write_iteration_overview(self._iter_dir(), self._gepa_iter)
+        elif self._phase == "valset":
+            avg = sum(scores) / len(scores) if scores else 0.0
+            self.memory.record_val_score(
+                hash_text(candidate["agent_code"]),
+                avg,
+                list(scores),
+                outputs,
+                batch,
+                trajectory_dir=str(phase_dir),
+            )
+            self.memory.write_iteration_overview(self._iter_dir(), self._gepa_iter)
 
         return EvaluationBatch(outputs=outputs, scores=scores, trajectories=trajectories)
 
@@ -474,6 +505,8 @@ class AgentOptimizationAdapter(GEPAAdapter):
             json.dump(result, f, indent=2, default=str)
         self.logger.log(f"[iter {self._gepa_iter}] Reflection inputs saved to {reflection_path}")
 
+        self.memory.record_reflective_dataset(result.get("agent_code", []))
+
         return result
 
     def propose_new_texts(
@@ -486,6 +519,5 @@ class AgentOptimizationAdapter(GEPAAdapter):
             iteration=self._gepa_iter,
             iter_dir=self._iter_dir(),
             candidate=candidate,
-            reflective_dataset=reflective_dataset,
             components_to_update=components_to_update,
         )

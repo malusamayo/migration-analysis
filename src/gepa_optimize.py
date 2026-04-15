@@ -225,6 +225,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--reflection_lm", type=str, default=None, help="LM for proposer agent")
     parser.add_argument("--eval_lm", type=str, default=None, help="LM for evaluation")
     parser.add_argument("--max_metric_calls", type=int, default=None)
+    parser.add_argument(
+        "--no_improvement_patience",
+        type=int,
+        default=None,
+        help="Stop after this many GEPA iterations without improving the best full-valset score.",
+    )
     parser.add_argument("--max_cost", type=float, default=None, help="Hard cost budget in USD")
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--run_dir", type=str, default=None)
@@ -282,7 +288,11 @@ def main(argv: Optional[list[str]] = None) -> int:
         args.max_metric_calls if args.max_metric_calls is not None else config.get("max_metric_calls")
     )
     max_cost = args.max_cost if args.max_cost is not None else config.get("max_cost")
-    no_improvement_patience = config.get("no_improvement_patience")
+    no_improvement_patience = (
+        args.no_improvement_patience
+        if args.no_improvement_patience is not None
+        else config.get("no_improvement_patience", 10)
+    )
     seed = args.seed if args.seed is not None else config.get("seed", 0)
     run_dir = args.run_dir or config.get("run_dir")
     data_path = config.get("data_path")

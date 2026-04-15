@@ -6,7 +6,7 @@ from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any, Optional, Sequence
 
-from openhands.sdk import Agent
+from openhands.sdk import Agent, LLM
 
 
 class LiteralBlockDumper(yaml.Dumper):
@@ -25,12 +25,12 @@ LiteralBlockDumper.add_representer(str, _literal_str_representer)
 def execute_agent_candidate(
     code: str,
     base_dir: str,
-    lm_model: str,
+    llm: LLM,
 ) -> Agent:
     """Execute candidate code and return the constructed Agent."""
     namespace = {}
     exec(code, namespace)
-    return namespace["build_agent"](base_dir, lm_model)
+    return namespace["build_agent"](base_dir, llm)
 
 
 def extract_workspace_scripts(code: str) -> dict[str, str]:
@@ -43,7 +43,7 @@ def extract_workspace_scripts(code: str) -> dict[str, str]:
     return fn()
 
 
-def _validate_worker(code: str, lm_model: str) -> tuple[bool, str]:
+def _validate_worker(code: str, llm: LLM) -> tuple[bool, str]:
     """Subprocess worker for validate_agent_candidate."""
     import tempfile
 
@@ -54,7 +54,7 @@ def _validate_worker(code: str, lm_model: str) -> tuple[bool, str]:
         try:
             namespace = {}
             exec(code, namespace)
-            agent = namespace["build_agent"](tmp_dir, lm_model)
+            agent = namespace["build_agent"](tmp_dir, llm)
             if not isinstance(agent, _Agent):
                 return False, f"build_agent returned {type(agent).__name__}, expected Agent"
         except Exception as e:
@@ -78,7 +78,7 @@ def _validate_worker(code: str, lm_model: str) -> tuple[bool, str]:
 
 def validate_agent_candidate(
     code: str,
-    lm_model: str,
+    llm: LLM,
 ) -> tuple[bool, str]:
     """Validate candidate code by compiling, executing, and building the Agent."""
     try:
@@ -87,7 +87,7 @@ def validate_agent_candidate(
         return False, f"SyntaxError: {e}"
 
     with ProcessPoolExecutor(max_workers=1, max_tasks_per_child=1) as pool:
-        future = pool.submit(_validate_worker, code, lm_model)
+        future = pool.submit(_validate_worker, code, llm)
         return future.result()
 
 

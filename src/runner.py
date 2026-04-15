@@ -670,12 +670,6 @@ def run_single_instance_agentic(
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
             agent = mod.build_agent(base_dir=str(workspace_dir), llm=llm)
-            # Remap system_prompt_filename to an absolute path under base_dir so that
-            # render_template can find it regardless of the CWD.
-            # In Docker mode, base_dir is the container-internal path (/workspace/project).
-            # In non-Docker mode, base_dir is workspace_dir.absolute() (the host path).
-            fname = os.path.basename(agent.system_prompt_filename)
-            agent = agent.model_copy(update={"system_prompt_filename": os.path.join(base_dir, fname)})
             fn = getattr(mod, "get_workspace_scripts", None)
             if fn is not None:
                 for filename, content in fn().items():
