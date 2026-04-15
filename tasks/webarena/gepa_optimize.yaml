@@ -1,17 +1,17 @@
 task_id: "webarena"
 data_path: "data/webarena_lite.json"
-# model_name: "qwen3-coder-30b-a3b"
-model_name: "ministral-3-8b"
+model_name: "qwen3-coder-30b-a3b"
+# model_name: "ministral-3-8b"
 prompt_name: "shopping_admin"
 
 # GEPA settings
 reflection_lm: "gemini-3.1-pro-preview"
 # max_metric_calls: 60
-max_cost: 10.0
-seed: 10
+max_cost: 8.0
+seed: 0
 
 # Data
-max_examples: 10
+max_examples: 20
 n_responses: 1
 train_ratio: 0.5
 
@@ -27,6 +27,7 @@ use_adaptation_guide: true
 is_agentic: true
 use_docker: true
 server_image: "webarena:latest"
+docker_network: "webarena-net"
 max_time: 600
 
 start_servers: false

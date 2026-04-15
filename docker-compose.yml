@@ -4,28 +4,40 @@ services:
     build:
       context: .
       dockerfile: tasks/webtest/Dockerfile
+      args:
+        USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
   webgen:
     image: webgen:latest
     build:
       context: .
       dockerfile: tasks/webgen/Dockerfile
+      args:
+        USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
   ab_testing:
     image: ab_testing:latest
     build:
       context: .
       dockerfile: tasks/ab_testing/Dockerfile
+      args:
+        USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
   replicatorbench:
     image: replicatorbench:latest
     build:
       context: .
       dockerfile: tasks/replicatorbench/Dockerfile
+      args:
+        USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
   webarena:
     image: webarena:latest
     build:
       context: .
       dockerfile: tasks/webarena/Dockerfile
+      args:
+        USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
   docbench:
     image: docbench:latest
     build:
       context: .
       dockerfile: tasks/docbench/Dockerfile
+      args:
+        USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}

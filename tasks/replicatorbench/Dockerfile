@@ -2,6 +2,8 @@
 
 FROM python:3.14-slim
 
+ARG USER_UID
+
 ENV HOME=/workspace \
     VIRTUAL_ENV=/workspace/.venv \
     PATH="/workspace/.venv/bin:$PATH" \
@@ -46,7 +48,7 @@ RUN Rscript -e "install.packages('BiocManager', repos='https://cloud.r-project.o
 
 COPY --from=ghcr.io/astral-sh/uv:0.9.2 /uv /bin/uv
 
-RUN useradd --create-home --home-dir /workspace --shell /bin/bash appuser \
+RUN useradd --create-home --home-dir /workspace --shell /bin/bash --uid $USER_UID appuser \
  && chown appuser:appuser /workspace
 
 COPY --chown=appuser:appuser pyproject.toml uv.lock ./
