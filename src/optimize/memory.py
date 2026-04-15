@@ -55,12 +55,9 @@ class CandidateRecord:
         return cls(**d)
 
 
-def _truncate_feedback(text: str, max_len: int = 120) -> str:
-    """Truncate feedback text for table display."""
-    text = text.replace("|", "\\|").replace("\n", " ").strip()
-    if len(text) > max_len:
-        return text[: max_len - 3] + "..."
-    return text
+def _sanitize_feedback(text: str) -> str:
+    """Sanitize feedback text for markdown table display."""
+    return text.replace("|", "\\|").replace("\n", " ").strip()
 
 
 def _append_feedback_table(
@@ -79,7 +76,7 @@ def _append_feedback_table(
         lines.append("| Ex | Before | After | Feedback |")
         lines.append("|----|--------|-------|----------|")
         for i, (fb, before) in enumerate(zip(feedback_rows, before_scores)):
-            feedback_text = _truncate_feedback(fb.get("feedback", ""))
+            feedback_text = _sanitize_feedback(fb.get("feedback", ""))
             lines.append(
                 f"| {i} | {before} | {fb.get('score', '-')} | {feedback_text} |"
             )
@@ -87,7 +84,7 @@ def _append_feedback_table(
         lines.append("| Ex | Score | Feedback |")
         lines.append("|----|-------|----------|")
         for i, fb in enumerate(feedback_rows):
-            feedback_text = _truncate_feedback(fb.get("feedback", ""))
+            feedback_text = _sanitize_feedback(fb.get("feedback", ""))
             lines.append(f"| {i} | {fb.get('score', '-')} | {feedback_text} |")
     lines.append("")
 
@@ -237,7 +234,7 @@ class ProposerMemory:
 
         before_sum = record.reflection_score_sum
         if before_sum is not None:
-            record.score_delta = after_sum - before_sum
+            record.score_delta = (after_sum - before_sum) / len(score_list) if score_list else 0.0
             record.status = (
                 "accepted_on_subsample" if record.score_delta > 0 else "rejected_on_subsample"
             )
@@ -320,7 +317,7 @@ class ProposerMemory:
         current = self.get_current()
         if current:
             with open(os.path.join(current_dir, "overview.md"), "w") as f:
-                f.write(self._format_candidate_overview(current))
+                f.write(self._format_current_overview(current))
         traj_dir = os.path.join(current_dir, "trajectories")
         os.makedirs(traj_dir, exist_ok=True)
         for i, record in enumerate(self._reflective_records):
@@ -336,9 +333,7 @@ class ProposerMemory:
         with open(os.path.join(mem_dir, "past_agents.md"), "w") as f:
             f.write(self.format_past_agents())
 
-    def _format_candidate_overview(self, r: CandidateRecord) -> str:
-        """Format overview.md for a single candidate: agent code + eval results."""
-        lines: list[str] = []
+    def _append_candidate_header(self, lines: list[str], r: CandidateRecord) -> None:
         lines.append(f"# Iteration {r.iteration} — `{r.code_hash}`")
         lines.append("")
         lines.append(f"- **Status:** {r.status}")
@@ -352,7 +347,7 @@ class ProposerMemory:
             lines.append(f"- **Parent:** `{r.parent_hash}`")
         lines.append("")
 
-        # Evaluation results
+    def _append_candidate_results(self, lines: list[str], r: CandidateRecord) -> None:
         if r.per_example_feedback:
             _append_feedback_table(
                 lines,
@@ -367,14 +362,54 @@ class ProposerMemory:
                 else "## Evaluation Results"
             )
             _append_feedback_table(lines, heading, r.val_per_example_feedback)
-        
-        # Agent implementation
+
+    def _append_agent_code(self, lines: list[str], r: CandidateRecord) -> None:
         lines.append("## Agent Code")
         lines.append("```python")
         lines.append(r.agent_code)
         lines.append("```")
         lines.append("")
 
+    def _format_candidate_overview(self, r: CandidateRecord) -> str:
+        """Format overview.md for a single candidate: agent code + eval results."""
+        lines: list[str] = []
+        self._append_candidate_header(lines, r)
+        self._append_candidate_results(lines, r)
+        self._append_agent_code(lines, r)
+
+        return "\n".join(lines)
+
+    def _format_current_overview(self, r: CandidateRecord) -> str:
+        """Format current overview as results, reflection table, then agent code."""
+        lines: list[str] = []
+        self._append_candidate_header(lines, r)
+        self._append_candidate_results(lines, r)
+        if self._reflective_records:
+            lines.append(self._format_reflection_section().rstrip())
+            lines.append("")
+        self._append_agent_code(lines, r)
+
+        return "\n".join(lines)
+
+    def _format_reflection_section(self) -> str:
+        """Format the current reflection results with links to trajectory files."""
+        lines: list[str] = []
+        lines.append("## Current Reflection Results")
+        lines.append("")
+        lines.append(
+            "These are the results from running the current agent on the reflection subsample. "
+            "Each example has a detailed trajectory in `trajectories/`."
+        )
+        lines.append("")
+        lines.append("| Ex | Score | Feedback | Trajectory |")
+        lines.append("|----|-------|----------|------------|")
+        for i, record in enumerate(self._reflective_records):
+            eval_output = record.get("eval_output", {})
+            score = eval_output.get("score", "-")
+            feedback = _sanitize_feedback(record.get("Evaluation Feedback", ""))
+            traj_link = f"[trajectories/example_{i:02d}.md](trajectories/example_{i:02d}.md)"
+            lines.append(f"| {i} | {score} | {feedback} | {traj_link} |")
+        lines.append("")
         return "\n".join(lines)
 
     # ---- Query methods ----
