@@ -560,6 +560,7 @@ def _run_agentic_conversation(
         example: dict,
         skill_mode: str = "",
         max_time: Optional[float] = None,
+        agent_file: Optional[str] = None,
     ):
     """
     Core logic for running an agentic conversation.
@@ -571,6 +572,8 @@ def _run_agentic_conversation(
         example: Example data dictionary containing 'prompt' field
         skill_mode: One of ["all_loaded", "agent_decided", "monitor_decided"]
         max_time: Optional maximum runtime in seconds for RemoteConversation.run()
+        agent_file: Optional path (inside container) to agent file for
+            server-side loading.  Only used with RemoteConversation/Docker.
 
     Returns:
         dict: Example with added 'eval_result' field containing evaluation output and scores
@@ -579,7 +582,7 @@ def _run_agentic_conversation(
     error = None
     try:
         visualizer = DelegationVisualizer(name="main")
-        conversation = Conversation(agent=agent, workspace=workspace_obj, visualizer=visualizer)
+        conversation = Conversation(agent=agent, workspace=workspace_obj, visualizer=visualizer, agent_file=agent_file)
         instruction = example['prompt']
 
         if skill_mode == "agent_decided":
@@ -670,6 +673,29 @@ def run_single_instance_agentic(
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
             agent = mod.build_agent(base_dir=str(workspace_dir), llm=llm)
+            # Remap system_prompt_filename to an absolute path under base_dir so that
+            # render_template can find it regardless of the CWD.
+            # In Docker mode, base_dir is the container-internal path (/workspace/project).
+            # In non-Docker mode, base_dir is workspace_dir.absolute() (the host path).
+            fname = os.path.basename(agent.system_prompt_filename)
+            agent = agent.model_copy(update={"system_prompt_filename": os.path.join(base_dir, fname)})
+            # Remap tool params (e.g. browser user_data_dir) from local workspace path to
+            # Docker path. build_agent writes files using local paths (so host writes work),
+            # but any runtime paths embedded in tool params must use the container-side path.
+            local_workspace = str(workspace_dir)
+            if base_dir != local_workspace:
+                remapped_tools = []
+                for tool in agent.tools:
+                    if tool.params:
+                        new_params = {
+                            k: v.replace(local_workspace, base_dir, 1)
+                            if isinstance(v, str) and v.startswith(local_workspace) else v
+                            for k, v in tool.params.items()
+                        }
+                        remapped_tools.append(tool.model_copy(update={"params": new_params}))
+                    else:
+                        remapped_tools.append(tool)
+                agent = agent.model_copy(update={"tools": remapped_tools})
             fn = getattr(mod, "get_workspace_scripts", None)
             if fn is not None:
                 for filename, content in fn().items():
@@ -703,6 +729,12 @@ def run_single_instance_agentic(
             docker_volumes,
             workspace_dir) = construct_docker_workspace(workspace_dir.absolute(), system_prompt_path, skills)
 
+        docker_agent_file = None
+        if agent_file is not None:
+            abs_agent_file = os.path.abspath(agent_file)
+            docker_agent_file = f"/workspace/_agent_config.py"
+            docker_volumes.append(f"{abs_agent_file}:{docker_agent_file}:ro")
+
         agent = _build_agent(docker_workspace_path, docker_system_prompt_path)
 
         with DockerWorkspace(**make_docker_kwargs(docker_workspace_path, server_image, docker_volumes, docker_network)) as docker_workspace:
@@ -724,6 +756,7 @@ def run_single_instance_agentic(
                 example=example,
                 skill_mode=skill_mode,
                 max_time=max_time,
+                agent_file=docker_agent_file,
             )
             if post_docker_fn:
                 post_docker_fn(
