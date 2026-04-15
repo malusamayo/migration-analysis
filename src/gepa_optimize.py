@@ -291,7 +291,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     no_improvement_patience = (
         args.no_improvement_patience
         if args.no_improvement_patience is not None
-        else config.get("no_improvement_patience", 10)
+        else config.get("no_improvement_patience", 25)
     )
     seed = args.seed if args.seed is not None else config.get("seed", 0)
     run_dir = args.run_dir or config.get("run_dir")
