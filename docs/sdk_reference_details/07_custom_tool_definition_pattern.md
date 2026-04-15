@@ -81,42 +81,17 @@ agent = Agent(
 )
 ```
 
-## Alternative: Register a Factory Function
+## Replacing the Built-in FinishTool
 
-```python
-def make_tools(conv_state, **params) -> list[ToolDefinition]:
-    executor_a = ...
-    executor_b = ...
-    return [tool_a, tool_b]
+To replace the default `FinishTool`, follow the above steps to define your custom tool, but make sure that:
 
-register_tool("MyToolSet", make_tools)
-```
+1. Use a unique action class name; do not reuse `FinishAction`.
+2. Only define a custom observation type if you actually need one.
+3. The `ToolDefinition` subclass is named exactly `FinishTool`. Define the `create` method to return a single instance of `FinishTool` with your custom executor.
+4. Remove `"FinishTool"` from `include_default_tools` and add `Tool(name="FinishTool")` with your custom implementation to the agent's `tools` list.
 
-## ToolDefinition Key Fields
 
-```python
-class ToolDefinition[ActionT, ObservationT](ABC):
-    name: ClassVar[str]
-    description: str
-    action_type: type[Action]
-    observation_type: type[Observation] | None
-    annotations: ToolAnnotations | None = None
-    executor: ToolExecutor | None = None
-    meta: dict[str, Any] | None = None
-```
-
-## ToolAnnotations
-
-```python
-class ToolAnnotations(BaseModel):
-    title: str | None = None
-    readOnlyHint: bool = False
-    destructiveHint: bool = True
-    idempotentHint: bool = False
-    openWorldHint: bool = True
-```
-
-## Deploying Helper Scripts via get_workspace_scripts
+# Alternative: Deploying Helper Scripts via get_workspace_scripts
 
 `agent.py` can optionally define `get_workspace_scripts() -> dict[str, str]` to provision files into the agent's working directory at runtime. The keys are relative file paths and the values are the file contents.
 
@@ -133,13 +108,3 @@ print(data["result"])
 ```
 
 These scripts are written to the agent's workspace before execution, so the agent can call them via the terminal tool. This is useful for injecting small utilities the agent can rely on without requiring them to be installed globally.
-
-## Replacing the Built-in FinishTool
-
-To replace the default `FinishTool`:
-
-1. Define a `ToolDefinition` subclass named exactly `FinishTool`.
-2. Remove `"FinishTool"` from `include_default_tools`.
-3. Add `Tool(name="FinishTool")` explicitly to the agent's `tools`.
-4. Use a unique action class name; do not reuse `FinishAction`.
-5. Only define a custom observation type if you actually need one.

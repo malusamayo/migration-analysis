@@ -45,9 +45,11 @@ PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an
     - `base_dir` is a temp directory where the function can write files (prompts, skills, etc.).
     - `llm` is the language model instance to use.
 - Code must be valid, self-contained Python with explicit imports at the top.
-- Use the staged SDK docs in `docs/` for the full API surface.
-- After modifying agent.py, verify there are no syntax errors. Make sure the code is complete and self-contained.
 
+## Additional Guidelines
+
+- Past proposals and their outcomes are in `memory/past_agents.md`. Learn from them but do not feel constrained by them.
+- Use the staged SDK docs in `docs/` for the full API surface if uncertain.
 {adaptation_guide_line}
 """
 
