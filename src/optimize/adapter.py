@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import traceback
+from enum import Enum
 from pathlib import Path
 from typing import Any, Mapping, Optional, Sequence
 
@@ -23,6 +24,43 @@ from ..review.trajectory_utils import convert_json_to_markdown
 from ..runner import run_single_instance_agentic
 from ..task_setups import get_eval_config
 from ..utils import LM_DICT, batch_inference
+
+
+_PLAIN_SCALARS = (str, int, float, bool, type(None))
+
+
+def _to_process_safe_data(value: Any) -> Any:
+    """Convert worker payloads to plain data before multiprocessing pickles them."""
+    if type(value) in _PLAIN_SCALARS:
+        return value
+    if isinstance(value, Enum):
+        return _to_process_safe_data(value.value)
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, Mapping):
+        safe_dict = {}
+        for key, item in value.items():
+            safe_key = _to_process_safe_data(key)
+            if type(safe_key) not in _PLAIN_SCALARS:
+                safe_key = str(safe_key)
+            safe_dict[safe_key] = _to_process_safe_data(item)
+        return safe_dict
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return [_to_process_safe_data(item) for item in value]
+
+    model_dump = getattr(value, "model_dump", None)
+    if callable(model_dump):
+        try:
+            return _to_process_safe_data(model_dump(mode="json"))
+        except TypeError:
+            return _to_process_safe_data(model_dump())
+        except Exception:
+            pass
+
+    try:
+        return json.loads(json.dumps(value))
+    except TypeError:
+        return str(value)
 
 
 class CostBudgetStopper:
@@ -84,19 +122,20 @@ def _run_agent_worker(
         rollout_metrics = None
         if result and "run_result" in result:
             rollout_metrics = result["run_result"].get("metrics")
+        eval_example = _to_process_safe_data(result or example)
 
         return {
             "workspace_dir": workspace_base,
-            "eval_example": result or example,
+            "eval_example": eval_example,
             "log_dir": str(log_dir),
-            "rollout_metrics": rollout_metrics,
+            "rollout_metrics": _to_process_safe_data(rollout_metrics),
             "error_message": None,
         }
     except Exception as e:
         traceback.print_exc()
         return {
             "workspace_dir": workspace_base,
-            "eval_example": example,
+            "eval_example": _to_process_safe_data(example),
             "log_dir": "",
             "rollout_metrics": None,
             "error_message": f"Error on example {i}: {e}",
