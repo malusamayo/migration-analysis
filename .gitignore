@@ -23,6 +23,7 @@ analysis_results/
 .vscode/
 wandb/
 
+workspace/
 experiments/
 scripts/
 plots/
