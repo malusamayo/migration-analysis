@@ -114,9 +114,9 @@ When domain knowledge is easier to show than tell, provide few-shot demonstratio
 
 Fetch domain documentation, reference material, or past successful trajectories at each decision step rather than pre-loading everything. 
 
-When simple regex-based retrieval is insufficient, consider implementing established retriever patterns such as BM-25 or dense retrieval with a vector database.
+When simple regex-based retrieval is insufficient, consider using established retriever patterns such as BM-25 or dense retrieval with a vector database.
 
-**SDK references:** SDK Reference §7, Custom Tool Definition Pattern, in [`sdk_reference.md`](sdk_reference.md#7-custom-tool-definition-pattern) with implementation details in [`sdk_reference_details/07_custom_tool_definition_pattern.md`](sdk_reference_details/07_custom_tool_definition_pattern.md).
+**SDK references:** SDK Reference §17, Retriever Tool, in [`sdk_reference.md`](sdk_reference.md#17-retriever-tool) with implementation details in [`sdk_reference_details/17_retriever_tool.md`](sdk_reference_details/17_retriever_tool.md). For building a fully custom retrieval tool from scratch, also see SDK Reference §7, Custom Tool Definition Pattern, in [`sdk_reference.md`](sdk_reference.md#7-custom-tool-definition-pattern) with implementation details in [`sdk_reference_details/07_custom_tool_definition_pattern.md`](sdk_reference_details/07_custom_tool_definition_pattern.md).
 
 #### 4b. Trim observations
 

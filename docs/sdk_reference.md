@@ -24,6 +24,7 @@ Implementation details live in [`docs/sdk_reference_details/`](sdk_reference_det
 14. [Events and Callbacks](#14-events-and-callbacks)
 15. [LLM Registry](#15-llm-registry)
 16. [Common Patterns](#16-common-patterns)
+17. [Retriever Tool](#17-retriever-tool)
 
 ---
 
@@ -184,3 +185,13 @@ This section collects representative compositions of the SDK, such as minimal ag
 Use this section when you want an end-to-end starting point rather than an isolated API surface.
 
 Implementation details: [`sdk_reference_details/16_common_patterns.md`](sdk_reference_details/16_common_patterns.md)
+
+---
+
+## 17. Retriever Tool
+
+`BM25ToolSet` is an in-memory BM25 retrieval toolset that gives an agent two coordinated tools: one to index a document corpus at runtime and one to query it. It requires no external dependencies and is designed to be extended with custom retrieval backends.
+
+Use this section when you need an agent to search over a large document corpus rather than reading it all into context.
+
+Implementation details: [`sdk_reference_details/17_retriever_tool.md`](sdk_reference_details/17_retriever_tool.md)
