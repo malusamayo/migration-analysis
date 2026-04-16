@@ -41,3 +41,10 @@ services:
       dockerfile: tasks/docbench/Dockerfile
       args:
         USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
+  browsecomplongcontext:
+    image: browsecomplongcontext:latest
+    build:
+      context: .
+      dockerfile: tasks/browsecomplongcontext/Dockerfile
+      args:
+        USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
