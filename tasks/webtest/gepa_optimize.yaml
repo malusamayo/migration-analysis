@@ -1,18 +1,18 @@
 task_id: "webtest"
 data_path: "data/webtest.json"
-model_name: "qwen3-coder-30b-a3b"
-# model_name: "ministral-3-8b"
+# model_name: "qwen3-coder-30b-a3b"
+model_name: "ministral-3-8b"
 prompt_name: "static"
 
 # GEPA settings
 reflection_lm: "gemini-3.1-pro-preview"
 max_cost: 6.0
-seed: 0
+seed: 1
 
 # Evaluation
 eval_lm: "gemini-3-flash-preview"
 agent_batch_size: 8
-eval_batch_size: 16
+eval_batch_size: 8
 
 # Data
 max_examples: 20
