@@ -499,7 +499,8 @@ def save_conversation_trace(conversation: Conversation,
         else:
             print(events[-1])
             print(f"Unexpected final event type {events[-1]['kind']}")
-            return None
+            final_message = ""
+            # return None
 
         # Combined cost across orchestrator + all subagents.
         # For RemoteConversation the client-side stats cache is stale
