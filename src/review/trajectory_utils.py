@@ -202,6 +202,24 @@ def _append_event_stream_markdown(
 
                 markdown_lines.append("")
 
+            elif "tool_call" in event and event["tool_call"]:
+                # Validation failed before a proper action was constructed —
+                # render the raw tool call so the reviewer can see what the
+                # model attempted to pass.
+                tool_call = event["tool_call"]
+                tool_name = tool_call.get("name", event.get("tool_name", "unknown"))
+                markdown_lines.append(f"**Action (failed validation):** `{tool_name}`\n")
+                raw_args = tool_call.get("arguments", "")
+                if raw_args:
+                    try:
+                        args_parsed = json.loads(raw_args)
+                        args_str = json.dumps(args_parsed, indent=2)
+                    except Exception:
+                        args_str = raw_args
+                    args_str = _truncate_text(args_str, 2000)
+                    markdown_lines.append(f"- Arguments:\n```json\n{args_str}\n```")
+                markdown_lines.append("")
+
         elif event_kind == "ObservationEvent":
             if "observation" in event and event["observation"]:
                 obs = event["observation"]
