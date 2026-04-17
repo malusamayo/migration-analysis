@@ -1,0 +1,7 @@
+name: refactorbench
+description: >
+  Real-world repository refactoring benchmark built from static copies of
+  open-source Python projects. Each instance provides a natural-language
+  refactoring request over a repository workspace. Evaluation uses a visible,
+  deterministic repository-structure script stored directly in the dataset
+  manifest generated from the local RefactorBench source dataset.

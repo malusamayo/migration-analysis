@@ -27,6 +27,13 @@ services:
       dockerfile: tasks/replicatorbench/Dockerfile
       args:
         USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
+  refactorbench:
+    image: refactorbench:latest
+    build:
+      context: .
+      dockerfile: tasks/refactorbench/Dockerfile
+      args:
+        USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
   webarena:
     image: webarena:latest
     build:

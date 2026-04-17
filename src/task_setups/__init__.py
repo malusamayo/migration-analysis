@@ -19,6 +19,7 @@ from .webarena_servers import (
 )
 from . import ab_testing as _ab_testing
 from . import replicatorbench as _replicatorbench
+from . import refactorbench as _refactorbench
 from . import browsecompplus as _browsecompplus
 from .corpus_reader import get_corpus_reader
 
@@ -116,6 +117,8 @@ def setup_workspace(task_id: str, workspace_dir: str, log_dir: str, example: dic
 
     if task_id == "replicatorbench":
         _replicatorbench.setup_workspace(workspace_dir, str(log_dir), example)
+    if task_id == "refactorbench":
+        _refactorbench.setup_workspace(workspace_dir, str(log_dir), example)
 
 
 def setup_servers(
@@ -179,6 +182,9 @@ def get_eval_config(task_id: str) -> dict:
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 32}
     elif task_id == "replicatorbench":
         from ..task_evals.replicatorbench import run_single_instance_eval
+        return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
+    elif task_id == "refactorbench":
+        from ..task_evals.refactorbench import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
     elif task_id == "docbench":
         from ..task_evals.docbench import run_single_instance_eval
