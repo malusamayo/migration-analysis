@@ -28,7 +28,6 @@ RUN useradd --create-home --home-dir /workspace --shell /bin/bash --uid $USER_UI
 
 COPY --chown=appuser:appuser pyproject.toml uv.lock ./
 COPY --chown=appuser:appuser software-agent-sdk ./software-agent-sdk
-COPY --chown=appuser:appuser src ./src
 COPY --chown=appuser:appuser LOCA-bench/mcp_convert /loca-bench/mcp_convert
 
 USER appuser

@@ -53,7 +53,6 @@ RUN useradd --create-home --home-dir /workspace --shell /bin/bash --uid $USER_UI
 
 COPY --chown=appuser:appuser pyproject.toml uv.lock ./
 COPY --chown=appuser:appuser software-agent-sdk ./software-agent-sdk
-COPY --chown=appuser:appuser src ./src
 
 USER appuser
 RUN uv venv /workspace/.venv \
