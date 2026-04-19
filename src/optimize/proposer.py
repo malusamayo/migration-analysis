@@ -44,6 +44,7 @@ PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an
 - MUST define `build_agent(base_dir: str, llm: LLM) -> Agent`.
     - `base_dir` is a temp directory where the function can write files (prompts, skills, etc.).
     - `llm` is the language model instance to use.
+    - `system_prompt_filename` must be specified when constructing the Agent.
 - Code must be valid, self-contained Python with explicit imports at the top.
 
 ## Additional Guidelines
