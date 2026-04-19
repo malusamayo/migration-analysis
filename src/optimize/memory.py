@@ -299,7 +299,7 @@ class ProposerMemory:
         Layout:
         - memory/scoreboard.md — full optimization history
         - memory/current/overview.md — current candidate's code + eval results
-        - memory/current/trajectories/ — current iteration's trajectory markdown
+        - memory/current/trajectories/ — current iteration's raw trajectory JSON
         - memory/past_agents.md — past candidate summaries with scores and agent code
         """
         mem_dir = os.path.join(workspace, "memory")
@@ -321,14 +321,9 @@ class ProposerMemory:
         traj_dir = os.path.join(current_dir, "trajectories")
         os.makedirs(traj_dir, exist_ok=True)
         for i, record in enumerate(self._reflective_records):
-            md_parts = [f"# Example {i}"]
-            md_parts.append(f"\n## Task Input\n{record.get('Task Input', '')}")
-            md_parts.append(f"\n## Evaluation Feedback\n{record.get('Evaluation Feedback', '')}")
-            trajectory_md = record.get("Agent Trajectory", "")
-            if trajectory_md:
-                md_parts.append(f"\n## Agent Trajectory\n{trajectory_md}")
-            with open(os.path.join(traj_dir, f"example_{i:02d}.md"), "w") as f:
-                f.write("\n".join(md_parts))
+            trajectory_json_path = record.get("Agent Trajectory JSON Path")
+            if trajectory_json_path:
+                shutil.copy2(trajectory_json_path, os.path.join(traj_dir, f"example{i}.json"))
 
         with open(os.path.join(mem_dir, "past_agents.md"), "w") as f:
             f.write(self.format_past_agents())
@@ -398,17 +393,20 @@ class ProposerMemory:
         lines.append("")
         lines.append(
             "These are the results from running the current agent on the reflection subsample. "
-            "Each example has a detailed trajectory in `trajectories/`."
+            "Each example has a raw trajectory JSON file in `trajectories/`."
         )
         lines.append("")
-        lines.append("| Ex | Score | Feedback | Trajectory |")
-        lines.append("|----|-------|----------|------------|")
+        lines.append("| Ex | Score | Feedback | Trajectory JSON |")
+        lines.append("|----|-------|----------|-----------------|")
         for i, record in enumerate(self._reflective_records):
             eval_output = record.get("eval_output", {})
             score = eval_output.get("score", "-")
             feedback = _sanitize_feedback(record.get("Evaluation Feedback", ""))
-            traj_link = f"[trajectories/example_{i:02d}.md](trajectories/example_{i:02d}.md)"
-            lines.append(f"| {i} | {score} | {feedback} | {traj_link} |")
+            if record.get("Agent Trajectory JSON Path"):
+                raw_link = f"[trajectories/example{i}.json](trajectories/example{i}.json)"
+            else:
+                raw_link = "-"
+            lines.append(f"| {i} | {score} | {feedback} | {raw_link} |")
         lines.append("")
         return "\n".join(lines)
 

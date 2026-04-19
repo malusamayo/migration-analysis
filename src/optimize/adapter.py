@@ -1,7 +1,6 @@
 import copy
 import json
 import os
-import shutil
 import traceback
 from enum import Enum
 from pathlib import Path
@@ -20,7 +19,6 @@ from .common import (
 )
 from .memory import ProposerMemory
 from .proposer import AgentProposer
-from ..review.trajectory_utils import convert_json_to_markdown
 from ..runner import run_single_instance_agentic
 from ..task_setups import get_eval_config
 from ..utils import LM_DICT, batch_inference
@@ -80,7 +78,6 @@ def _run_agent_worker(
     example: dict,
     candidate: dict,
     phase_dir: str,
-    capture_traces: bool,
     task_id: str,
     model_name: str,
     task_prompt: str,
@@ -127,6 +124,7 @@ def _run_agent_worker(
         return {
             "workspace_dir": workspace_base,
             "eval_example": eval_example,
+            "config_dir": str(config_dir),
             "log_dir": str(log_dir),
             "rollout_metrics": _to_process_safe_data(rollout_metrics),
             "error_message": None,
@@ -136,6 +134,7 @@ def _run_agent_worker(
         return {
             "workspace_dir": workspace_base,
             "eval_example": _to_process_safe_data(example),
+            "config_dir": str(config_dir),
             "log_dir": "",
             "rollout_metrics": None,
             "error_message": f"Error on example {i}: {e}",
@@ -147,7 +146,6 @@ def _run_eval_worker(
     eval_example: dict,
     workspace_dir: str,
     log_dir: str,
-    capture_traces: bool,
     task_id: str,
     eval_lm_name: Optional[str],
 ) -> dict:
@@ -169,34 +167,25 @@ def _run_eval_worker(
         eval_metrics = extract_dspy_cost(eval_lm, eval_history_before)
         score = float(eval_result.get("score", 0.0))
 
-        trajectory = None
-        if capture_traces:
-            trace_data = {}
-            trace_dir = Path(log_dir) if log_dir else None
-            trace_files = list(trace_dir.glob("trace_*.json")) if trace_dir and trace_dir.exists() else []
-            if trace_files:
-                with open(trace_files[0]) as f:
-                    trace_data = json.load(f)
-            trace_data["eval_result"] = eval_result
-            trajectory = trace_data
+        trajectory = EvalCache.load_trace_payload(log_dir, eval_result)
 
-        return {
+        return EvalCache.attach_artifact_metadata({
             "output": eval_result,
             "score": score,
             "trajectory": trajectory,
             "eval_metrics": eval_metrics,
             "error_message": None,
-        }
+        }, workspace_dir, log_dir, str(Path(workspace_dir).parent / f"{Path(workspace_dir).name}_config"))
     except Exception as e:
         traceback.print_exc()
-        trajectory = {"error": str(e)} if capture_traces else None
-        return {
+        trajectory = EvalCache.load_trace_payload(log_dir, None) or {"error": str(e)}
+        return EvalCache.attach_artifact_metadata({
             "output": {"error": str(e), "score": 0.0},
             "score": 0.0,
             "trajectory": trajectory,
             "eval_metrics": None,
             "error_message": f"Error on example {i}: {e}",
-        }
+        }, workspace_dir, log_dir, str(Path(workspace_dir).parent / f"{Path(workspace_dir).name}_config"))
 
 
 class AgentOptimizationAdapter(GEPAAdapter):
@@ -243,6 +232,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         self._phase = "seed"
         self._calls_since_reflection = 0
         self._last_batch: list[dict] = []
+        self._last_results: list[dict] = []
 
         self._cost_tracker: dict[str, dict] = {
             "rollout_seed": empty_cost_bucket(),
@@ -326,7 +316,9 @@ class AgentOptimizationAdapter(GEPAAdapter):
         candidate: dict[str, str],
         capture_traces: bool = False,
     ) -> EvaluationBatch:
-        if capture_traces:
+        is_reflection_pass = capture_traces
+
+        if is_reflection_pass:
             self._gepa_iter += 1
             self._phase = "reflection"
             self._calls_since_reflection = 0
@@ -341,8 +333,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         self._save_candidate(candidate)
 
         self.logger.log(
-            f"[iter {self._gepa_iter}, {self._phase}] Evaluating {len(batch)} examples "
-            f"(capture_traces={capture_traces})"
+            f"[iter {self._gepa_iter}, {self._phase}] Evaluating {len(batch)} examples"
         )
 
         assert self._agent_batch_size is not None, "agent_batch_size must be set to run evaluation"
@@ -354,7 +345,6 @@ class AgentOptimizationAdapter(GEPAAdapter):
                 "example": ex,
                 "candidate": candidate,
                 "phase_dir": phase_dir,
-                "capture_traces": capture_traces,
                 "task_id": self.task_id,
                 "model_name": self.model_name,
                 "task_prompt": self.task_prompt,
@@ -370,11 +360,17 @@ class AgentOptimizationAdapter(GEPAAdapter):
         results_list = [None] * len(args_list)
         uncached_indices = []
         n_hits = 0
+        cache_updated = False
         for idx, args in enumerate(args_list):
-            cached = self._cache.get(candidate["agent_code"], args["example"])
-            if cached is not None:
-                results_list[idx] = cached
+            prepared_result, updated = self._cache.get_prepared(
+                candidate["agent_code"],
+                args["example"],
+                    os.path.abspath(os.path.join(phase_dir, f"example{args['i']}")),
+                )
+            if prepared_result is not None:
+                results_list[idx] = prepared_result
                 n_hits += 1
+                cache_updated = cache_updated or updated
             else:
                 uncached_indices.append(idx)
 
@@ -398,14 +394,14 @@ class AgentOptimizationAdapter(GEPAAdapter):
                     add_to_cost_bucket(self._cost_tracker[bucket_key], rollout_result["rollout_metrics"])
 
                 if rollout_result.get("error_message"):
-                    result = {
+                    result = EvalCache.attach_artifact_metadata({
                         "output": {"error": rollout_result["error_message"], "score": 0.0},
                         "score": 0.0,
-                        "trajectory": {"error": rollout_result["error_message"]} if capture_traces else None,
+                        "trajectory": {"error": rollout_result["error_message"]},
                         "rollout_metrics": rollout_result.get("rollout_metrics"),
                         "eval_metrics": None,
                         "error_message": rollout_result["error_message"],
-                    }
+                    }, rollout_result["workspace_dir"], rollout_result["log_dir"], rollout_result["config_dir"])
                     results_list[idx] = result
                     self._cache.put(candidate["agent_code"], args_list[idx]["example"], result)
                 else:
@@ -416,7 +412,6 @@ class AgentOptimizationAdapter(GEPAAdapter):
                             "eval_example": rollout_result["eval_example"],
                             "workspace_dir": rollout_result["workspace_dir"],
                             "log_dir": rollout_result["log_dir"],
-                            "capture_traces": capture_traces,
                             "task_id": self.task_id,
                             "eval_lm_name": self.eval_lm_name,
                         }
@@ -441,16 +436,20 @@ class AgentOptimizationAdapter(GEPAAdapter):
                     add_to_cost_bucket(self._cost_tracker["eval_lm"], result["eval_metrics"])
             self._cache.save()
             self._save_cost_summary()
+        elif cache_updated:
+            self._cache.save()
+
+        self._last_results = list(results_list)
 
         outputs = []
         scores = []
-        trajectories = [] if capture_traces else None
+        trajectories = [] if is_reflection_pass else None
         for result in results_list:
             if result.get("error_message"):
                 self.logger.log(f"[iter {self._gepa_iter}, {self._phase}] {result['error_message']}")
             outputs.append(result["output"])
             scores.append(result["score"])
-            if capture_traces:
+            if is_reflection_pass:
                 trajectories.append(result["trajectory"])
 
         avg_score = sum(scores) / len(scores) if scores else 0.0
@@ -465,7 +464,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
                 trajectory_dir=str(phase_dir),
             )
             self.memory.write_iteration_overview(self._iter_dir(), 0)
-        elif capture_traces:
+        elif is_reflection_pass:
             self.memory.record_reflection(
                 self._gepa_iter,
                 candidate["agent_code"],
@@ -510,16 +509,9 @@ class AgentOptimizationAdapter(GEPAAdapter):
             for i, (example, output, score) in enumerate(
                 zip(self._last_batch, eval_batch.outputs, eval_batch.scores)
             ):
-                trajectory = eval_batch.trajectories[i] if eval_batch.trajectories else {}
-
                 if component == "agent_code":
-                    trajectory_md = ""
-                    if trajectory and "events" in trajectory:
-                        try:
-                            trajectory_md = convert_json_to_markdown(trajectory)
-                        except Exception:
-                            trajectory_md = "(trajectory conversion failed)"
-
+                    result = self._last_results[i] if i < len(self._last_results) else {}
+                    trajectory_json_path = result.get("raw_trace_json_path") or result.get("trace_json_path")
                     feedback = (
                         format_eval_feedback(output, score)
                         if isinstance(output, dict)
@@ -529,7 +521,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
                     records.append(
                         {
                             "Task Input": example.get("prompt", ""),
-                            "Agent Trajectory": trajectory_md,
+                            "Agent Trajectory JSON Path": trajectory_json_path,
                             "Evaluation Feedback": feedback,
                             "eval_output": output if isinstance(output, dict) else {},
                         }
