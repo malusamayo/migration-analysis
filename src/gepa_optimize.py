@@ -14,6 +14,7 @@ from .optimize import (
     CostBudgetStopper,
     GEPAFileLogger,
     execute_agent_candidate,
+    extract_best_val_score_trace,
     extract_workspace_scripts,
     validate_agent_candidate,
 )
@@ -35,6 +36,15 @@ __all__ = [
 def _print_effective_config(config: dict) -> None:
     print("Effective config:")
     print(yaml.safe_dump(config, sort_keys=False).rstrip())
+
+
+def _find_best_candidate_record(adapter: AgentOptimizationAdapter, best_score: float):
+    records = [record for record in adapter.memory.get_all() if record.val_score is not None]
+    matching = [record for record in records if abs(record.val_score - best_score) <= 1e-9]
+    if not matching:
+        raise ValueError(f"Could not find best candidate record for val score {best_score}")
+    matching.sort(key=lambda record: (record.iteration, record.code_hash))
+    return matching[0]
 
 
 def run_optimization(
@@ -59,6 +69,7 @@ def run_optimization(
     use_docker: bool = False,
     server_image: str = "migration-analysis:latest",
     max_time: Optional[float] = None,
+    num_exploration: int = 1,
 ):
     logging.basicConfig(
         level=logging.INFO,
@@ -111,6 +122,7 @@ def run_optimization(
         "use_docker": use_docker,
         "server_image": server_image,
         "max_time": max_time,
+        "num_exploration": num_exploration,
     }
     _print_effective_config(effective_config)
 
@@ -152,6 +164,7 @@ def run_optimization(
         server_image=server_image,
         docker_network=docker_network,
         max_time=max_time,
+        num_exploration=num_exploration,
     )
 
     stoppers: list[StopperProtocol] = []
@@ -193,12 +206,26 @@ def run_optimization(
 
     cost_summary = adapter._cost_tracker
     total_cost = sum(bucket["accumulated_cost"] for bucket in cost_summary.values())
+    best_record = _find_best_candidate_record(adapter, best_score)
+    best_val_score_trace = extract_best_val_score_trace(gepa_logger.log_path)
     summary = {
         "best_score": best_score,
         "best_idx": result.best_idx,
+        "best_iteration": best_record.iteration,
+        "best_candidate_hash": best_record.code_hash,
+        "best_candidate_path": best_config_path,
+        "best_train_score": best_record.subsample_avg,
+        "best_train_scores": best_record.subsample_scores,
+        "best_val_scores": [
+            feedback["score"] for feedback in best_record.val_per_example_feedback or []
+        ],
+        "train_examples": len(trainset),
+        "val_examples": len(valset),
+        "train_ratio": train_ratio,
         "num_candidates": result.num_candidates,
         "total_metric_calls": result.total_metric_calls,
         "all_scores": result.val_aggregate_scores,
+        "best_val_score_trace": best_val_score_trace,
         "cost_summary": {**cost_summary, "total_cost": total_cost},
     }
     summary_path = os.path.join(config_dir, "optimization_summary.json")
@@ -264,6 +291,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Maximum runtime in seconds for each agentic task conversation.",
     )
+    parser.add_argument(
+        "--num_exploration",
+        type=int,
+        default=None,
+        help="Number of diverse strategies to propose per exploration step (default: 1).",
+    )
     return parser
 
 
@@ -306,6 +339,11 @@ def main(argv: Optional[list[str]] = None) -> int:
     use_docker = args.use_docker if args.use_docker is not None else config.get("use_docker", False)
     server_image = config.get("server_image", "migration-analysis:latest")
     max_time = args.max_time if args.max_time is not None else config.get("max_time")
+    num_exploration = (
+        args.num_exploration
+        if args.num_exploration is not None
+        else config.get("num_exploration", 1)
+    )
     use_adaptation_guide = config.get("use_adaptation_guide", True)
     adaptation_guide_markdown = (
         args.adaptation_guide_markdown
@@ -340,6 +378,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         max_time=max_time,
         use_adaptation_guide=use_adaptation_guide,
         adaptation_guide_markdown=adaptation_guide_markdown,
+        num_exploration=num_exploration,
     )
     return 0
 

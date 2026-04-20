@@ -268,16 +268,15 @@ class AgentProposer:
         iter_dir: str,
         candidate: dict[str, str],
         components_to_update: list[str],
-    ) -> dict[str, str]:
-        new_candidate = dict(candidate)
-
+        num_strategies: int = 1,
+    ) -> list[dict[str, str]]:
         if "agent_code" not in components_to_update:
-            return new_candidate
+            return [dict(candidate)]
 
         workspace = self._setup_workspace(iteration, iter_dir, candidate)
-        self.logger.log(f"[iter {iteration}] Proposer workspace: {workspace}")
+        suffix = f" (x{num_strategies})" if num_strategies > 1 else ""
+        self.logger.log(f"[iter {iteration}] Proposer workspace{suffix}: {workspace}")
 
-        # Write prompt file to the host workspace directory
         prompt_path = os.path.join(workspace, "system_prompt.md")
         with open(prompt_path, "w") as f:
             f.write(build_proposer_system_prompt(self.use_adaptation_guide))
@@ -291,16 +290,26 @@ class AgentProposer:
             skills=self._proposer_skills,
         ) as (workspace_obj, workspace_path_for_agent):
             proposer_agent = self._build_agent(workspace_path_for_agent)
-            instruction = "Diagnose why the agent is underperforming, then fix project/agent.py to improve it."
+            if num_strategies == 1:
+                instruction = "Diagnose why the agent is underperforming, then fix project/agent.py to improve it."
+            else:
+                instruction = (
+                    f"Diagnose why the agent is underperforming, then produce {num_strategies} diverse "
+                    f"improvement strategies. Write strategy i to project/agent_i.py "
+                    f"(project/agent_1.py, ..., project/agent_{num_strategies}.py). "
+                    "Each strategy must explore a substantially different approach or area of improvement. "
+                    "project/agent.py is the current agent for reference."
+                )
 
             conversation = Conversation(agent=proposer_agent, workspace=workspace_obj)
             conversation.send_message(instruction)
-            self._run_proposer_loop(
-                conversation, iteration, workspace, candidate, new_candidate, iter_dir, components_to_update
+            candidates = self._run_proposer_loop(
+                conversation, iteration, workspace, candidate, iter_dir,
+                components_to_update, num_strategies,
             )
             conversation.close()
 
-        return new_candidate
+        return candidates
 
     def _run_proposer_loop(
         self,
@@ -308,19 +317,28 @@ class AgentProposer:
         iteration: int,
         workspace: str,
         candidate: dict[str, str],
-        new_candidate: dict[str, str],
         iter_dir: str,
         components_to_update: list[str],
-    ) -> None:
+        num_strategies: int = 1,
+    ) -> list[dict[str, str]]:
+        agent_llm = build_sdk_llm(LM_DICT[self.model_name])
+        valid_candidates: list[dict[str, str]] = []
         last_error = None
+
         for attempt in range(1 + self.max_proposal_retries):
             if attempt > 0:
-                conversation.send_message(
-                    "Your modified agent.py failed validation with this error:\n"
-                    f"```\n{last_error}\n```\n"
-                    "Please fix the code in project/agent.py and ensure "
-                    "`build_agent(base_dir, llm)` returns a valid Agent."
-                )
+                if num_strategies == 1:
+                    conversation.send_message(
+                        "Your modified agent.py failed validation with this error:\n"
+                        f"```\n{last_error}\n```\n"
+                        "Please fix the code in project/agent.py and ensure "
+                        "`build_agent(base_dir, llm)` returns a valid Agent."
+                    )
+                else:
+                    conversation.send_message(
+                        "None of the strategy files passed validation. "
+                        "Please fix them and ensure each `build_agent(base_dir, llm)` returns a valid Agent."
+                    )
 
             try:
                 conversation.run()
@@ -329,49 +347,76 @@ class AgentProposer:
                 traceback.print_exc()
                 break
 
-            agent_py_path = os.path.join(workspace, "project", "agent.py")
-            try:
-                with open(agent_py_path) as f:
-                    new_code = f.read()
-            except FileNotFoundError:
-                self.logger.log(f"[iter {iteration}] Proposer did not produce agent.py")
+            if num_strategies == 1:
+                try:
+                    with open(os.path.join(workspace, "project", "agent.py")) as f:
+                        new_code = f.read()
+                    files_to_validate = [(None, new_code)]
+                except FileNotFoundError:
+                    self.logger.log(f"[iter {iteration}] Proposer did not produce agent.py")
+                    break
+            else:
+                files_to_validate = []
+                for k in range(1, num_strategies + 1):
+                    path = os.path.join(workspace, "project", f"agent_{k}.py")
+                    if os.path.exists(path):
+                        with open(path) as f:
+                            files_to_validate.append((k, f.read()))
+                    else:
+                        self.logger.log(f"[iter {iteration}] Strategy {k} file not found, skipping")
+
+            valid_candidates = []
+            for idx, new_code in files_to_validate:
+                success, error = validate_agent_candidate(new_code, agent_llm)
+                if success:
+                    new_cand = dict(candidate)
+                    new_cand["agent_code"] = new_code
+                    code_diff = build_code_diff(candidate["agent_code"], new_code)
+                    self.memory.record_proposal(
+                        iteration=iteration,
+                        parent_code=candidate["agent_code"],
+                        proposed_code=new_code,
+                        components_updated=list(components_to_update),
+                        code_diff=code_diff,
+                    )
+                    proposal_record = {
+                        "iteration": iteration,
+                        "parent_candidate_hash": hash_text(candidate["agent_code"]),
+                        "proposed_candidate_hash": hash_text(new_code),
+                        "components_to_update": list(components_to_update),
+                        "code_diff": code_diff,
+                    }
+                    if idx is not None:
+                        proposal_record["strategy_index"] = idx
+                        metadata_dir = os.path.join(iter_dir, f"strategy_{idx}")
+                    else:
+                        metadata_dir = iter_dir
+                    self._write_proposal_metadata(metadata_dir, proposal_record)
+                    if attempt > 0 and num_strategies == 1:
+                        self.logger.log(f"[iter {iteration}] Proposal succeeded on attempt {attempt + 1}")
+                    valid_candidates.append(new_cand)
+                else:
+                    if num_strategies == 1:
+                        last_error = error
+                    label = f"Strategy {idx}" if idx is not None else f"Attempt {attempt + 1}"
+                    self.logger.log(f"[iter {iteration}] {label} validation failed: {error}")
+
+            if valid_candidates:
+                if num_strategies > 1:
+                    self.logger.log(
+                        f"[iter {iteration}] {len(valid_candidates)}/{num_strategies} strategies valid"
+                    )
                 break
 
-            agent_llm = build_sdk_llm(LM_DICT[self.model_name])
-            success, error = validate_agent_candidate(new_code, agent_llm)
-            if success:
-                new_candidate["agent_code"] = new_code
-                code_diff = build_code_diff(candidate["agent_code"], new_code)
-                self.memory.record_proposal(
-                    iteration=iteration,
-                    parent_code=candidate["agent_code"],
-                    proposed_code=new_code,
-                    components_updated=list(components_to_update),
-                    code_diff=code_diff,
-                )
-                proposal_record = {
-                    "iteration": iteration,
-                    "parent_candidate_hash": hash_text(candidate["agent_code"]),
-                    "proposed_candidate_hash": hash_text(new_code),
-                    "components_to_update": list(components_to_update),
-                    "code_diff": code_diff,
-                }
-                self._write_proposal_metadata(iter_dir, proposal_record)
-                if attempt > 0:
-                    self.logger.log(f"[iter {iteration}] Proposal succeeded on attempt {attempt + 1}")
-                last_error = None
-                break
+            if num_strategies > 1:
+                self.logger.log(f"[iter {iteration}] Attempt {attempt + 1}: no valid strategies, retrying")
 
-            last_error = error
-            self.logger.log(
-                f"[iter {iteration}] Proposal attempt {attempt + 1} validation failed: {last_error}"
-            )
-
-        if last_error:
+        if not valid_candidates:
             self.logger.log(
                 f"[iter {iteration}] All {1 + self.max_proposal_retries} proposal "
                 "attempts failed, keeping current candidate"
             )
+            valid_candidates = [dict(candidate)]
 
         try:
             proposer_log_dir = os.path.join(iter_dir, "proposer", "workspace_logs")
@@ -388,3 +433,5 @@ class AgentProposer:
             self.save_cost_summary()
         except Exception as e:
             self.logger.log(f"[iter {iteration}] Failed to collect proposer cost: {e}")
+
+        return valid_candidates

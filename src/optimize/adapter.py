@@ -201,6 +201,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         eval_lm_name: Optional[str] = None,
         run_dir: str = "results/gepa",
         max_proposal_retries: int = 2,
+        num_exploration: int = 1,
         agent_batch_size: Optional[int] = None,
         eval_batch_size: Optional[int] = None,
         use_adaptation_guide: bool = True,
@@ -223,6 +224,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         self.server_image = server_image
         self.docker_network = docker_network
         self.max_time = max_time
+        self.num_exploration = num_exploration
 
         self.eval_config = get_eval_config(task_id)
         self.eval_function = self.eval_config["eval_function"]
@@ -310,35 +312,23 @@ class AgentOptimizationAdapter(GEPAAdapter):
             f.write(candidate["agent_code"])
         self.logger.log(f"[iter {self._gepa_iter}, {self._phase}] Saved candidate to {path}")
 
-    def evaluate(
+    def _run_candidate_on_batch(
         self,
-        batch: list[dict],
         candidate: dict[str, str],
-        capture_traces: bool = False,
-    ) -> EvaluationBatch:
-        is_reflection_pass = capture_traces
+        batch: list[dict],
+        phase_dir: str,
+        rollout_bucket_key: str,
+        log_tag: str,
+    ) -> list[dict]:
+        """Run a candidate on a batch of examples with EvalCache reuse.
 
-        if is_reflection_pass:
-            self._gepa_iter += 1
-            self._phase = "reflection"
-            self._calls_since_reflection = 0
-        elif self._gepa_iter == 0:
-            self._phase = "seed"
-        else:
-            self._calls_since_reflection += 1
-            self._phase = "candidate" if self._calls_since_reflection == 1 else "valset"
-
-        self._last_batch = batch
-        phase_dir = self._phase_dir()
-        self._save_candidate(candidate)
-
-        self.logger.log(
-            f"[iter {self._gepa_iter}, {self._phase}] Evaluating {len(batch)} examples"
-        )
-
+        Returns per-example result dicts (with "score", "output", "trajectory",
+        "error_message", artifact paths, ...). Mutates cost_tracker and saves the
+        cache on completion. Does NOT touch phase/memory/last_batch state.
+        """
         assert self._agent_batch_size is not None, "agent_batch_size must be set to run evaluation"
         agent_max_workers = self._agent_batch_size
-        
+
         args_list = [
             {
                 "i": i,
@@ -357,16 +347,16 @@ class AgentOptimizationAdapter(GEPAAdapter):
             for i, ex in enumerate(batch)
         ]
 
-        results_list = [None] * len(args_list)
-        uncached_indices = []
+        results_list: list[Optional[dict]] = [None] * len(args_list)
+        uncached_indices: list[int] = []
         n_hits = 0
         cache_updated = False
         for idx, args in enumerate(args_list):
             prepared_result, updated = self._cache.get_prepared(
                 candidate["agent_code"],
                 args["example"],
-                    os.path.abspath(os.path.join(phase_dir, f"example{args['i']}")),
-                )
+                os.path.abspath(os.path.join(phase_dir, f"example{args['i']}")),
+            )
             if prepared_result is not None:
                 results_list[idx] = prepared_result
                 n_hits += 1
@@ -375,10 +365,9 @@ class AgentOptimizationAdapter(GEPAAdapter):
                 uncached_indices.append(idx)
 
         if n_hits:
-            self.logger.log(f"[iter {self._gepa_iter}, {self._phase}] Cache hits: {n_hits}/{len(batch)}")
+            self.logger.log(f"{log_tag} Cache hits: {n_hits}/{len(batch)}")
 
         if uncached_indices:
-            bucket_key = f"rollout_{self._phase}"
             uncached_args = [args_list[idx] for idx in uncached_indices]
             rollout_results = batch_inference(
                 _run_agent_worker,
@@ -390,8 +379,8 @@ class AgentOptimizationAdapter(GEPAAdapter):
             eval_indices = []
             eval_args = []
             for idx, rollout_result in zip(uncached_indices, rollout_results):
-                if rollout_result.get("rollout_metrics") and bucket_key in self._cost_tracker:
-                    add_to_cost_bucket(self._cost_tracker[bucket_key], rollout_result["rollout_metrics"])
+                if rollout_result.get("rollout_metrics") and rollout_bucket_key in self._cost_tracker:
+                    add_to_cost_bucket(self._cost_tracker[rollout_bucket_key], rollout_result["rollout_metrics"])
 
                 if rollout_result.get("error_message"):
                     result = EvalCache.attach_artifact_metadata({
@@ -439,21 +428,58 @@ class AgentOptimizationAdapter(GEPAAdapter):
         elif cache_updated:
             self._cache.save()
 
+        for result in results_list:
+            if result.get("error_message"):
+                self.logger.log(f"{log_tag} {result['error_message']}")
+
+        return results_list
+
+    def evaluate(
+        self,
+        batch: list[dict],
+        candidate: dict[str, str],
+        capture_traces: bool = False,
+    ) -> EvaluationBatch:
+        is_reflection_pass = capture_traces
+
+        if is_reflection_pass:
+            self._gepa_iter += 1
+            self._phase = "reflection"
+            self._calls_since_reflection = 0
+        elif self._gepa_iter == 0:
+            self._phase = "seed"
+        else:
+            self._calls_since_reflection += 1
+            self._phase = "candidate" if self._calls_since_reflection == 1 else "valset"
+
+        self._last_batch = batch
+        phase_dir = self._phase_dir()
+        self._save_candidate(candidate)
+
+        log_tag = f"[iter {self._gepa_iter}, {self._phase}]"
+        self.logger.log(f"{log_tag} Evaluating {len(batch)} examples")
+
+        results_list = self._run_candidate_on_batch(
+            candidate=candidate,
+            batch=batch,
+            phase_dir=phase_dir,
+            rollout_bucket_key=f"rollout_{self._phase}",
+            log_tag=log_tag,
+        )
+
         self._last_results = list(results_list)
 
         outputs = []
         scores = []
         trajectories = [] if is_reflection_pass else None
         for result in results_list:
-            if result.get("error_message"):
-                self.logger.log(f"[iter {self._gepa_iter}, {self._phase}] {result['error_message']}")
             outputs.append(result["output"])
             scores.append(result["score"])
             if is_reflection_pass:
                 trajectories.append(result["trajectory"])
 
         avg_score = sum(scores) / len(scores) if scores else 0.0
-        self.logger.log(f"[iter {self._gepa_iter}, {self._phase}] scores: {scores}, avg: {avg_score:.3f}")
+        self.logger.log(f"{log_tag} scores: {scores}, avg: {avg_score:.3f}")
 
         if self._phase == "seed":
             self.memory.record_seed(
@@ -540,15 +566,80 @@ class AgentOptimizationAdapter(GEPAAdapter):
 
         return result
 
+    def _select_best_of_n(
+        self,
+        proposals: list[dict[str, str]],
+        batch: list[dict],
+    ) -> dict[str, str]:
+        """Score each proposal on `batch`, record outcomes, return the winner.
+
+        Writes per-proposal rollouts to `iter_dir/proposals/prop_kk/` and saves
+        the proposed code to `iter_dir/candidates/prop_kk.py`. Charges all
+        rollouts to `rollout_candidate`.
+        """
+        proposals_root = os.path.join(self._iter_dir(), "proposals")
+        os.makedirs(proposals_root, exist_ok=True)
+        candidates_dir = os.path.join(self._iter_dir(), "candidates")
+        os.makedirs(candidates_dir, exist_ok=True)
+
+        log_tag = f"[iter {self._gepa_iter}, proposal_selection]"
+        self.logger.log(
+            f"{log_tag} Scoring {len(proposals)} proposals on reflection minibatch "
+            f"({len(batch)} examples)"
+        )
+
+        avg_scores: list[float] = []
+        for k, prop in enumerate(proposals):
+            prop_dir = os.path.join(proposals_root, f"prop_{k:02d}")
+            os.makedirs(prop_dir, exist_ok=True)
+            with open(os.path.join(candidates_dir, f"prop_{k:02d}.py"), "w") as f:
+                f.write(prop["agent_code"])
+
+            prop_tag = f"[iter {self._gepa_iter}, prop_{k:02d}]"
+            results = self._run_candidate_on_batch(
+                candidate=prop,
+                batch=batch,
+                phase_dir=prop_dir,
+                rollout_bucket_key="rollout_candidate",
+                log_tag=prop_tag,
+            )
+
+            outputs = [r["output"] for r in results]
+            scores = [r["score"] for r in results]
+            avg = sum(scores) / len(scores) if scores else 0.0
+            avg_scores.append(avg)
+            self.logger.log(f"{prop_tag} scores: {scores}, avg: {avg:.3f}")
+
+            self.memory.record_outcome(
+                self._gepa_iter,
+                prop["agent_code"],
+                list(scores),
+                outputs,
+                batch,
+                trajectory_dir=str(prop_dir),
+            )
+
+        best_idx = max(range(len(avg_scores)), key=lambda i: avg_scores[i])
+        self.logger.log(
+            f"{log_tag} avg scores: {[f'{s:.3f}' for s in avg_scores]}, "
+            f"picked prop_{best_idx:02d} (avg={avg_scores[best_idx]:.3f})"
+        )
+        self.memory.write_iteration_overview(self._iter_dir(), self._gepa_iter)
+        return proposals[best_idx]
+
     def propose_new_texts(
         self,
         candidate: dict[str, str],
         reflective_dataset: Mapping[str, Sequence[Mapping[str, Any]]],
         components_to_update: list[str],
     ) -> dict[str, str]:
-        return self.proposer.propose(
+        all_proposals = self.proposer.propose(
             iteration=self._gepa_iter,
             iter_dir=self._iter_dir(),
             candidate=candidate,
             components_to_update=components_to_update,
+            num_strategies=self.num_exploration,
         )
+        if len(all_proposals) == 1:
+            return all_proposals[0]
+        return self._select_best_of_n(all_proposals, self._last_batch)
