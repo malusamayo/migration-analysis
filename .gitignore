@@ -25,6 +25,8 @@ wandb/
 
 workspace/
 experiments/
+generated/
+docs/dep/
 scripts/
 plots/
 .roar/
