@@ -2,14 +2,14 @@ task_id: "webtest"
 data_path: "data/webtest.json"
 # model_name: "qwen3-coder-30b-a3b"
 # model_name: "nemotron-nano-3-30b"
-# model_name: "ministral-3-8b"
+model_name: "ministral-3-8b"
 # model_name: "qwen3.5-9b"
 # model_name: "gemini-3-flash-preview"
-model_name: "gemini-3.1-pro-preview"
+# model_name: "gemini-3.1-pro-preview"
 # model_name: "claude-sonnet-4-5"
 prompt_name: "static"
 
-max_examples: 2
+max_examples: 10
 n_responses: 1
 agent_batch_size: 8
 eval_batch_size: 16
@@ -20,4 +20,5 @@ use_docker: true
 server_image: "webtest:latest"
 max_time: 600
 
+agent_file: "./scripts/agents/webtest_terminal_only.py"
 eval_lm: "gemini-3-flash-preview"

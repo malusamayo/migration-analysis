@@ -1,10 +1,11 @@
 task_id: "browsecomplongcontext"
 data_path: "data/browsecomp-plus.json"
 # model_name: "gemini-3.1-pro-preview"
-model_name: "qwen3-coder-30b-a3b"
+# model_name: "qwen3-coder-30b-a3b"
+model_name: "gpt-oss-20b"
 prompt_name: "default"
 
-max_examples: 20
+max_examples: 1
 n_responses: 1
 agent_batch_size: 8
 eval_batch_size: 16
@@ -15,5 +16,6 @@ use_docker: true
 server_image: "browsecomplongcontext:latest"
 max_time: 600
 
-agent_file: "./scripts/agents/retriever_agent.py"
+rollout_version: "vertex"
+agent_file: "results/browsecomplongcontext/gpt-oss-20b_default/gepa/seed1/shared/config/best_config.py"
 eval_lm: "gemini-3-flash-preview"
