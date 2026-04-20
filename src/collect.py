@@ -162,7 +162,11 @@ def run_task(
     )
 
     output_path = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}/run.json"
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    rollout_dir = os.path.dirname(output_path)
+    os.makedirs(rollout_dir, exist_ok=True)
+
+    if agent_file is not None:
+        shutil.copy(agent_file, os.path.join(rollout_dir, os.path.basename(agent_file)))
 
     # Get completed and pending tasks from data loader
     results = data_loader.get_completed_results()
