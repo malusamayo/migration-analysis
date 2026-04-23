@@ -97,7 +97,7 @@ class EvalCache:
 
         if target_path.exists():
             shutil.rmtree(target_path)
-        shutil.copytree(source_path, target_path)
+        shutil.copytree(source_path, target_path, symlinks=True, ignore_dangling_symlinks=True)
 
     def _prepare_cached_result(
         self,

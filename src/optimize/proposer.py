@@ -20,7 +20,7 @@ from .common import (
 )
 from .memory import ProposerMemory
 from ..utils import LM_DICT, build_sdk_llm
-from ..task_setups import get_mcp_config
+from ..task_setups import get_mcp_config, setup_proposer_workspace
 from ..runner import get_workspace_context
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -33,7 +33,7 @@ PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an
 - `project/agent.py` — The current agent configuration code.
 - `memory/scoreboard.md` — Succinct optimization history table: scores and status per candidate.
 - `memory/current/overview.md` — Current candidate's code and evaluation results.
-- `memory/current/trajectories/` — Raw JSON trajectories of the agent's recent execution on training examples.
+- `memory/current/trajectories/` — Raw JSON trajectories of the agent's recent execution on training examples. **Each file is a JSON array (list), not a dict** — use `events = json.load(open(...))` directly; do NOT do `json.load(...)['events']`. Use the `read_trajectory` skill for the full schema and ready-to-use Python snippets.
 - `memory/past_agents.md` — Past candidate summaries with scores, evaluation results, and agent code.
 - `docs/sdk_reference.md` — High-level SDK map with numbered sections.
 - `docs/sdk_reference_details/` — Per-section SDK signatures, examples, and implementation details.
@@ -76,6 +76,7 @@ def _resolve_reference_doc_paths(
         "docs_dir": DOCS_DIR,
         "sdk_reference": DOCS_DIR / "sdk_reference.md",
         "sdk_reference_details": DOCS_DIR / "sdk_reference_details",
+        "read_trajectory": DOCS_DIR / "read_trajectory.md",
     }
     if use_adaptation_guide:
         adaptation_path = DOCS_DIR / "adaptation.md"
@@ -113,6 +114,10 @@ def stage_proposer_reference_docs(
     if adaptation_path is not None and adaptation_path.exists():
         shutil.copy2(adaptation_path, docs_dest / "adaptation.md")
 
+    read_trajectory_path = source_paths["read_trajectory"]
+    if read_trajectory_path.exists():
+        shutil.copy2(read_trajectory_path, docs_dest / "read_trajectory.md")
+
 
 def _create_skill_file(content: str, name: str, dest_dir: str) -> Skill:
     skill_dir = os.path.join(dest_dir, name)
@@ -145,6 +150,12 @@ def load_proposer_skills(
         with open(sdk_ref_path) as f:
             sdk_content = f.read()
         skills.append(_create_skill_file(sdk_content, "sdk_reference", skills_dir))
+
+    read_trajectory_path = source_paths["read_trajectory"]
+    if read_trajectory_path.exists():
+        with open(read_trajectory_path) as f:
+            read_trajectory_content = f.read()
+        skills.append(_create_skill_file(read_trajectory_content, "read_trajectory", skills_dir))
 
     if use_adaptation_guide:
         adaptation_path = source_paths["adaptation"]

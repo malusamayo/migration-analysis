@@ -83,12 +83,15 @@ agent = Agent(
 
 ## Replacing the Built-in FinishTool
 
-To replace the default `FinishTool`, follow the above steps to define your custom tool, but make sure that:
+> **Critical:** The harness identifies task completion by detecting `FinishAction` in the conversation. A custom `FinishTool` built on a **completely new Action class** will not terminate the agent loop.
 
-1. Use a unique action class name; do not reuse `FinishAction`.
-2. Only define a custom observation type if you actually need one.
-3. The `ToolDefinition` subclass is named exactly `FinishTool`. Define the `create` method to return a single instance of `FinishTool` with your custom executor.
-4. Remove `"FinishTool"` from `include_default_tools` and add `Tool(name="FinishTool")` with your custom implementation to the agent's `tools` list.
+To replace the default `FinishTool` with structured output enforcement:
+
+1. **Extend `FinishAction`**, not a new Action class. Import from `openhands.sdk.tool.builtins.finish`.
+2. Add structured fields to the subclass and use `@model_validator(mode='before')` to serialize them into `message`.
+3. Reuse `FinishExecutor` — it handles loop termination.
+4. Name the `ToolDefinition` subclass exactly `FinishTool` and register it.
+5. Remove `"FinishTool"` from `include_default_tools` and add `Tool(name="FinishTool")` to the agent's `tools` list.
 
 
 # Alternative: Deploying Helper Scripts via get_workspace_scripts
