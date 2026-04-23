@@ -809,12 +809,13 @@ def build_post_gepa_summary(run: PreparedRun) -> dict[str, Any]:
     used_config = strict_load_yaml(run_dir / "shared" / "config" / "used_config.yaml")
     optimization_summary = strict_load_json(run_dir / "shared" / "config" / "optimization_summary.json")
     post_run_config = strict_load_yaml(Path(run.post_run_config_path))
+    rerun_rollout_version = f"{post_run_config['rollout_version']}_best_config"
     eval_results_path = (
         Path("results")
         / used_config["task_id"]
         / f"{used_config['model_name']}_{used_config['prompt_name']}"
         / "rollouts"
-        / post_run_config["rollout_version"]
+        / rerun_rollout_version
         / "eval_results.yaml"
     )
     run_results_path = (
@@ -822,7 +823,7 @@ def build_post_gepa_summary(run: PreparedRun) -> dict[str, Any]:
         / used_config["task_id"]
         / f"{used_config['model_name']}_{used_config['prompt_name']}"
         / "rollouts"
-        / post_run_config["rollout_version"]
+        / rerun_rollout_version
         / "run.json"
     )
     train_examples = int(post_run_config["source_train_examples"])
@@ -851,7 +852,7 @@ def build_post_gepa_summary(run: PreparedRun) -> dict[str, Any]:
         "val_examples": optimization_summary["val_examples"],
         "best_config_path": optimization_summary["best_candidate_path"],
         "post_run_config_path": str(Path(run.post_run_config_path)),
-        "rerun_rollout_version": post_run_config["rollout_version"],
+        "rerun_rollout_version": rerun_rollout_version,
         "rerun_run_results_path": str(run_results_path),
         "rerun_eval_results_path": str(eval_results_path),
         "rerun_cost": run_cost_summary["overall"]["total_cost"],
@@ -970,6 +971,81 @@ def write_post_gepa_table(batch_dir: Path, pipeline_results: list[dict[str, Any]
         writer = csv.DictWriter(handle, fieldnames=POST_GEPA_COLUMNS)
         writer.writeheader()
         writer.writerows(table_rows)
+
+
+def write_launch_results(batch_dir: Path, results: list[dict[str, Any]]) -> None:
+    with open(batch_dir / "launch_results.json", "w", encoding="utf-8") as handle:
+        json.dump(results, handle, indent=2)
+    write_post_gepa_table(batch_dir, results)
+
+
+def recover_post_gepa_result(run: PreparedRun) -> dict[str, Any]:
+    summary_path = Path(run.post_summary_path)
+    if summary_path.exists():
+        try:
+            summary = strict_load_json(summary_path)
+        except ValueError:
+            summary = None
+        else:
+            return {
+                "index": run.index,
+                "status": "completed_existing",
+                "return_code": 0,
+                "run_dir": run.run_dir,
+                "post_run_config_path": run.post_run_config_path,
+                "post_gepa_summary": summary,
+            }
+
+    try:
+        _, post_run_config_path = create_post_gepa_run_config(run)
+    except FileNotFoundError as exc:
+        return {
+            "index": run.index,
+            "status": "pending_optimize",
+            "return_code": 0,
+            "run_dir": run.run_dir,
+            "reason": str(exc),
+        }
+    except ValueError as exc:
+        return {
+            "index": run.index,
+            "status": "invalid_optimize_artifacts",
+            "return_code": 1,
+            "run_dir": run.run_dir,
+            "reason": str(exc),
+        }
+
+    try:
+        post_gepa_summary = build_post_gepa_summary(run)
+    except FileNotFoundError as exc:
+        return {
+            "index": run.index,
+            "status": "pending_post",
+            "return_code": 0,
+            "run_dir": run.run_dir,
+            "post_run_config_path": str(post_run_config_path),
+            "reason": str(exc),
+        }
+    except ValueError as exc:
+        return {
+            "index": run.index,
+            "status": "invalid_post_artifacts",
+            "return_code": 1,
+            "run_dir": run.run_dir,
+            "post_run_config_path": str(post_run_config_path),
+            "reason": str(exc),
+        }
+
+    with open(summary_path, "w", encoding="utf-8") as handle:
+        json.dump(post_gepa_summary, handle, indent=2)
+    return {
+        "index": run.index,
+        "status": "completed_rebuilt",
+        "return_code": 0,
+        "run_dir": run.run_dir,
+        "post_run_config_path": str(post_run_config_path),
+        "post_gepa_summary": post_gepa_summary,
+    }
 
 
 def run_full_pipeline(
@@ -1093,9 +1169,7 @@ def launch_batch(batch_dir: Path, max_parallel: int) -> int:
             results.append(future.result())
 
     results.sort(key=lambda result: result["index"])
-    with open(batch_dir / "launch_results.json", "w", encoding="utf-8") as handle:
-        json.dump(results, handle, indent=2)
-    write_post_gepa_table(batch_dir, results)
+    write_launch_results(batch_dir, results)
 
     failures = [result for result in results if result["return_code"] != 0]
     print()
@@ -1236,6 +1310,30 @@ def run_command(args: argparse.Namespace) -> int:
     return launch_batch(batch_dir, args.max_parallel)
 
 
+def resume_post_command(args: argparse.Namespace) -> int:
+    batch_dir = Path(args.batch_dir)
+    _, runs = read_batch(batch_dir)
+
+    print(f"Refreshing post-GEPA outputs for {len(runs)} run(s) from {batch_dir}")
+    results = [recover_post_gepa_result(run) for run in runs]
+    results.sort(key=lambda result: result["index"])
+    write_launch_results(batch_dir, results)
+
+    print()
+    print("Resume summary:")
+    for result in results:
+        message = (
+            f"  idx={result['index']} status={result['status']} return_code={result['return_code']} "
+            f"run_dir={result['run_dir']}"
+        )
+        if "reason" in result:
+            message = f"{message} reason={result['reason']}"
+        print(message)
+
+    failures = [result for result in results if result["return_code"] != 0]
+    return 1 if failures else 0
+
+
 def refresh_table_command(args: argparse.Namespace) -> int:
     rows = []
     skipped = []
@@ -1272,7 +1370,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Single deterministic CLI for preparing GEPA batches, launching optimization "
-            "plus post-GEPA reruns, and refreshing GEPA result tables."
+            "plus post-GEPA reruns, resuming interrupted post-GEPA output refreshes, and "
+            "refreshing GEPA result tables."
         )
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -1295,6 +1394,13 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--max-parallel", type=int, default=4, help="Maximum parallel pipelines")
     run_parser.add_argument("--yes", action="store_true", help="Skip confirmation prompt")
     run_parser.set_defaults(func=run_command)
+
+    resume_post_parser = subparsers.add_parser(
+        "resume-post",
+        help="Recover post-GEPA summaries/tables for finished runs in a prepared batch",
+    )
+    resume_post_parser.add_argument("--batch-dir", type=str, required=True, help="Prepared batch directory")
+    resume_post_parser.set_defaults(func=resume_post_command)
 
     refresh_parser = subparsers.add_parser("refresh-table", help="Refresh GEPA result TSV/CSV tables")
     refresh_parser.add_argument("--results-root", type=str, default="results", help="Root directory to scan")
