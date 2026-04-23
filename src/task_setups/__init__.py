@@ -21,6 +21,7 @@ from . import ab_testing as _ab_testing
 from . import replicatorbench as _replicatorbench
 from . import refactorbench as _refactorbench
 from . import browsecompplus as _browsecompplus
+from . import machine_operating_s2l as _machine_operating_s2l
 from .corpus_reader import get_corpus_reader
 
 
@@ -120,6 +121,9 @@ def setup_workspace(task_id: str, workspace_dir: str, log_dir: str, example: dic
     if task_id == "refactorbench":
         _refactorbench.setup_workspace(workspace_dir, str(log_dir), example)
 
+    if task_id == "machine_operating_s2l":
+        _machine_operating_s2l.setup_workspace(workspace_dir, str(log_dir), example)
+
 
 def setup_servers(
     task_id: str,
@@ -195,6 +199,9 @@ def get_eval_config(task_id: str) -> dict:
     elif task_id == "browsecompplus":
         from ..task_evals.browsecompplus import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
+    elif task_id == "machine_operating_s2l":
+        from ..task_evals.machine_operating_s2l import run_single_instance_eval
+        return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 8}
     else:
         raise ValueError(f"Unknown task_id: {task_id!r}")
 
@@ -254,6 +261,28 @@ def build_agent(base_dir, llm):
         mcp_config=mcp_config,
     )
 '''
+    elif task_id == "machine_operating_s2l":
+        code = '''\
+from openhands.sdk import Agent, Tool
+from openhands.tools.terminal import TerminalTool
+from openhands.tools.file_editor import FileEditorTool
+import os
+
+SEED_PROMPT = """<<<SEED_PROMPT>>>"""
+
+def build_agent(base_dir, llm):
+    prompt_path = os.path.join(base_dir, "system_prompt.md")
+    with open(prompt_path, "w") as f:
+        f.write(SEED_PROMPT)
+    from src.task_setups.machine_operating_s2l import get_mcp_config
+    mcp_config = get_mcp_config(base_dir)
+    return Agent(
+        llm=llm,
+        tools=[Tool(name=TerminalTool.name), Tool(name=FileEditorTool.name)],
+        system_prompt_filename=prompt_path,
+        mcp_config=mcp_config,
+    )
+'''
     else:
         code = '''\
 from openhands.sdk import Agent, Tool
@@ -281,10 +310,20 @@ def requires_eval_lm(task_id: str) -> bool:
     return task_id in ("webtest", "docbench", "browsecomplongcontext", "browsecompplus")
 
 
+def setup_proposer_workspace(task_id: str, workspace_dir: str) -> None:
+    """Create any task-specific directories the MCP server needs in the proposer workspace."""
+    if task_id == "machine_operating_s2l":
+        _machine_operating_s2l.setup_proposer_workspace(workspace_dir)
+    elif task_id == "ab_testing":
+        Path(workspace_dir, "local_db", "google_cloud").mkdir(parents=True, exist_ok=True)
+
+
 def get_mcp_config(task_id: str, workspace_dir: str) -> dict:
     """Return an mcp_config dict for tasks that require MCP servers, else {}."""
     if task_id == "ab_testing":
         return _ab_testing.get_mcp_config(workspace_dir)
     if task_id == "browsecompplus":
         return _browsecompplus.get_mcp_config()
+    if task_id == "machine_operating_s2l":
+        return _machine_operating_s2l.get_mcp_config(workspace_dir)
     return {}

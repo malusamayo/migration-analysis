@@ -673,17 +673,25 @@ def run_single_instance_agentic(
             spec = importlib.util.spec_from_file_location("_agent_module", agent_file)
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
-            agent = mod.build_agent(base_dir=str(workspace_dir), llm=llm)
+            local_workspace = str(workspace_dir)
+            agent = mod.build_agent(base_dir=local_workspace, llm=llm)
             # Remap system_prompt_filename to an absolute path under base_dir so that
             # render_template can find it regardless of the CWD.
             # In Docker mode, base_dir is the container-internal path (/workspace/project).
             # In non-Docker mode, base_dir is workspace_dir.absolute() (the host path).
             fname = os.path.basename(agent.system_prompt_filename)
             agent = agent.model_copy(update={"system_prompt_filename": os.path.join(base_dir, fname)})
+            # If the candidate used the canonical task MCP config with the host
+            # workspace path, rebuild that config for the runtime workspace path.
+            if task_id and base_dir != local_workspace:
+                local_mcp = get_mcp_config(task_id, local_workspace)
+                if local_mcp and agent.mcp_config == local_mcp:
+                    agent = agent.model_copy(
+                        update={"mcp_config": get_mcp_config(task_id, str(base_dir))}
+                    )
             # Remap tool params (e.g. browser user_data_dir) from local workspace path to
             # Docker path. build_agent writes files using local paths (so host writes work),
             # but any runtime paths embedded in tool params must use the container-side path.
-            local_workspace = str(workspace_dir)
             if base_dir != local_workspace:
                 remapped_tools = []
                 for tool in agent.tools:

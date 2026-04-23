@@ -230,6 +230,9 @@ class AgentProposer:
             adaptation_guide_markdown=self.adaptation_guide_markdown,
         )
 
+        if self.task_id:
+            setup_proposer_workspace(self.task_id, workspace)
+
         # Make entire workspace world-writable so Docker's appuser can modify files
         for root, dirs, files in os.walk(workspace):
             os.chmod(root, 0o777)

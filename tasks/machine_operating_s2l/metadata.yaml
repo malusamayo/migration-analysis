@@ -1,0 +1,6 @@
+name: machine_operating_s2l
+description: >
+  IoT factory anomaly detection benchmark. The agent queries a mock BigQuery
+  table of sensor readings, compares them against normal operating parameter
+  ranges defined in an Excel file, and uploads a complete anomaly report to
+  a Cloud Storage bucket. Based on LOCA-bench MachineOperatingS2LEnv.

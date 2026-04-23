@@ -55,3 +55,10 @@ services:
       dockerfile: tasks/Dockerfile
       args:
         USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
+  machine_operating_s2l:
+    image: machine_operating_s2l:latest
+    build:
+      context: .
+      dockerfile: tasks/machine_operating_s2l/Dockerfile
+      args:
+        USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
