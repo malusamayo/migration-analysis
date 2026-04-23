@@ -1,14 +1,5 @@
 # syntax=docker/dockerfile:1.7
 
-# Shared base for the closest-match task images.
-# Exact or near-exact variants:
-# - tasks/webtest/Dockerfile
-# - tasks/webarena/Dockerfile
-# - tasks/browsecomplongcontext/Dockerfile
-# - tasks/refactorbench/Dockerfile (+ COPY src ./src)
-# - tasks/docbench/Dockerfile (+ poppler-utils, Playwright)
-# - tasks/webgen/Dockerfile (+ nodejs npm chromium, Playwright)
-
 FROM python:3.14-slim
 
 ARG USER_UID

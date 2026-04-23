@@ -2,22 +2,23 @@ task_id: "webarena"
 # data_path: "data/webarena.json"
 # data_path: "data/webarena_lite.json"
 data_path: "data/webarena_shopping_admin.json"
-model_name: "qwen3-coder-30b-a3b"
+# model_name: "qwen3-coder-30b-a3b"
+model_name: "ministral-3-8b"
 # model_name: "gemini-3.1-pro-preview"
 # model_name: "gpt-oss-20b"
 prompt_name: "shopping_admin"
 
-max_examples: 2
-n_responses: 1
+max_examples: 20
+n_responses: 3
 agent_batch_size: 8
-resume: true
+resume: false
 
 is_agentic: true
 use_docker: true
 server_image: "webarena:latest"
 docker_network: "webarena-net"
 
-rollout_version: collect_all
+rollout_version: baseline
 
 # Assumes the needed WebArena servers are already running locally.
 # Start them with: uvx webarena-verified env start --site shopping_admin
@@ -29,6 +30,7 @@ server_start_timeout: 300  # seconds per container; increase if containers are s
 
 eval_lm: "gemini-3-flash-preview"
 
-agent_file: scripts/agents/webarena_agent.py
+
+# agent_file: scripts/agents/webarena_agent.py
 # agent_file: results/webarena_old/qwen3-coder-30b-a3b_shopping_admin/gepa/seed6/shared/config/best_config.py
 # agent_file: results/webarena/qwen3-coder-30b-a3b_shopping_admin/gepa/seed3/iterations/iter_01/candidates/proposed.py
