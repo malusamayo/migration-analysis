@@ -13,13 +13,6 @@ services:
   #     dockerfile: tasks/webgen/Dockerfile
   #     args:
   #       USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
-  # ab_testing:
-  #   image: ab_testing:latest
-  #   build:
-  #     context: .
-  #     dockerfile: tasks/ab_testing/Dockerfile
-  #     args:
-  #       USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
   # replicatorbench:
   #   image: replicatorbench:latest
   #   build:
@@ -59,6 +52,20 @@ services:
     image: machine_operating_s2l:latest
     build:
       context: .
-      dockerfile: tasks/machine_operating_s2l/Dockerfile
+      dockerfile: tasks/Dockerfile.loca
+      args:
+        USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
+  woocommerce_stock_alert_s2l:
+    image: woocommerce_stock_alert_s2l:latest
+    build:
+      context: .
+      dockerfile: tasks/Dockerfile.loca
+      args:
+        USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
+  ab_testing_s2l:
+    image: ab_testing_s2l:latest
+    build:
+      context: .
+      dockerfile: tasks/Dockerfile.loca
       args:
         USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}

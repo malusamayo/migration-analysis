@@ -1,4 +1,4 @@
-"""Evaluation for the ab_testing task.
+"""Evaluation for the ab_testing_s2l task.
 
 Checks:
 1. record.csv exists and contains correct per-scenario conversion rates

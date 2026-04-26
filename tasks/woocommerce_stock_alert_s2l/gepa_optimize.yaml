@@ -1,0 +1,26 @@
+task_id: "woocommerce_stock_alert_s2l"
+data_path: "data/woocommerce_stock_alert_s2l.json"
+model_name: "qwen3-coder-30b-a3b"
+prompt_name: "default"
+
+# GEPA settings
+reflection_lm: "gemini-3.1-pro-preview"
+max_cost: 16.0
+seed: 2
+
+# Evaluation
+eval_lm: "gemini-3-flash-preview"
+agent_batch_size: 8
+eval_batch_size: 16
+
+# Data
+max_examples: 20
+train_ratio: 0.5
+
+# Reflection
+use_adaptation_guide: true
+
+# Docker
+use_docker: true
+server_image: "woocommerce_stock_alert_s2l:latest"
+max_time: 600

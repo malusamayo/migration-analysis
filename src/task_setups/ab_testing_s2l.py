@@ -1,4 +1,4 @@
-"""Workspace setup and MCP config for the ab_testing task.
+"""Workspace setup and MCP config for the ab_testing_s2l task.
 
 Uses LOCA-bench's ABTestingDataGenerator and the mock Google Cloud SQLite
 backend (mcp_convert) — no external services or new dependencies required.
@@ -21,7 +21,7 @@ LOCA_BENCH_PATH = Path(_env_loca) if _env_loca else Path(__file__).parent.parent
 
 TASK_INSTRUCTION = (
     "The A/B test for our new homepage has concluded, and the raw clickstream data "
-    "has been stored in the `ab_testing` dataset in BigQuery. Analyze this data to "
+    "has been stored in the `ab_testing_s2l` dataset in BigQuery. Analyze this data to "
     "calculate the conversion rate for each scenario as well as the overall conversion "
     "rate, which should be labeled `overall (total_store_views/total_clicks)`. Record "
     "these results in `record.csv`, following the same format used in that file — do "
@@ -72,7 +72,7 @@ def setup_workspace(workspace_dir: str, log_dir: str, example: dict) -> None:
 
     gcloud_db = GoogleCloudDatabase(data_dir=str(gcloud_db_dir))
     project_id = "local-project"
-    dataset_id = "ab_testing"
+    dataset_id = "ab_testing_s2l"
 
     gcloud_db.create_bigquery_dataset(project_id, dataset_id, {
         "location": "US",

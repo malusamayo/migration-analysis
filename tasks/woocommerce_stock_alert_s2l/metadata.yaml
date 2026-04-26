@@ -1,0 +1,6 @@
+name: woocommerce_stock_alert_s2l
+description: >
+  WooCommerce inventory-monitoring benchmark. The agent inspects product stock
+  levels in a mock WooCommerce backend, records all and only low-stock
+  products in a Google Sheet, and emails the purchasing manager once per
+  low-stock product. Based on LOCA-bench WoocommerceStockAlertS2LEnv.

@@ -1,0 +1,31 @@
+task_id: "ab_testing_s2l"
+data_path: "data/ab_testing_s2l.json"
+# model_name: "claude-sonnet-4-5"
+model_name: "qwen3-coder-30b-a3b"
+# model_name: "ministral-3-8b"
+prompt_name: "default"
+
+# GEPA settings
+reflection_lm: "gemini-3.1-pro-preview"
+max_cost: 8.0
+seed: 1
+
+# Data
+max_examples: 20
+n_responses: 1
+train_ratio: 0.5
+
+# Evaluation
+eval_lm: "gemini-3-flash-preview"
+agent_batch_size: 8
+eval_batch_size: 16
+
+# Reflection
+use_adaptation_guide: true
+# use_adaptation_guide: false
+
+# Docker
+is_agentic: true
+use_docker: true
+server_image: "ab_testing_s2l:latest"
+max_time: 600
