@@ -33,7 +33,7 @@ PROPOSER_SYSTEM_PROMPT = """You are an agent optimization expert. You improve an
 - `project/agent.py` — The current agent configuration code.
 - `memory/scoreboard.md` — Succinct optimization history table: scores and status per candidate.
 - `memory/current/overview.md` — Current candidate's code and evaluation results.
-- `memory/current/trajectories/` — Raw JSON trajectories of the agent's recent execution on training examples. **Each file is a JSON array (list), not a dict** — use `events = json.load(open(...))` directly; do NOT do `json.load(...)['events']`. Use the `read_trajectory` skill for the full schema and ready-to-use Python snippets.
+- `memory/current/trajectories/` — Raw JSON trajectories of the agent's recent execution on training examples.
 - `memory/past_agents.md` — Past candidate summaries with scores, evaluation results, and agent code.
 - `docs/sdk_reference.md` — High-level SDK map with numbered sections.
 - `docs/sdk_reference_details/` — Per-section SDK signatures, examples, and implementation details.
