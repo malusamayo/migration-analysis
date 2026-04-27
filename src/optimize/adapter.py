@@ -19,6 +19,7 @@ from .common import (
 )
 from .memory import ProposerMemory
 from .proposer import AgentProposer
+from .teacher import TeacherTrajectoryStore
 from ..runner import run_single_instance_agentic
 from ..task_setups import get_eval_config
 from ..utils import LM_DICT, batch_inference
@@ -210,6 +211,7 @@ class AgentOptimizationAdapter(GEPAAdapter):
         server_image: str = "migration-analysis:latest",
         docker_network: Optional[str] = None,
         max_time: Optional[float] = None,
+        teacher_trajectory_dir: Optional[str] = None,
     ):
         self.task_id = task_id
         self.task_prompt = task_prompt
@@ -225,6 +227,11 @@ class AgentOptimizationAdapter(GEPAAdapter):
         self.docker_network = docker_network
         self.max_time = max_time
         self.num_exploration = num_exploration
+        self.teacher_trajectory_store = (
+            TeacherTrajectoryStore(teacher_trajectory_dir)
+            if teacher_trajectory_dir is not None
+            else None
+        )
 
         self.eval_config = get_eval_config(task_id)
         self.eval_function = self.eval_config["eval_function"]
@@ -548,6 +555,11 @@ class AgentOptimizationAdapter(GEPAAdapter):
                         {
                             "Task Input": example.get("prompt", ""),
                             "Agent Trajectory JSON Path": trajectory_json_path,
+                            "Teacher Trajectory JSON Path": (
+                                self.teacher_trajectory_store.resolve(example)
+                                if self.teacher_trajectory_store is not None
+                                else None
+                            ),
                             "Evaluation Feedback": feedback,
                             "eval_output": output if isinstance(output, dict) else {},
                         }

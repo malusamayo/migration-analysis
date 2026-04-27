@@ -320,10 +320,18 @@ class ProposerMemory:
                 f.write(self._format_current_overview(current))
         traj_dir = os.path.join(current_dir, "trajectories")
         os.makedirs(traj_dir, exist_ok=True)
+        teacher_traj_dir = os.path.join(current_dir, "teacher_trajectories")
+        os.makedirs(teacher_traj_dir, exist_ok=True)
         for i, record in enumerate(self._reflective_records):
             trajectory_json_path = record.get("Agent Trajectory JSON Path")
             if trajectory_json_path:
                 shutil.copy2(trajectory_json_path, os.path.join(traj_dir, f"example{i}.json"))
+            teacher_trajectory_json_path = record.get("Teacher Trajectory JSON Path")
+            if teacher_trajectory_json_path:
+                shutil.copy2(
+                    teacher_trajectory_json_path,
+                    os.path.join(teacher_traj_dir, f"example{i}.json"),
+                )
 
         with open(os.path.join(mem_dir, "past_agents.md"), "w") as f:
             f.write(self.format_past_agents())
@@ -393,11 +401,13 @@ class ProposerMemory:
         lines.append("")
         lines.append(
             "These are the results from running the current agent on the reflection subsample. "
-            "Each example has a raw trajectory JSON file in `trajectories/`."
+            "Each example has a raw trajectory JSON file in `trajectories/`. "
+            "If a teacher trajectory directory is configured, matched teacher traces are in "
+            "`teacher_trajectories/`."
         )
         lines.append("")
-        lines.append("| Ex | Score | Feedback | Trajectory JSON |")
-        lines.append("|----|-------|----------|-----------------|")
+        lines.append("| Ex | Score | Feedback | Agent Trajectory JSON | Teacher Trajectory JSON |")
+        lines.append("|----|-------|----------|-----------------------|-------------------------|")
         for i, record in enumerate(self._reflective_records):
             eval_output = record.get("eval_output", {})
             score = eval_output.get("score", "-")
@@ -406,7 +416,13 @@ class ProposerMemory:
                 raw_link = f"[trajectories/example{i}.json](trajectories/example{i}.json)"
             else:
                 raw_link = "-"
-            lines.append(f"| {i} | {score} | {feedback} | {raw_link} |")
+            if record.get("Teacher Trajectory JSON Path"):
+                teacher_link = (
+                    f"[teacher_trajectories/example{i}.json](teacher_trajectories/example{i}.json)"
+                )
+            else:
+                teacher_link = "-"
+            lines.append(f"| {i} | {score} | {feedback} | {raw_link} | {teacher_link} |")
         lines.append("")
         return "\n".join(lines)
 

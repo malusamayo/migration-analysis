@@ -70,6 +70,7 @@ def run_optimization(
     server_image: str = "migration-analysis:latest",
     max_time: Optional[float] = None,
     num_exploration: int = 1,
+    teacher_trajectory_dir: Optional[str] = None,
 ):
     logging.basicConfig(
         level=logging.INFO,
@@ -85,6 +86,8 @@ def run_optimization(
         max_examples=max_examples,
         data_path=data_path,
     )
+    for dataset_index, example in enumerate(data):
+        example["_dataset_index"] = dataset_index
 
     setup_servers(task_id, docker_network=docker_network)
     data = [preprocess_example(task_id, ex) for ex in data]
@@ -123,6 +126,7 @@ def run_optimization(
         "server_image": server_image,
         "max_time": max_time,
         "num_exploration": num_exploration,
+        "teacher_trajectory_dir": teacher_trajectory_dir,
     }
     _print_effective_config(effective_config)
 
@@ -165,6 +169,7 @@ def run_optimization(
         docker_network=docker_network,
         max_time=max_time,
         num_exploration=num_exploration,
+        teacher_trajectory_dir=teacher_trajectory_dir,
     )
 
     stoppers: list[StopperProtocol] = []
@@ -297,6 +302,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Number of diverse strategies to propose per exploration step (default: 1).",
     )
+    parser.add_argument(
+        "--teacher_trajectory_dir",
+        type=str,
+        default=None,
+        help="Optional rollout directory containing teacher trajectories to stage for the proposer.",
+    )
     return parser
 
 
@@ -344,6 +355,11 @@ def main(argv: Optional[list[str]] = None) -> int:
         if args.num_exploration is not None
         else config.get("num_exploration", 1)
     )
+    teacher_trajectory_dir = (
+        args.teacher_trajectory_dir
+        if args.teacher_trajectory_dir is not None
+        else config.get("teacher_trajectory_dir")
+    )
     use_adaptation_guide = config.get("use_adaptation_guide", True)
     adaptation_guide_markdown = (
         args.adaptation_guide_markdown
@@ -379,6 +395,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         use_adaptation_guide=use_adaptation_guide,
         adaptation_guide_markdown=adaptation_guide_markdown,
         num_exploration=num_exploration,
+        teacher_trajectory_dir=teacher_trajectory_dir,
     )
     return 0
 
