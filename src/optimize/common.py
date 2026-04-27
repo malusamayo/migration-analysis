@@ -12,6 +12,9 @@ from openhands.sdk import Agent, LLM
 class LiteralBlockDumper(yaml.Dumper):
     """YAML dumper that renders multiline strings as block literals (|)."""
 
+    def ignore_aliases(self, data):
+        return True
+
 
 def _literal_str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
     if "\n" in data:
