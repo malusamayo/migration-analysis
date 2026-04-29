@@ -36,6 +36,7 @@ from openhands.tools.delegate import (
     DelegationVisualizer,
 )
 from openhands.workspace import DockerWorkspace
+from openhands.sdk.hooks import HookConfig
 
 from contextlib import contextmanager
 
@@ -562,6 +563,7 @@ def _run_agentic_conversation(
         skill_mode: str = "",
         max_time: Optional[float] = None,
         agent_file: Optional[str] = None,
+        hook_config: Optional[HookConfig] = None,
     ):
     """
     Core logic for running an agentic conversation.
@@ -583,7 +585,7 @@ def _run_agentic_conversation(
     error = None
     try:
         visualizer = DelegationVisualizer(name="main")
-        conversation = Conversation(agent=agent, workspace=workspace_obj, visualizer=visualizer, agent_file=agent_file)
+        conversation = Conversation(agent=agent, workspace=workspace_obj, visualizer=visualizer, agent_file=agent_file, hook_config=hook_config)
         instruction = example['prompt']
 
         if skill_mode == "agent_decided":
@@ -667,6 +669,8 @@ def run_single_instance_agentic(
     if task_id:
         setup_workspace(task_id, workspace, log_dir, example)
 
+    _hook_config_holder: list[Optional[HookConfig]] = [None]
+
     def _build_agent(base_dir, prompt_path):
         if agent_file is not None:
             import importlib.util
@@ -711,6 +715,13 @@ def run_single_instance_agentic(
                     script_path = workspace_dir / filename
                     script_path.parent.mkdir(parents=True, exist_ok=True)
                     script_path.write_text(content)
+            hook_fn = getattr(mod, "get_hook_config", None)
+            if hook_fn is not None:
+                hc = hook_fn(local_workspace)
+                if base_dir != local_workspace:
+                    hc_json = hc.model_dump_json().replace(local_workspace, base_dir)
+                    hc = HookConfig.model_validate_json(hc_json)
+                _hook_config_holder[0] = hc
             return agent
         if tools is None:
             _tools = [
@@ -766,6 +777,7 @@ def run_single_instance_agentic(
                 skill_mode=skill_mode,
                 max_time=max_time,
                 agent_file=docker_agent_file,
+                hook_config=_hook_config_holder[0],
             )
             if post_docker_fn:
                 post_docker_fn(
@@ -785,4 +797,5 @@ def run_single_instance_agentic(
             example=example,
             skill_mode=skill_mode,
             max_time=max_time,
+            hook_config=_hook_config_holder[0],
         )

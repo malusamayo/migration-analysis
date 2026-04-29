@@ -321,8 +321,34 @@ def _append_event_stream_markdown(
             markdown_lines.append(error_msg)
             markdown_lines.append("```\n")
 
-        else:
-            assert False, f"Unhandled event kind: {event_kind}"
+        elif event_kind == "HookExecutionEvent":
+            hook_type = event.get("hook_event_type", "")
+            tool_name = event.get("tool_name", "")
+            blocked = event.get("blocked", False)
+            exit_code = event.get("exit_code")
+            stdout = event.get("stdout", "").strip()
+            stderr = event.get("stderr", "").strip()
+            status = "BLOCKED" if blocked else ("OK" if exit_code == 0 else f"exit={exit_code}")
+            markdown_lines.append(f"**Hook ({hook_type} `{tool_name}`) — {status}:**\n")
+            output = "\n".join(filter(None, [stdout, stderr]))
+            if output:
+                output = _truncate_text(output, 1000)
+                markdown_lines.append("```")
+                markdown_lines.append(output)
+                markdown_lines.append("```\n")
+
+        elif event_kind == "UserRejectObservation":
+            tool_name = event.get("tool_name", "")
+            reason = event.get("rejection_reason", "")
+            markdown_lines.append(f"**Hook rejected `{tool_name}`:**\n")
+            if reason:
+                reason = _truncate_text(reason, 1000)
+                markdown_lines.append("```")
+                markdown_lines.append(reason)
+                markdown_lines.append("```\n")
+
+        elif event_kind in ("ConversationStateUpdateEvent", "Unknown"):
+            pass
 
 
 def convert_json_to_markdown(json_data: Dict[str, Any]) -> str:
