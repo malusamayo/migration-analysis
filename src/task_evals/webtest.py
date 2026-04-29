@@ -299,7 +299,7 @@ def _create_error_result(workspace_dir: str, test_files: List[str], error_msg: s
 def _run_file_with_pytest(
     test_file: Path,
     workspace_path: Path,
-    docker_image: str = "webtest:latest",
+    server_image: str = "webtest:latest",
     timeout: int = 60,
 ) -> Optional[Tuple[int, int, subprocess.CompletedProcess]]:
     """
@@ -336,7 +336,7 @@ def _run_file_with_pytest(
     for key in forward_env:
         docker_cmd.extend(["-e", f"{key}={all_envs[key]}"])
     docker_cmd.extend([
-        docker_image,
+        server_image,
         "-m", "pytest",
         "-v", "--tb=short",
         str(test_file)
@@ -376,7 +376,7 @@ def _run_tests_batch(
     test_function_pattern: re.Pattern,
     main_block_pattern: re.Pattern,
     expected_tests: int,
-    docker_image: str = "webtest:latest",
+    server_image: str = "webtest:latest",
     timeout_per_file: int = 60,
 ) -> Dict[str, Any]:
     """
@@ -389,7 +389,7 @@ def _run_tests_batch(
         test_function_pattern: Regex pattern to find test functions
         main_block_pattern: Regex pattern to find __main__ blocks
         expected_tests: Expected number of test functions
-        docker_image: Docker image to use for running tests (default: webtest:latest)
+        server_image: Docker image to use for running tests (default: webtest:latest)
         timeout_per_file: Timeout in seconds for each individual test file (default: 60)
 
     Returns:
@@ -411,12 +411,12 @@ def _run_tests_batch(
 
     # Check if image exists
     image_check = subprocess.run(
-        ["docker", "images", "-q", docker_image],
+        ["docker", "images", "-q", server_image],
         capture_output=True,
         text=True,
     )
     if not image_check.stdout.strip():
-        raise RuntimeError(f"Docker image '{docker_image}' not found. Please build it with: docker compose build {docker_image.split(':')[0]}")
+        raise RuntimeError(f"Docker image '{server_image}' not found. Please build it with: docker compose build {server_image.split(':')[0]}")
 
     pytest_available = True  # Always true in Docker
 
@@ -444,7 +444,7 @@ def _run_tests_batch(
             # Try pytest first if available
             if pytest_available:
                 pytest_result = _run_file_with_pytest(
-                    relative_path, workspace_path, docker_image, timeout_per_file,
+                    relative_path, workspace_path, server_image, timeout_per_file,
                 )
                 if pytest_result is None:
                     raise RuntimeError("Failed to parse pytest output or no tests detected.")
@@ -541,7 +541,7 @@ def run_single_instance_eval(
     example: Optional[dict] = None,
     expected_tests: int = 5,
     score_per_test: float = 0.2,
-    docker_image: str = "webtest:latest",
+    server_image: str = "webtest:latest",
     timeout_per_file: int = 60,
 ) -> Dict[str, Any]:
     """
@@ -589,7 +589,7 @@ def run_single_instance_eval(
     """
     workspace_path = Path(workspace_dir)
 
-    print(f"🐳 Running tests in Docker (image: {docker_image})")
+    print(f"🐳 Running tests in Docker (image: {server_image})")
 
     # Validate workspace exists
     if not workspace_path.exists():
@@ -638,6 +638,6 @@ def run_single_instance_eval(
         test_function_pattern,
         main_block_pattern,
         expected_tests,
-        docker_image,
+        server_image,
         timeout_per_file,
     )

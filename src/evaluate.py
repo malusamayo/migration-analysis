@@ -1,9 +1,12 @@
-import json
-import yaml
-import os
 import argparse
+import inspect
+import json
+import os
 from pathlib import Path
 from typing import Optional
+
+import yaml
+
 from .utils import batch_inference, LM_DICT
 from .optimize.common import LiteralBlockDumper
 from .dataloader import EvalDataLoader
@@ -26,7 +29,7 @@ def run_task_eval(
         resume: bool = True,
         rollout_version: str = "v0",
         data_path: Optional[str] = None,
-        docker_image: Optional[str] = None,
+        server_image: Optional[str] = None,
     ):
     """
     Run evaluation on a task.
@@ -41,7 +44,7 @@ def run_task_eval(
         eval_batch_size: Maximum number of concurrent evaluation workers
         resume: Whether to resume from existing results
         rollout_version: Rollout version identifier (e.g., "v0", "v1")
-        docker_image: Docker image to use for evaluation (if applicable)
+        server_image: Docker image to use for evaluation (if applicable)
     """
     config = get_eval_config(task_id)
     max_workers = eval_batch_size if eval_batch_size is not None else config["max_workers"]
@@ -58,7 +61,7 @@ def run_task_eval(
             "resume": resume,
             "rollout_version": rollout_version,
             "data_path": data_path,
-            "docker_image": docker_image,
+            "server_image": server_image,
         }
     )
 
@@ -92,10 +95,10 @@ def run_task_eval(
     else:
         eval_lm = None
     args_list = [{**args, "lm": eval_lm} for args in args_list]
-    
-    # Add docker_image to args if available
-    if docker_image:
-        args_list = [{**args, "docker_image": docker_image} for args in args_list]
+
+    eval_signature = inspect.signature(eval_function)
+    if server_image and "server_image" in eval_signature.parameters:
+        args_list = [{**args, "server_image": server_image} for args in args_list]
 
     # Define callback to save partial results
     def write_partial_results(completed_results, total_count):
@@ -183,7 +186,7 @@ if __name__ == "__main__":
     # Handle boolean flag specially
     resume = args.resume if args.resume is not None else config.get("resume", True)
     data_path = config.get("data_path")
-    docker_image = config.get("docker_image")
+    server_image = config.get("server_image")
 
     # Validate required arguments
     if not task_id:
@@ -202,5 +205,5 @@ if __name__ == "__main__":
         resume=resume,
         rollout_version=rollout_version,
         data_path=data_path,
-        docker_image=docker_image,
+        server_image=server_image,
     )

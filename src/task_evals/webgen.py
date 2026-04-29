@@ -457,7 +457,7 @@ def run_single_instance_eval(
         lm: dspy.LM,
         example: dict,
         workspace_dir: str,
-        docker_image: str = "webgen:latest",
+        server_image: str = "webgen:latest",
     ) -> dict:
     def workspace_fn(workspace, system_prompt_path, example, log_dir):
         try:
@@ -480,7 +480,7 @@ def run_single_instance_eval(
         example=example,
         workspace=os.path.abspath(workspace_dir),
         use_docker=True,
-        server_image=docker_image,
+        server_image=server_image,
         setup_commands=[],
         workspace_fn=workspace_fn,
     )
