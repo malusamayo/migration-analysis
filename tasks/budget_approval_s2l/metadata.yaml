@@ -1,0 +1,7 @@
+name: budget_approval_s2l
+description: >
+  Administrative budget-approval benchmark modeled after TheAgentCompany's
+  procurement tasks. The agent must retrieve equipment requests through a
+  stateful communication MCP, inspect pricing and budget documents through the
+  same mock company service, communicate budget outcomes back to employees, and
+  in over-budget cases negotiate reductions and record the confirmed removals.

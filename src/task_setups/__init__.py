@@ -19,6 +19,7 @@ from .webarena_servers import (
     WEBARENA_BASIC_SITES,
 )
 from . import ab_testing_s2l as _ab_testing_s2l
+from . import budget_approval_s2l as _budget_approval_s2l
 from . import replicatorbench as _replicatorbench
 from . import refactorbench as _refactorbench
 from . import browsecompplus as _browsecompplus
@@ -117,6 +118,8 @@ def setup_workspace(task_id: str, workspace_dir: str, log_dir: str, example: dic
 
     if task_id == "ab_testing_s2l":
         _ab_testing_s2l.setup_workspace(workspace_dir, str(log_dir), example)
+    if task_id == "budget_approval_s2l":
+        _budget_approval_s2l.setup_workspace(workspace_dir, str(log_dir), example)
 
     if task_id == "replicatorbench":
         _replicatorbench.setup_workspace(workspace_dir, str(log_dir), example)
@@ -184,6 +187,9 @@ def get_eval_config(task_id: str) -> dict:
     #     return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 32}
     elif task_id == "ab_testing_s2l":
         from ..task_evals.ab_testing_s2l import run_single_instance_eval
+        return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
+    elif task_id == "budget_approval_s2l":
+        from ..task_evals.budget_approval_s2l import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
     elif task_id == "oolong":
         from ..task_evals.oolong import run_single_instance_eval
@@ -290,6 +296,28 @@ def build_agent(base_dir, llm):
         mcp_config=mcp_config,
     )
 '''
+    elif task_id == "budget_approval_s2l":
+        code = '''\
+from openhands.sdk import Agent, Tool
+from openhands.tools.terminal import TerminalTool
+from openhands.tools.file_editor import FileEditorTool
+import os
+
+SEED_PROMPT = """<<<SEED_PROMPT>>>"""
+
+def build_agent(base_dir, llm):
+    prompt_path = os.path.join(base_dir, "system_prompt.md")
+    with open(prompt_path, "w") as f:
+        f.write(SEED_PROMPT)
+    from src.task_setups.budget_approval_s2l import get_mcp_config
+    mcp_config = get_mcp_config(base_dir)
+    return Agent(
+        llm=llm,
+        tools=[Tool(name=TerminalTool.name), Tool(name=FileEditorTool.name)],
+        system_prompt_filename=prompt_path,
+        mcp_config=mcp_config,
+    )
+'''
     elif task_id == "woocommerce_stock_alert_s2l":
         code = '''\
 from openhands.sdk import Agent, Tool
@@ -343,6 +371,8 @@ def setup_proposer_workspace(task_id: str, workspace_dir: str) -> None:
     """Create any task-specific directories the MCP server needs in the proposer workspace."""
     if task_id == "machine_operating_s2l":
         _machine_operating_s2l.setup_proposer_workspace(workspace_dir)
+    elif task_id == "budget_approval_s2l":
+        _budget_approval_s2l.setup_proposer_workspace(workspace_dir)
     elif task_id == "woocommerce_stock_alert_s2l":
         _woocommerce_stock_alert_s2l.setup_proposer_workspace(workspace_dir)
     elif task_id == "ab_testing_s2l":
@@ -353,6 +383,8 @@ def get_mcp_config(task_id: str, workspace_dir: str) -> dict:
     """Return an mcp_config dict for tasks that require MCP servers, else {}."""
     if task_id == "ab_testing_s2l":
         return _ab_testing_s2l.get_mcp_config(workspace_dir)
+    if task_id == "budget_approval_s2l":
+        return _budget_approval_s2l.get_mcp_config(workspace_dir)
     if task_id == "browsecompplus":
         return _browsecompplus.get_mcp_config()
     if task_id == "machine_operating_s2l":

@@ -69,3 +69,10 @@ services:
       dockerfile: tasks/Dockerfile.loca
       args:
         USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
+  budget_approval_s2l:
+    image: budget_approval_s2l:latest
+    build:
+      context: .
+      dockerfile: tasks/Dockerfile.loca
+      args:
+        USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
