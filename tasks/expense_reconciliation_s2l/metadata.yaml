@@ -1,0 +1,6 @@
+name: expense_reconciliation_s2l
+description: >
+  Expense and invoice reconciliation benchmark modeled after TheAgentCompany's
+  finance tasks. The agent reads expense records and category rules, corrects
+  miscategorized expenses, produces a per-category analysis report, and matches
+  a payment ledger against vendor invoices to flag discrepancies.

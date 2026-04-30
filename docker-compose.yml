@@ -83,3 +83,10 @@ services:
       dockerfile: tasks/Dockerfile
       args:
         USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
+  expense_reconciliation_s2l:
+    image: expense_reconciliation_s2l:latest
+    build:
+      context: .
+      dockerfile: tasks/Dockerfile
+      args:
+        USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}

@@ -25,6 +25,53 @@ def _money_matches(message: str, amount: float) -> bool:
     return any(candidate.replace(",", "") in normalized for candidate in candidates)
 
 
+def _llm_status_match(
+    lm: dspy.LM,
+    message: str,
+    expected_status: str,
+) -> bool:
+    prompt = (
+        "Determine whether the message communicates the same budget status as the expected "
+        "status.\n"
+        f"Expected status: {expected_status}\n"
+        f"Message: {message}\n\n"
+        "Treat close paraphrases as equivalent. For example, 'exceeding budget' and "
+        "'over budget' are equivalent to 'exceed budget', while 'within budget' is "
+        "equivalent to 'under budget'. Respond with 'yes' or 'no' only."
+    )
+    response = lm(messages=[{"role": "user", "content": prompt}])
+    return response[0].strip().lower().startswith("yes")
+
+
+def _status_matches(
+    message: str,
+    expected_status: str,
+    lm: Optional[dspy.LM] = None,
+) -> bool:
+    normalized = _normalize_text(message)
+    if expected_status in normalized:
+        return True
+
+    equivalent_phrases = {
+        "exceed budget": (
+            "exceeding budget",
+            "exceeds budget",
+            "over budget",
+            "above budget",
+        ),
+        "under budget": (
+            "within budget",
+            "below budget",
+        ),
+    }
+    if any(phrase in normalized for phrase in equivalent_phrases.get(expected_status, ())):
+        return True
+
+    if lm is None:
+        return False
+    return _llm_status_match(lm, message, expected_status)
+
+
 def _thread_messages(state: dict, recipient: str, sender: str) -> list[str]:
     return [
         entry["message"]
@@ -42,12 +89,16 @@ def _documents_accessed(state: dict, paths: list[str]) -> bool:
     return all(path in accessed for path in paths)
 
 
-def _decision_messages_correct(state: dict, expected: dict) -> bool:
+def _decision_messages_correct(
+    state: dict,
+    expected: dict,
+    lm: Optional[dspy.LM] = None,
+) -> bool:
     for recipient, decision in expected["decisions"].items():
         messages = _thread_messages(state, recipient, "agent")
         if not any(
             _money_matches(message, float(decision["total"]))
-            and decision["status"] in _normalize_text(message)
+            and _status_matches(message, decision["status"], lm)
             for message in messages
         ):
             return False
@@ -106,7 +157,7 @@ def run_single_instance_eval(
 
     if expected["mode"] in {"department_budget_reply", "remaining_budget_reply"}:
         checkpoints.append(
-            ("communicated correct totals and status", _decision_messages_correct(state, expected), 2)
+            ("communicated correct totals and status", _decision_messages_correct(state, expected, lm), 2)
         )
     elif expected["mode"] == "reduction_record":
         checkpoints.append(

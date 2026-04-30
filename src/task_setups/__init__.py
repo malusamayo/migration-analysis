@@ -21,6 +21,7 @@ from .webarena_servers import (
 from . import ab_testing_s2l as _ab_testing_s2l
 from . import attendance_payroll_audit_s2l as _attendance_payroll_audit_s2l
 from . import budget_approval_s2l as _budget_approval_s2l
+from . import expense_reconciliation_s2l as _expense_reconciliation_s2l
 from . import replicatorbench as _replicatorbench
 from . import refactorbench as _refactorbench
 from . import browsecompplus as _browsecompplus
@@ -123,6 +124,8 @@ def setup_workspace(task_id: str, workspace_dir: str, log_dir: str, example: dic
         _attendance_payroll_audit_s2l.setup_workspace(workspace_dir, str(log_dir), example)
     if task_id == "budget_approval_s2l":
         _budget_approval_s2l.setup_workspace(workspace_dir, str(log_dir), example)
+    if task_id == "expense_reconciliation_s2l":
+        _expense_reconciliation_s2l.setup_workspace(workspace_dir, str(log_dir), example)
 
     if task_id == "replicatorbench":
         _replicatorbench.setup_workspace(workspace_dir, str(log_dir), example)
@@ -193,6 +196,9 @@ def get_eval_config(task_id: str) -> dict:
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
     elif task_id == "attendance_payroll_audit_s2l":
         from ..task_evals.attendance_payroll_audit_s2l import run_single_instance_eval
+        return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
+    elif task_id == "expense_reconciliation_s2l":
+        from ..task_evals.expense_reconciliation_s2l import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
     elif task_id == "budget_approval_s2l":
         from ..task_evals.budget_approval_s2l import run_single_instance_eval
