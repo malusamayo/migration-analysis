@@ -1,0 +1,6 @@
+name: attendance_payroll_audit_s2l
+description: >
+  Attendance and payroll auditing benchmark modeled after TheAgentCompany's
+  attendance and payroll tasks. The agent analyzes multi-day attendance logs,
+  joins department and pay-rate reference files, and produces a department-level
+  Excel audit report with exact attendance aggregates and payroll totals.
