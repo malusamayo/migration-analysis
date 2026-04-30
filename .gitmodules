@@ -1,3 +1,6 @@
 [submodule "software-agent-sdk"]
 	path = software-agent-sdk
 	url = git@github.com:malusamayo/software-agent-sdk.git
+[submodule "LOCA-bench"]
+	path = LOCA-bench
+	url = https://github.com/malusamayo/LOCA-bench.git
