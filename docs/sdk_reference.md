@@ -110,9 +110,9 @@ Implementation details: [`sdk_reference_details/08_condensers.md`](sdk_reference
 
 ## 9. Hooks
 
-Hooks let you run shell-based logic at specific lifecycle points such as before tool execution, after tool execution, session start, or session end.
+Hooks let you attach shell-based checks at lifecycle points such as before tool execution. In the common benchmark pattern, you define `get_hook_config(workspace_dir)` and pass its result into the conversation.
 
-Use this section when you need policy enforcement, auditing, logging, or runtime interception around agent behavior.
+Use this section when you need a lightweight enforcement hook, especially for gating `finish` with an external verifier script.
 
 Implementation details: [`sdk_reference_details/09_hooks.md`](sdk_reference_details/09_hooks.md)
 
