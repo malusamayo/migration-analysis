@@ -69,6 +69,14 @@ Encode constraints directly into tool schemas, output types, or workflow guards 
 
 **SDK references:** SDK Reference §7, Custom Tool Definition Pattern, in [`sdk_reference.md`](sdk_reference.md#7-custom-tool-definition-pattern) with implementation details in [`sdk_reference_details/07_custom_tool_definition_pattern.md`](sdk_reference_details/07_custom_tool_definition_pattern.md).
 
+#### 2d. Enforce instructions through hooks
+
+When the constraint is about runtime behavior rather than output structure, use hooks to intercept execution and block violations. This works well for policies such as disallowing certain tool calls, preventing `finish` until required checks pass, or injecting deterministic gating logic around user messages and tool execution.
+
+Prefer hooks when you need an external verifier or shell script to make the final allow/deny decision. A `PreToolUse` hook can reject a risky tool invocation before it runs, while a `Stop` hook can deny task completion until the agent has produced required artifacts or verification results.
+
+**SDK references:** SDK Reference §9, Hooks, in [`sdk_reference.md`](sdk_reference.md#9-hooks) with implementation details in [`sdk_reference_details/09_hooks.md`](sdk_reference_details/09_hooks.md).
+
 ---
 
 ## 3. Implicit-Knowledge Failures

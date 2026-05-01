@@ -2,7 +2,29 @@
 
 **Import:** `from openhands.sdk.hooks import HookConfig, HookDefinition, HookMatcher, HookType`
 
-Hooks are shell scripts that run at specific lifecycle events.
+Hooks let you run a shell command at specific lifecycle events. The main thing you need to define is a helper that returns a `HookConfig`. The function will later be passed to the conversation constructor and can use the workspace directory to set up hook scripts or other resources.
+
+## Example: Enforcing a Pre-Stop Check
+
+```python
+def get_hook_config(workspace_dir: str) -> HookConfig:
+    hook_script = os.path.join(workspace_dir, "stop_hook.py")
+    return HookConfig(
+        pre_tool_use=[
+            HookMatcher(
+                matcher="finish",
+                hooks=[
+                    HookDefinition(
+                        command=f"python3 {hook_script}",
+                        timeout=120,
+                    )
+                ]
+            )
+        ]
+    )
+```
+
+Scripts return JSON such as `{"decision": "allow"}` or `{"decision": "deny", "reason": "..."}`.
 
 ## HookConfig
 
@@ -48,8 +70,6 @@ class HookEvent(BaseModel):
     metadata: dict[str, Any] = {}
 ```
 
-Scripts return JSON such as `{"decision": "allow"}` or `{"decision": "deny", "reason": "..."}`.
-
 ## Example
 
 ```python
@@ -72,26 +92,5 @@ hook_config = HookConfig(
             ],
         )
     ],
-    stop=[
-        HookMatcher(
-            hooks=[
-                HookDefinition(command="/path/to/require_summary.sh")
-            ],
-        )
-    ],
 )
-```
-
-## Loading from JSON
-
-```python
-config = HookConfig.load(".openhands/hooks.json")
-
-config = HookConfig.from_dict({
-    "hooks": {
-        "PreToolUse": [{"matcher": "terminal", "hooks": [{"command": "script.sh"}]}]
-    }
-})
-
-merged = HookConfig.merge([config1, config2])
 ```
