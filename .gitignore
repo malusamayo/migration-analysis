@@ -12,6 +12,7 @@ uv.lock
 
 # Project-specific ignores
 data/
+results
 results/
 analysis_results/
 .env
