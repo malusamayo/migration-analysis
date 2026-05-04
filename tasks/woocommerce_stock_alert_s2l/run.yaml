@@ -1,7 +1,7 @@
 task_id: "woocommerce_stock_alert_s2l"
 data_path: "data/woocommerce_stock_alert_s2l.json"
-model_name: "gemini-3.1-pro-preview"
-# model_name: "qwen3-coder-30b-a3b"
+# model_name: "gemini-3.1-pro-preview"
+model_name: "qwen3-coder-30b-a3b"
 prompt_name: "default"
 
 max_examples: 20
@@ -13,5 +13,8 @@ resume: true
 is_agentic: true
 use_docker: true
 server_image: "woocommerce_stock_alert_s2l:latest"
+max_time: 600
 
-rollout_version: "baseline"
+# rollout_version: "baseline"
+agent_file: "results/woocommerce_stock_alert_s2l/qwen3-coder-30b-a3b_default/gepa/seed2/iterations/iter_03/candidates/proposed.py"
+eval_lm: "gemini-3-flash-preview"

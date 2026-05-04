@@ -1,10 +1,11 @@
 task_id: "refactorbench"
 data_path: "data/refactorbench.json"
 model_name: "qwen3-coder-30b-a3b"
+# model_name: "gemini-3.1-pro-preview"
 
 prompt_name: "default"
-max_examples: 20
-n_responses: 3
+max_examples: 100
+n_responses: 1
 agent_batch_size: 8
 eval_batch_size: 16
 resume: true
@@ -14,6 +15,7 @@ use_docker: true
 server_image: "refactorbench:latest"
 max_time: 600
 
-# agent_file: "./scripts/agents/refactor_agent_iter10.py"
+rollout_version: "gepa_seed8_full"
+agent_file: "./results/refactorbench/qwen3-coder-30b-a3b_default/rollouts/gepa_seed8_best_best_config/best_config.py"
 
 eval_lm: "gemini-3-flash-preview"

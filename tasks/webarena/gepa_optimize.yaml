@@ -24,6 +24,7 @@ eval_batch_size: 16
 # Reflection
 use_adaptation_guide: true
 # use_adaptation_guide: false
+teacher_trajectory_dir: results/webarena/gemini-3.1-pro-preview_shopping_admin/rollouts/collect_all
 
 # Docker
 is_agentic: true

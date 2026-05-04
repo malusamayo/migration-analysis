@@ -1,6 +1,7 @@
 task_id: "budget_approval_s2l"
 data_path: "data/budget_approval_s2l.json"
-model_name: "qwen3-coder-30b-a3b"
+# model_name: "qwen3-coder-30b-a3b"
+model_name: "ministral-3-8b"
 # model_name: "gemini-3.1-pro-preview"
 prompt_name: "default"
 
@@ -15,4 +16,5 @@ use_docker: true
 server_image: "budget_approval_s2l:latest"
 max_time: 600
 
+# agent_file: "results/budget_approval_s2l/qwen3-coder-30b-a3b_default/gepa/seed0/shared/config/best_config.py"
 eval_lm: "gemini-3-flash-preview"

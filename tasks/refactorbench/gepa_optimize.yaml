@@ -7,7 +7,7 @@ prompt_name: "default"
 
 # GEPA settings
 reflection_lm: "gemini-3.1-pro-preview"
-max_cost: 8.0
+max_cost: 20.0
 seed: 1
 
 # Data
@@ -23,6 +23,8 @@ eval_batch_size: 16
 # Reflection
 use_adaptation_guide: true
 # use_adaptation_guide: false
+
+teacher_trajectory_dir: results/refactorbench/gemini-3.1-pro-preview_default/rollouts/v0
 
 # Docker
 is_agentic: true
