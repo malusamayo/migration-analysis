@@ -19,6 +19,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     make \
     python3-dev \
+    poppler-utils \
+    jq \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=ghcr.io/astral-sh/uv:0.9.2 /uv /bin/uv
@@ -35,8 +37,9 @@ RUN uv venv /workspace/.venv \
 
 USER root
 RUN python -m playwright install --with-deps chromium
-
 USER appuser
+
+ENV PYTHONPATH=/workspace
 
 EXPOSE 8000
 

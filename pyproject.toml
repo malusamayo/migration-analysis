@@ -23,6 +23,12 @@ dependencies = [
     "pymupdf>=1.24.0",
     "pyyaml>=6.0.0",
     "wandb>=0.23.1",
+    "openpyxl>=3.1.5",
+    "altair>=6.1.0",
+    "vl-convert-python>=1.9.0.post1",
+    "streamlit>=1.56.0",
+    "scikit-learn>=1.8.0",
+    "pytest-playwright>=0.7.2",
 ]
 
 [tool.uv.sources]
