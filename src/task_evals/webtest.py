@@ -5,8 +5,6 @@ This module provides evaluation functions for webtest workspace directories,
 running playwright-based tests and calculating scores.
 """
 
-import json
-import shutil
 import subprocess
 import re
 import os
@@ -32,42 +30,7 @@ class ShortenMessage(dspy.Module):
         return self.shorten(message=message, max_length=max_length)
 
 
-# ---------------------------------------------------------------------------
-# V8 coverage conftest – injected into the workspace before running tests
-# ---------------------------------------------------------------------------
-_COVERAGE_CONFTEST = "" #open(Path(__file__).parent / "conftest.py", "r", encoding="utf-8").read()
-
-def _prepare_coverage_conftest(workspace_path: Path) -> Optional[str]:
-    """
-    Write a coverage-instrumented conftest.py directly into the workspace.
-
-    If the workspace already has a root-level conftest.py, the coverage code is
-    prepended so both coexist.  Returns the original file content (so the caller
-    can restore it later) or ``None`` if there was no pre-existing conftest.
-    """
-    conftest_file = workspace_path / "conftest.py"
-
-    if conftest_file.exists():
-        original = conftest_file.read_text(encoding="utf-8")
-        content = _COVERAGE_CONFTEST + "\n\n# --- original conftest.py ---\n\n" + original
-    else:
-        original = None
-        content = _COVERAGE_CONFTEST
-
-    conftest_file.write_text(content, encoding="utf-8")
-    return original
-
-
-def _restore_conftest(workspace_path: Path, original: Optional[str]) -> None:
-    """Undo what ``_prepare_coverage_conftest`` did."""
-    conftest_file = workspace_path / "conftest.py"
-    if original is not None:
-        conftest_file.write_text(original, encoding="utf-8")
-    else:
-        conftest_file.unlink(missing_ok=True)
-
-
-def _compute_coverage_metrics(coverage_dir: Path) -> Dict[str, Any]:
+def _empty_coverage_metrics() -> Dict[str, Any]:
     """
     Parse V8 precise-coverage JSON files and return aggregate metrics.
 
@@ -92,96 +55,7 @@ def _compute_coverage_metrics(coverage_dir: Path) -> Dict[str, Any]:
         "per_script": {},
     }
 
-    if not coverage_dir.is_dir():
-        return empty
-
-    json_files = sorted(coverage_dir.glob("*.precise.json"))
-    if not json_files:
-        return empty
-
-    # Merge coverage entries across files, keyed by script URL
-    scripts: Dict[str, list] = {}
-    for jf in json_files:
-        with open(jf, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        for entry in data.get("result", []):
-            url = entry.get("url", "")
-            # keep only application scripts (http(s) / file)
-            if not url or not url.startswith(("http://", "https://", "file://")):
-                continue
-            scripts.setdefault(url, []).extend(entry.get("functions", []))
-
-    if not scripts:
-        return empty
-
-    total_funcs = 0
-    covered_funcs = 0
-    total_bytes = 0
-    covered_bytes = 0
-    per_script: Dict[str, Any] = {}
-
-    for url, functions in scripts.items():
-        sf = sc = sb = scb = 0
-        for func in functions:
-            ranges = func.get("ranges", [])
-            if not ranges:
-                continue
-            root = ranges[0]
-            func_size = root["endOffset"] - root["startOffset"]
-            if func_size <= 0:
-                continue
-
-            sf += 1
-            if root["count"] > 0:
-                sc += 1
-
-            sb += func_size
-            if func.get("isBlockCoverage", False) and len(ranges) > 1:
-                # Sweep-line: boundaries split into segments; innermost
-                # range (last match, since V8 lists outer-to-inner) wins.
-                boundaries = sorted(
-                    {r["startOffset"] for r in ranges}
-                    | {r["endOffset"] for r in ranges}
-                )
-                seg_covered = 0
-                for i in range(len(boundaries) - 1):
-                    pos = boundaries[i]
-                    seg_len = boundaries[i + 1] - pos
-                    count = 0
-                    for r in ranges:
-                        if r["startOffset"] <= pos < r["endOffset"]:
-                            count = r["count"]
-                    if count > 0:
-                        seg_covered += seg_len
-                scb += seg_covered
-            else:
-                # No block detail – fall back to function-level
-                if root["count"] > 0:
-                    scb += func_size
-
-        total_funcs += sf
-        covered_funcs += sc
-        total_bytes += sb
-        covered_bytes += scb
-        per_script[url] = {
-            "functions_total": sf,
-            "functions_covered": sc,
-            "bytes_total": sb,
-            "bytes_covered": scb,
-            "function_coverage": round(sc / sf, 4) if sf else 0.0,
-            "byte_coverage": round(scb / sb, 4) if sb else 0.0,
-        }
-
-    return {
-        "scripts": len(scripts),
-        "functions_total": total_funcs,
-        "functions_covered": covered_funcs,
-        "bytes_total": total_bytes,
-        "bytes_covered": covered_bytes,
-        "function_coverage": round(covered_funcs / total_funcs, 4) if total_funcs else 0.0,
-        "byte_coverage": round(covered_bytes / total_bytes, 4) if total_bytes else 0.0,
-        "per_script": per_script,
-    }
+    return empty
 
 
 def _count_test_functions(test_files: List[Path], test_function_pattern: re.Pattern) -> int:
@@ -356,8 +230,14 @@ def _run_file_with_pytest(
 
     # Parse output to count test results (same logic as before)
     combined_output = f"{pytest_result.stdout}\n{pytest_result.stderr}"
-    passed_pattern = re.compile(r"::(\w*test\w*)\s+PASSED", re.IGNORECASE)
-    failed_pattern = re.compile(r"::(\w*test\w*)\s+FAILED", re.IGNORECASE)
+    passed_pattern = re.compile(
+        r"::(\w*test\w*)(?:\[[^\]]+\])?\s+PASSED",
+        re.IGNORECASE,
+    )
+    failed_pattern = re.compile(
+        r"::(\w*test\w*)(?:\[[^\]]+\])?\s+FAILED",
+        re.IGNORECASE,
+    )
 
     tests_passed = len(passed_pattern.findall(combined_output))
     tests_failed = len(failed_pattern.findall(combined_output))
@@ -419,10 +299,6 @@ def _run_tests_batch(
         raise RuntimeError(f"Docker image '{server_image}' not found. Please build it with: docker compose build {server_image.split(':')[0]}")
 
     pytest_available = True  # Always true in Docker
-
-    # Set up V8 coverage collection – write conftest.py into workspace
-    original_conftest = _prepare_coverage_conftest(workspace_path)
-    print(f"  V8 coverage enabled (output: {workspace_path / 'coverage-raw'})")
 
     for test_file in test_files:
         relative_path = test_file.relative_to(workspace_path)
@@ -503,22 +379,7 @@ def _run_tests_batch(
     print(f"Pass rate: {pass_rate:.1%}")
     print(f"Score: {score:.2f} (expected {expected_tests} tests, found {tests_total})")
 
-    # Collect V8 coverage files and compute metrics
-    cov_dir = workspace_path / "coverage-raw"
-    coverage_metrics = _compute_coverage_metrics(cov_dir)
-    if coverage_metrics["scripts"] > 0:
-        print(
-            f"  Coverage: {coverage_metrics['byte_coverage']:.1%} bytes, "
-            f"{coverage_metrics['function_coverage']:.1%} functions "
-            f"({coverage_metrics['scripts']} scripts)"
-        )
-
-    # Clean up coverage-raw directory
-    if cov_dir.is_dir():
-        shutil.rmtree(cov_dir, ignore_errors=True)
-
-    # Restore original conftest (or remove the one we injected)
-    _restore_conftest(workspace_path, original_conftest)
+    coverage_metrics = _empty_coverage_metrics()
 
     return {
         "feedback": feedback,

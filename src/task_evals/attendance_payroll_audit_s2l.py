@@ -26,10 +26,14 @@ def _load_output(path: Path) -> Optional[pd.DataFrame]:
 def _standardize(df: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
     if df is None:
         return None
+
     standardized = df.copy()
-    standardized.columns = (
-        standardized.columns.str.strip().str.lower().str.replace(" ", "").str.replace("-", "")
-    )
+
+    standardized.columns = [
+        str(col).strip().lower().replace(" ", "").replace("-", "")
+        for col in standardized.columns
+    ]
+
     if "department" in standardized.columns:
         standardized["department"] = standardized["department"].astype(str).str.strip()
         standardized = standardized.sort_values("department").reset_index(drop=True)
@@ -50,26 +54,29 @@ def _columns_correct(output_df: Optional[pd.DataFrame]) -> bool:
 
 
 def _values_correct(output_df: Optional[pd.DataFrame], expected_df: pd.DataFrame) -> bool:
-    if output_df is None:
-        return False
-    if set(output_df["department"]) != set(expected_df["department"]):
-        return False
-
-    merged = output_df.merge(expected_df, on="department", suffixes=("_output", "_expected"))
-    numeric_columns = [
-        "departmentaverageworklength",
-        "departmentaverageontimedeparturecount",
-        "departmentaveragelatearrivalcount",
-        "departmenttotalpayroll",
-    ]
-    for column in numeric_columns:
-        diff = (
-            merged[f"{column}_output"].astype(float) - merged[f"{column}_expected"].astype(float)
-        ).abs()
-        tolerance = 1e-5 if column != "departmenttotalpayroll" else 1e-2
-        if not (diff <= tolerance).all():
+    try:
+        if output_df is None:
             return False
-    return True
+        if set(output_df["department"]) != set(expected_df["department"]):
+            return False
+
+        merged = output_df.merge(expected_df, on="department", suffixes=("_output", "_expected"))
+        numeric_columns = [
+            "departmentaverageworklength",
+            "departmentaverageontimedeparturecount",
+            "departmentaveragelatearrivalcount",
+            "departmenttotalpayroll",
+        ]
+        for column in numeric_columns:
+            diff = (
+                merged[f"{column}_output"].astype(float) - merged[f"{column}_expected"].astype(float)
+            ).abs()
+            tolerance = 1e-5 if column != "departmenttotalpayroll" else 1e-2
+            if not (diff <= tolerance).all():
+                return False
+        return True
+    except Exception:
+        return False
 
 
 def run_single_instance_eval(
