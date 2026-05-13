@@ -46,14 +46,22 @@ def extract_workspace_scripts(code: str) -> dict[str, str]:
     return fn()
 
 
-def _validate_worker(code: str, llm: LLM) -> tuple[bool, str]:
+def _validate_worker(code: str, llm: LLM, task_id: Optional[str]) -> tuple[bool, str]:
     """Subprocess worker for validate_agent_candidate."""
     import tempfile
 
     from openhands.sdk import Agent as _Agent
     from openhands.sdk import Conversation as _Conversation
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
+    from ..task_setups import setup_proposer_workspace
+
+    project_root = Path(__file__).resolve().parent.parent.parent
+    validate_root = project_root / ".validate"
+    validate_root.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=str(validate_root)) as tmp_dir:
+        if task_id:
+            setup_proposer_workspace(task_id, tmp_dir)
+
         try:
             namespace = {}
             exec(code, namespace)
@@ -82,6 +90,7 @@ def _validate_worker(code: str, llm: LLM) -> tuple[bool, str]:
 def validate_agent_candidate(
     code: str,
     llm: LLM,
+    task_id: Optional[str] = None,
 ) -> tuple[bool, str]:
     """Validate candidate code by compiling, executing, and building the Agent."""
     try:
@@ -90,7 +99,7 @@ def validate_agent_candidate(
         return False, f"SyntaxError: {e}"
 
     with ProcessPoolExecutor(max_workers=1, max_tasks_per_child=1) as pool:
-        future = pool.submit(_validate_worker, code, llm)
+        future = pool.submit(_validate_worker, code, llm, task_id)
         return future.result()
 
 

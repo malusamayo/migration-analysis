@@ -304,6 +304,7 @@ class AgentProposer:
             docker_network=self.docker_network,
             docker_workspace_path="/workspace/proposer",
             skills=self._proposer_skills,
+            task_id=self.task_id,
         ) as (workspace_obj, workspace_path_for_agent):
             proposer_agent = self._build_agent(workspace_path_for_agent)
             if num_strategies == 1:
@@ -383,7 +384,7 @@ class AgentProposer:
 
             valid_candidates = []
             for idx, new_code in files_to_validate:
-                success, error = validate_agent_candidate(new_code, agent_llm)
+                success, error = validate_agent_candidate(new_code, agent_llm, self.task_id)
                 if success:
                     new_cand = dict(candidate)
                     new_cand["agent_code"] = new_code
