@@ -246,6 +246,36 @@ def _extract_trajectory_metrics(data: List[Dict[str, Any]]) -> Dict[str, Any]:
     return metrics_df, result
 
 
+def calculate_cost(
+    token_list: List[Dict[str, int]],
+    input_price_per_million: float,
+    output_price_per_million: float,
+) -> Dict[str, float]:
+    """
+    Calculate cost from a list of token usage dicts.
+
+    Args:
+        token_list: List of dicts with 'prompt_tokens' and 'completion_tokens' keys
+                    (as found in accumulated_token_usage or token_usages in trace files)
+        input_price_per_million: Price per 1M input (prompt) tokens in USD
+        output_price_per_million: Price per 1M output (completion) tokens in USD
+
+    Returns:
+        Dict with total_prompt_tokens, total_completion_tokens, and total_cost_usd
+    """
+    total_prompt = sum(t.get("prompt_tokens", 0) for t in token_list)
+    total_completion = sum(t.get("completion_tokens", 0) for t in token_list)
+    cost = (
+        total_prompt * input_price_per_million / 1_000_000
+        + total_completion * output_price_per_million / 1_000_000
+    )
+    return {
+        "total_prompt_tokens": total_prompt,
+        "total_completion_tokens": total_completion,
+        "total_cost_usd": cost,
+    }
+
+
 def compare_models(
     result_paths: List[Union[str, Path]],
     metrics: List[str] = None
