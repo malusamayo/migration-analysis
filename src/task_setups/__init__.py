@@ -26,6 +26,7 @@ from . import replicatorbench as _replicatorbench
 from . import refactorbench as _refactorbench
 from . import browsecompplus as _browsecompplus
 from . import machine_operating_s2l as _machine_operating_s2l
+from . import tau2_airline as _tau2_airline
 from . import woocommerce_stock_alert_s2l as _woocommerce_stock_alert_s2l
 from .corpus_reader import get_corpus_reader
 
@@ -82,6 +83,8 @@ def get_tools(task_id: str, workspace_dir: str | None = None) -> list:
                 params=_webarena_browser_tool_params(workspace_dir),
             )
         ]
+    if task_id == "tau2_airline":
+        return []
     return [Tool(name=TerminalTool.name), Tool(name=FileEditorTool.name)]
 
 
@@ -134,6 +137,8 @@ def setup_workspace(task_id: str, workspace_dir: str, log_dir: str, example: dic
 
     if task_id == "machine_operating_s2l":
         _machine_operating_s2l.setup_workspace(workspace_dir, str(log_dir), example)
+    if task_id == "tau2_airline":
+        _tau2_airline.setup_workspace(workspace_dir, str(log_dir), example)
     if task_id == "woocommerce_stock_alert_s2l":
         _woocommerce_stock_alert_s2l.setup_workspace(workspace_dir, str(log_dir), example)
 
@@ -224,6 +229,9 @@ def get_eval_config(task_id: str) -> dict:
     elif task_id == "machine_operating_s2l":
         from ..task_evals.machine_operating_s2l import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 8}
+    elif task_id == "tau2_airline":
+        from ..task_evals.tau2_airline import run_single_instance_eval
+        return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 8}
     elif task_id == "woocommerce_stock_alert_s2l":
         from ..task_evals.woocommerce_stock_alert_s2l import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 8}
@@ -308,6 +316,26 @@ def build_agent(base_dir, llm):
         mcp_config=mcp_config,
     )
 '''
+    elif task_id == "tau2_airline":
+        code = '''\
+from openhands.sdk import Agent
+import os
+
+SEED_PROMPT = """<<<SEED_PROMPT>>>"""
+
+def build_agent(base_dir, llm):
+    prompt_path = os.path.join(base_dir, "system_prompt.md")
+    with open(prompt_path, "w") as f:
+        f.write(SEED_PROMPT)
+    from src.task_setups.tau2_airline import get_mcp_config
+    mcp_config = get_mcp_config(base_dir)
+    return Agent(
+        llm=llm,
+        tools=[],
+        system_prompt_filename=prompt_path,
+        mcp_config=mcp_config,
+    )
+'''
     elif task_id == "budget_approval_s2l":
         code = '''\
 from openhands.sdk import Agent, Tool
@@ -383,6 +411,8 @@ def setup_proposer_workspace(task_id: str, workspace_dir: str) -> None:
     """Create any task-specific directories the MCP server needs in the proposer workspace."""
     if task_id == "machine_operating_s2l":
         _machine_operating_s2l.setup_proposer_workspace(workspace_dir)
+    elif task_id == "tau2_airline":
+        _tau2_airline.setup_proposer_workspace(workspace_dir)
     elif task_id == "budget_approval_s2l":
         _budget_approval_s2l.setup_proposer_workspace(workspace_dir)
     elif task_id == "woocommerce_stock_alert_s2l":
@@ -401,6 +431,8 @@ def get_mcp_config(task_id: str, workspace_dir: str) -> dict:
         return _browsecompplus.get_mcp_config()
     if task_id == "machine_operating_s2l":
         return _machine_operating_s2l.get_mcp_config(workspace_dir)
+    if task_id == "tau2_airline":
+        return _tau2_airline.get_mcp_config(workspace_dir)
     if task_id == "woocommerce_stock_alert_s2l":
         return _woocommerce_stock_alert_s2l.get_mcp_config(workspace_dir)
     return {}

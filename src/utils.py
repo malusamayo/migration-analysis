@@ -1,5 +1,6 @@
 import os
 import subprocess
+from pathlib import Path
 from typing import List, Any
 import dspy
 import litellm
@@ -10,6 +11,15 @@ import tqdm
 from dotenv import load_dotenv
 import yaml
 from openhands.sdk import LLM
+
+DEFAULT_VERTEX_CREDENTIALS_PATH = Path(".vertex-ai.json").resolve()
+
+if DEFAULT_VERTEX_CREDENTIALS_PATH.exists():
+    os.environ.setdefault("VERTEX_CREDENTIALS", str(DEFAULT_VERTEX_CREDENTIALS_PATH))
+    os.environ.setdefault(
+        "GOOGLE_APPLICATION_CREDENTIALS", str(DEFAULT_VERTEX_CREDENTIALS_PATH)
+    )
+os.environ.setdefault("VERTEXAI_LOCATION", "global")
 
 def use_lm(lm, n=1):
     def decorator(program):

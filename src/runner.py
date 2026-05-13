@@ -58,6 +58,7 @@ def get_workspace_context(
     docker_network: Optional[str] = None,
     docker_workspace_path: str = "/workspace/project",
     skills: list = None,
+    task_id: Optional[str] = None,
 ):
     """Context manager that returns the appropriate workspace object.
 
@@ -90,6 +91,12 @@ def get_workspace_context(
                 docker_skill_dir = f"/workspace/skills/{os.path.basename(skill_dir)}"
                 docker_volumes.append(f"{skill_dir}:{docker_skill_dir}:ro")
                 skill.source = os.path.join(docker_skill_dir, "SKILL.md")
+
+        if task_id == "tau2_airline":
+            tau2_bench_path = os.environ.get(
+                "TAU2_BENCH_PATH", "/mnt/data_4tb/datasets/tau2-bench"
+            )
+            docker_volumes.append(f"{os.path.abspath(tau2_bench_path)}:/tau2-bench:ro")
 
         with DockerWorkspace(**make_docker_kwargs(
             docker_workspace_path,
@@ -173,7 +180,7 @@ def run_with_agent(
     )
 
 
-def construct_docker_workspace(workspace_dir, system_prompt_path, skills):
+def construct_docker_workspace(workspace_dir, system_prompt_path, skills, task_id=None):
     """
     Construct Docker workspace volumes and paths for the collect/agent path.
 
@@ -196,6 +203,12 @@ def construct_docker_workspace(workspace_dir, system_prompt_path, skills):
         docker_skill_dir = f"/workspace/skills/{os.path.basename(skill_dir)}"
         docker_volumes.append(f"{skill_dir}:{docker_skill_dir}:ro")
         skill.source = os.path.join(docker_skill_dir, "SKILL.md")
+
+    if task_id == "tau2_airline":
+        tau2_bench_path = os.environ.get(
+            "TAU2_BENCH_PATH", "/mnt/data_4tb/datasets/tau2-bench"
+        )
+        docker_volumes.append(f"{os.path.abspath(tau2_bench_path)}:/tau2-bench:ro")
 
     return (docker_workspace_path, docker_system_prompt_path, docker_volumes, workspace_dir)
 
@@ -747,7 +760,12 @@ def run_single_instance_agentic(
         (docker_workspace_path,
             docker_system_prompt_path,
             docker_volumes,
-            workspace_dir) = construct_docker_workspace(workspace_dir.absolute(), system_prompt_path, skills)
+            workspace_dir) = construct_docker_workspace(
+                workspace_dir.absolute(),
+                system_prompt_path,
+                skills,
+                task_id=task_id,
+            )
 
         docker_agent_file = None
         if agent_file is not None:

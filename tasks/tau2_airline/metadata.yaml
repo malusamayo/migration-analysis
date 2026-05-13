@@ -1,0 +1,5 @@
+name: tau2_airline
+description: >
+  tau2-bench airline benchmark adapted to this repo with the original airline
+  policy, airline tools, and an LLM-backed simulated customer exposed through
+  MCP tools. Evaluation reuses tau2's airline DB and communication checks.

@@ -90,3 +90,10 @@ services:
   #     dockerfile: tasks/Dockerfile
   #     args:
   #       USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
+  tau2_airline:
+      image: tau2_airline:latest
+      build:
+        context: .
+        dockerfile: tasks/Dockerfile
+        args:
+          USER_UID: ${UID:?USER_UID not set — run with UID=$(id -u) docker compose build}
