@@ -1,7 +1,20 @@
 name: budget_approval_s2l
 description: >
   Administrative budget-approval benchmark modeled after TheAgentCompany's
-  procurement tasks. The agent must retrieve equipment requests through a
-  stateful communication MCP, inspect pricing and budget documents through the
-  same mock company service, communicate budget outcomes back to employees, and
-  in over-budget cases negotiate reductions and record the confirmed removals.
+  procurement tasks. The agent retrieves equipment requests through a stateful
+  communication MCP, inspects pricing/budget/policy documents through the same
+  mock company service, and produces task-specific outcomes (replies to
+  managers, reduction records, CFO escalations, workspace files).
+
+  The task is structured as a compositional diversity sweep over 20 template
+  specs built from a shared atom library (documents, contact queries,
+  computations, actions). Four named slices are exposed, each with its own
+  task_id and config files:
+
+    - budget_approval_s2l_low         (1 template)
+    - budget_approval_s2l_medium      (3 templates)
+    - budget_approval_s2l_high        (8 templates)
+    - budget_approval_s2l_extra_high  (20 templates)
+
+  All slices share the same MCP server, setup module, and eval module; the
+  only thing that differs per slice is the template mix in its data file.

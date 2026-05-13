@@ -30,6 +30,7 @@ def run_task_eval(
         rollout_version: str = "v0",
         data_path: Optional[str] = None,
         server_image: Optional[str] = None,
+        task_dir: Optional[str] = None,
     ):
     """
     Run evaluation on a task.
@@ -62,6 +63,7 @@ def run_task_eval(
             "rollout_version": rollout_version,
             "data_path": data_path,
             "server_image": server_image,
+            "task_dir": task_dir,
         }
     )
 
@@ -79,6 +81,7 @@ def run_task_eval(
         resume=resume,
         output_path=output_path,
         data_path=data_path,
+        task_dir=task_dir,
     )
 
     # Get completed and pending tasks from data loader
@@ -187,6 +190,7 @@ if __name__ == "__main__":
     resume = args.resume if args.resume is not None else config.get("resume", True)
     data_path = config.get("data_path")
     server_image = config.get("server_image")
+    task_dir = config.get("task_dir")
 
     # Validate required arguments
     if not task_id:
@@ -206,4 +210,5 @@ if __name__ == "__main__":
         rollout_version=rollout_version,
         data_path=data_path,
         server_image=server_image,
+        task_dir=task_dir,
     )

@@ -1,0 +1,18 @@
+task_id: "budget_approval_s2l_high"
+data_path: "data/budget_approval_s2l_high.json"
+task_dir: "tasks/budget_approval_s2l"
+model_name: "ministral-3-8b"
+prompt_name: "default"
+
+max_examples: 10
+n_responses: 1
+agent_batch_size: 8
+eval_batch_size: 16
+resume: true
+
+is_agentic: true
+use_docker: true
+server_image: "budget_approval_s2l:latest"
+max_time: 600
+
+eval_lm: "gemini-3-flash-preview"

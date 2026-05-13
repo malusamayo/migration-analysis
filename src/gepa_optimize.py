@@ -71,6 +71,7 @@ def run_optimization(
     max_time: Optional[float] = None,
     num_exploration: int = 1,
     teacher_trajectory_dir: Optional[str] = None,
+    task_dir: Optional[str] = None,
 ):
     logging.basicConfig(
         level=logging.INFO,
@@ -85,6 +86,7 @@ def run_optimization(
         prompt_name=prompt_name,
         max_examples=max_examples,
         data_path=data_path,
+        task_dir=task_dir,
     )
     for dataset_index, example in enumerate(data):
         example["_dataset_index"] = dataset_index
@@ -127,6 +129,7 @@ def run_optimization(
         "max_time": max_time,
         "num_exploration": num_exploration,
         "teacher_trajectory_dir": teacher_trajectory_dir,
+        "task_dir": task_dir,
     }
     _print_effective_config(effective_config)
 
@@ -360,6 +363,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         if args.teacher_trajectory_dir is not None
         else config.get("teacher_trajectory_dir")
     )
+    task_dir = config.get("task_dir")
     use_adaptation_guide = config.get("use_adaptation_guide", True)
     adaptation_guide_markdown = (
         args.adaptation_guide_markdown
@@ -396,6 +400,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         adaptation_guide_markdown=adaptation_guide_markdown,
         num_exploration=num_exploration,
         teacher_trajectory_dir=teacher_trajectory_dir,
+        task_dir=task_dir,
     )
     return 0
 

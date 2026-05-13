@@ -105,6 +105,7 @@ def run_task(
         server_start_timeout: int = 300,
         agent_file: Optional[str] = None,
         max_time: Optional[float] = None,
+        task_dir: Optional[str] = None,
     ):
     """
     Run a task with specified model and prompt.
@@ -145,6 +146,7 @@ def run_task(
             "server_start_timeout": server_start_timeout,
             "agent_file": agent_file,
             "max_time": max_time,
+            "task_dir": task_dir,
         }
     )
 
@@ -159,6 +161,7 @@ def run_task(
         rollout_version=rollout_version,
         resume=resume,
         data_path=data_path,
+        task_dir=task_dir,
     )
 
     output_path = f"results/{task_id}/{model_name}_{prompt_name}/rollouts/{rollout_version}/run.json"
@@ -301,6 +304,7 @@ if __name__ == "__main__":
     server_start_timeout = config.get("server_start_timeout", 300)
     agent_file = args.agent_file if args.agent_file is not None else config.get("agent_file")
     max_time = args.max_time if args.max_time is not None else config.get("max_time")
+    task_dir = config.get("task_dir")
     if agent_file is not None:
         rollout_version += f"_{Path(agent_file).stem}"
 
@@ -328,4 +332,5 @@ if __name__ == "__main__":
         server_start_timeout=server_start_timeout,
         agent_file=agent_file,
         max_time=max_time,
+        task_dir=task_dir,
     )

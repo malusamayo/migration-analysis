@@ -1,0 +1,29 @@
+task_id: "budget_approval_s2l_high"
+data_path: "data/budget_approval_s2l_high.json"
+task_dir: "tasks/budget_approval_s2l"
+model_name: "ministral-3-8b"
+prompt_name: "default"
+
+# GEPA settings
+reflection_lm: "gemini-3.1-pro-preview"
+max_cost: 10.0
+seed: 0
+
+# Data
+max_examples: 20
+n_responses: 1
+train_ratio: 0.5
+
+# Evaluation
+eval_lm: "gemini-3-flash-preview"
+agent_batch_size: 8
+eval_batch_size: 16
+
+# Reflection
+use_adaptation_guide: true
+
+# Docker
+is_agentic: true
+use_docker: true
+server_image: "budget_approval_s2l:latest"
+max_time: 600

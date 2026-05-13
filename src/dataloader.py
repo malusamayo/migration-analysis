@@ -16,6 +16,7 @@ def prepare_task(
         n_responses: int = 1,
         max_examples: Optional[int] = None,
         data_path: Optional[str] = None,
+        task_dir: Optional[str] = None,
     ):
     """
     Prepare task data and create workspace directories.
@@ -27,6 +28,10 @@ def prepare_task(
         prompt_name: Prompt name
         n_responses: Number of rollouts per example
         max_examples: Maximum number of examples to process
+        task_dir: Folder containing prompts/eval.md (default: tasks/{task_id}).
+            Set this when multiple task_ids share one task folder, e.g. a
+            diversity sweep where each variant has its own task_id but the
+            prompts/eval/metadata are shared.
 
     Returns:
         Tuple of (data, task_prompt, eval_prompt)
@@ -38,11 +43,14 @@ def prepare_task(
     print(f"Loaded {len(data)} examples from {data_path}, keeping max_examples={max_examples}")
     data = data[:max_examples]
 
-    task_prompt_path = f"tasks/{task_id}/prompts/{prompt_name}.md"
+    if task_dir is None:
+        task_dir = f"tasks/{task_id}"
+
+    task_prompt_path = f"{task_dir}/prompts/{prompt_name}.md"
     with open(task_prompt_path, "r") as f:
         task_prompt = f.read()
 
-    eval_prompt_path = f"tasks/{task_id}/eval.md"
+    eval_prompt_path = f"{task_dir}/eval.md"
     with open(eval_prompt_path, "r") as f:
         eval_prompt = f.read()
 
@@ -101,6 +109,7 @@ class EvalDataLoader(BaseDataLoader):
         resume: bool = True,
         output_path: Optional[str] = None,
         data_path: Optional[str] = None,
+        task_dir: Optional[str] = None,
     ):
         """
         Initialize the data loader by loading task data and constructing workspace mappings.
@@ -128,6 +137,7 @@ class EvalDataLoader(BaseDataLoader):
             max_examples=max_examples,
             n_responses=n_responses,
             data_path=data_path,
+            task_dir=task_dir,
         )
 
         # Construct workspace data
@@ -300,6 +310,7 @@ class CollectDataLoader(BaseDataLoader):
         n_responses: int = 1,
         resume: bool = True,
         data_path: Optional[str] = None,
+        task_dir: Optional[str] = None,
     ):
         """
         Initialize the data loader by loading task data.
@@ -323,6 +334,7 @@ class CollectDataLoader(BaseDataLoader):
         self.n_responses = n_responses
         self.rollout_version = rollout_version
         self.resume = resume
+        self.task_dir = task_dir if task_dir is not None else f"tasks/{task_id}"
 
         # Load task data using prepare_task
         examples, task_prompt, _ = prepare_task(
@@ -333,6 +345,7 @@ class CollectDataLoader(BaseDataLoader):
             max_examples=max_examples,
             n_responses=n_responses,
             data_path=data_path,
+            task_dir=self.task_dir,
         )
         self.lm = LM_DICT[model_name]
         self.task_prompt = task_prompt
@@ -367,7 +380,7 @@ class CollectDataLoader(BaseDataLoader):
                     example["rollout_id"] = rollout_id
                     collection_data.append({
                         "lm": self.lm,
-                        "system_prompt_path": f"tasks/{self.task_id}/prompts/{self.prompt_name}.md",
+                        "system_prompt_path": f"{self.task_dir}/prompts/{self.prompt_name}.md",
                         "example": example,
                         "workspace": workspace,
                         "task_id": self.task_id,
