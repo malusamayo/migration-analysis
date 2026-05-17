@@ -1,6 +1,18 @@
 name: attendance_payroll_audit_s2l
 description: >
   Attendance and payroll auditing benchmark modeled after TheAgentCompany's
-  attendance and payroll tasks. The agent analyzes multi-day attendance logs,
-  joins department and pay-rate reference files, and produces a department-level
-  Excel audit report with exact attendance aggregates and payroll totals.
+  attendance and payroll tasks. The agent reads multi-day attendance logs,
+  joins department / team / role / pay-rate / policy reference files, applies
+  the active policies, and produces aggregated audit deliverables.
+
+  The task is structured as a compositional diversity sweep over 20 template
+  specs built from a shared atom library (documents, computations, actions).
+  Four named slices are exposed, each with its own task_id and config files:
+
+    - attendance_payroll_audit_s2l_low         (1 template)
+    - attendance_payroll_audit_s2l_medium      (3 templates)
+    - attendance_payroll_audit_s2l_high        (8 templates)
+    - attendance_payroll_audit_s2l_extra_high  (20 templates)
+
+  All slices share the same setup and eval modules; the only thing that
+  differs per slice is the template mix in its data file.

@@ -42,6 +42,19 @@ BUDGET_APPROVAL_TASK_IDS = frozenset(
     }
 )
 
+# All attendance-payroll-audit diversity variants share the same setup/eval
+# module; only the data file (and therefore the template mix) changes per
+# variant.
+ATTENDANCE_PAYROLL_AUDIT_TASK_IDS = frozenset(
+    {
+        "attendance_payroll_audit_s2l",
+        "attendance_payroll_audit_s2l_low",
+        "attendance_payroll_audit_s2l_medium",
+        "attendance_payroll_audit_s2l_high",
+        "attendance_payroll_audit_s2l_extra_high",
+    }
+)
+
 
 def _webarena_browser_tool_params(workspace_dir: str | None) -> dict:
     """Build per-workspace browser-use paths to avoid profile collisions."""
@@ -135,7 +148,7 @@ def setup_workspace(task_id: str, workspace_dir: str, log_dir: str, example: dic
 
     if task_id == "ab_testing_s2l":
         _ab_testing_s2l.setup_workspace(workspace_dir, str(log_dir), example)
-    if task_id == "attendance_payroll_audit_s2l":
+    if task_id in ATTENDANCE_PAYROLL_AUDIT_TASK_IDS:
         _attendance_payroll_audit_s2l.setup_workspace(workspace_dir, str(log_dir), example)
     if task_id in BUDGET_APPROVAL_TASK_IDS:
         _budget_approval_s2l.setup_workspace(workspace_dir, str(log_dir), example)
@@ -211,7 +224,7 @@ def get_eval_config(task_id: str) -> dict:
     elif task_id == "ab_testing_s2l":
         from ..task_evals.ab_testing_s2l import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
-    elif task_id == "attendance_payroll_audit_s2l":
+    elif task_id in ATTENDANCE_PAYROLL_AUDIT_TASK_IDS:
         from ..task_evals.attendance_payroll_audit_s2l import run_single_instance_eval
         return {"eval_function": run_single_instance_eval, "use_process": False, "max_workers": 16}
     elif task_id == "expense_reconciliation_s2l":
