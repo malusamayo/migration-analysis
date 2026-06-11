@@ -44,7 +44,14 @@ def run_single_instance_eval(
     workspace = Path(workspace_dir)
     log_dir = workspace.parent / f"{workspace.name}_logs"
     expected = _load_json(log_dir / "groundtruth" / "expected.json")
-    state = _load_json(workspace / "local_db" / "agent_company" / "state.json")
+    try:
+        state = _load_json(workspace / "local_db" / "agent_company" / "state.json")
+    except json.JSONDecodeError as e:
+        return {
+            "workspace_dir": workspace_dir,
+            "score": 0.0,
+            "feedback": f"Invalid state.json: {e}",
+        }
 
     template = TEMPLATES[expected["template_id"]]
 
