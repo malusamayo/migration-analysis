@@ -15,6 +15,7 @@ data/
 results
 results/
 analysis_results/
+analysis_outputs/
 .env
 .vertex-ai.json
 *.ipynb
@@ -29,6 +30,7 @@ experiments/
 generated/
 docs/dep/
 scripts/
+figures/
 plots/
 .roar/
 configs/

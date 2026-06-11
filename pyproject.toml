@@ -29,6 +29,11 @@ dependencies = [
     "streamlit>=1.56.0",
     "scikit-learn>=1.8.0",
     "pytest-playwright>=0.7.2",
+    "loguru>=0.7.3",
+    "deepdiff>=9.0.0",
+    "addict>=2.4.0",
+    "typer>=0.25.1",
+    "tabulate>=0.10.0",
 ]
 
 [tool.uv.sources]

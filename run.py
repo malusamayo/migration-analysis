@@ -475,18 +475,38 @@ def approximately_equal(lhs: float, rhs: float, tolerance: float = 1e-9) -> bool
     return abs(lhs - rhs) <= tolerance
 
 
+def get_task_template_path(task_id: str, file_name: str, variant_prefix: str) -> Path:
+    direct_path = Path("tasks") / task_id / file_name
+    if direct_path.exists():
+        return direct_path
+
+    candidates = []
+    for task_dir in Path("tasks").iterdir():
+        if not task_dir.is_dir():
+            continue
+        prefix = f"{task_dir.name}_"
+        if not task_id.startswith(prefix):
+            continue
+        variant_name = task_id.removeprefix(prefix)
+        variant_path = task_dir / f"{variant_prefix}_{variant_name}.yaml"
+        if variant_path.exists():
+            candidates.append(variant_path)
+
+    if not candidates:
+        raise FileNotFoundError(
+            f"Missing task template for {task_id}: expected {direct_path} or a matching "
+            f"tasks/<base>/{variant_prefix}_<variant>.yaml"
+        )
+
+    return sorted(candidates, key=lambda path: len(path.parent.name), reverse=True)[0]
+
+
 def get_base_gepa_config_path(task_id: str) -> Path:
-    path = Path("tasks") / task_id / "gepa_optimize.yaml"
-    if not path.exists():
-        raise FileNotFoundError(f"Missing GEPA base config: {path}")
-    return path
+    return get_task_template_path(task_id, "gepa_optimize.yaml", "gepa_optimize")
 
 
 def get_base_run_config_path(task_id: str) -> Path:
-    path = Path("tasks") / task_id / "run.yaml"
-    if not path.exists():
-        raise FileNotFoundError(f"Missing run config template: {path}")
-    return path
+    return get_task_template_path(task_id, "run.yaml", "run")
 
 
 def load_base_config(task_id: str) -> tuple[Path, dict[str, Any]]:
