@@ -1,0 +1,83 @@
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.25cm}rrrrrrrr@{}}
+  \toprule
+  \textbf{Model} & \textbf{Attn.} & \textbf{Budget} & \textbf{Stock} & \textbf{Anom.} & \textbf{Playwr.} & \textbf{Web.} & \textbf{Refact.} & \textbf{Avg.} \\
+  \midrule
+  \multicolumn{9}{@{}l@{}}{\footnotesize\textit{\textcolor{adaptgray}{Large Language Models}}} \\
+
+  \texttt{gemini-3.1-pro-preview}
+    & \cell{96.5}{\$0.894}{206s}
+    & \cell{97.3}{\$0.219}{70s}
+    & \cell{86.7}{\$5.785}{319s}
+    & \cell{98.9}{\$1.450}{148s}
+    & \cell{85.7}{\$0.667}{213s}
+    & \cell{76.7}{\$2.011}{157s}
+    & \cell{86.1}{\$1.116}{155s}
+    & \cell{89.7}{\$1.735}{181s} \\
+  \midrule
+
+  \multicolumn{9}{@{}l@{}}{\footnotesize\textit{\textcolor{adaptgray}{Small Language Models}}} \\
+
+  \texttt{gemma-4-26b-a4b}
+    & \cell{91.7}{\$0.025}{116s}
+    & \cell{75.0}{\$0.039}{77s}
+    & \cell{5.0}{\$0.041}{428s}
+    & \cell{5.0}{\$0.058}{367s}
+    & \cell{9.9}{\$0.018}{461s}
+    & \cell{1.1}{\$0.071}{425s}
+    & \cell{32.2}{\$0.046}{423s}
+    & \cell{31.4}{\$0.043}{328s} \\
+
+  {\textit{{+ optimized harness}}}
+    & \cell{95.7}{\$0.027}{215s}
+    & \cell{98.3}{\$0.017}{33s}
+    & \cell{58.9}{\$0.089}{177s}
+    & \cell{99.4}{\$0.033}{61s}
+    & \cell{98.1}{\$0.021}{85s}
+    & \cell{45.6}{\$0.165}{206s}
+    & \cell{65.0}{\$0.147}{171s}
+    & \cell{80.2}{\$0.071}{135s} \\
+  \midrule
+
+  \texttt{qwen3-coder-30b-a3b}
+    & \cell{23.7}{\$0.030}{64s}
+    & \cell{61.0}{\$0.025}{73s}
+    & \cell{9.4}{\$0.210}{148s}
+    & \cell{1.1}{\$0.076}{100s}
+    & \cell{31.4}{\$0.058}{176s}
+    & \cell{1.1}{\$0.110}{98s}
+    & \cell{60.6}{\$0.089}{91s}
+    & \cell{26.9}{\$0.085}{107s} \\
+
+  {\textit{{+ optimized harness}}}
+    & \cell{73.7}{\$0.025}{57s}
+    & \cell{79.3}{\$0.024}{53s}
+    & \cell{96.7}{\$0.061}{51s}
+    & \cell{93.9}{\$0.031}{39s}
+    & \cell{93.6}{\$0.062}{136s}
+    & \cell{24.4}{\$0.122}{96s}
+    & \cell{62.2}{\$0.121}{100s}
+    & \cell{74.8}{\$0.064}{76s} \\
+  \midrule
+
+  \texttt{ministral-3-8b}
+    & \cell{0.2}{\$0.154}{310s}
+    & \cell{28.8}{\$0.012}{22s}
+    & \cell{0.0}{\$0.099}{132s}
+    & \cell{0.0}{\$0.167}{304s}
+    & \cell{0.4}{\$0.172}{370s}
+    & \cell{5.6}{\$0.056}{65s}
+    & \cell{31.7}{\$0.112}{154s}
+    & \cell{9.5}{\$0.110}{194s} \\
+
+  {\textit{{+ optimized harness}}}
+    & \cell{63.3}{\$0.002}{9s}
+    & \cell{53.7}{\$0.037}{95s}
+    & \cell{0.0}{\$0.098}{123s}
+    & \cell{0.0}{\$0.167}{296s}
+    & \cell{22.3}{\$0.181}{401s}
+    & \cell{5.6}{\$0.088}{110s}
+    & \cell{30.0}{\$0.120}{168s}
+    & \cell{25.0}{\$0.099}{172s} \\
+
+  \bottomrule
+\end{tabular}

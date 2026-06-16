@@ -1,0 +1,1002 @@
+[
+  {
+    "id": "machine_operating_s2l_0",
+    "seed": 42,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 5,
+    "total_sensors": "4",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_1",
+    "seed": 43,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.15,
+    "total_machines": 8,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_2",
+    "seed": 44,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.2,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_3",
+    "seed": 45,
+    "hours": 6,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_4",
+    "seed": 46,
+    "hours": 6,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.15,
+    "total_machines": 12,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_5",
+    "seed": 47,
+    "hours": 8,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.2,
+    "total_machines": 15,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_6",
+    "seed": 48,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.1,
+    "total_machines": 20,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_7",
+    "seed": 49,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.15,
+    "total_machines": 25,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_8",
+    "seed": 50,
+    "hours": 24,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.2,
+    "total_machines": 30,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_9",
+    "seed": 51,
+    "hours": 24,
+    "interval_minutes": 30,
+    "anomaly_rate": 0.15,
+    "total_machines": 40,
+    "total_sensors": "10",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_10",
+    "seed": 52,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 5,
+    "total_sensors": "4",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_11",
+    "seed": 53,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.15,
+    "total_machines": 8,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_12",
+    "seed": 54,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.2,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_13",
+    "seed": 55,
+    "hours": 6,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_14",
+    "seed": 56,
+    "hours": 6,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.15,
+    "total_machines": 12,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_15",
+    "seed": 57,
+    "hours": 8,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.2,
+    "total_machines": 15,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_16",
+    "seed": 58,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.1,
+    "total_machines": 20,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_17",
+    "seed": 59,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.15,
+    "total_machines": 25,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_18",
+    "seed": 60,
+    "hours": 24,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.2,
+    "total_machines": 30,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_19",
+    "seed": 61,
+    "hours": 24,
+    "interval_minutes": 30,
+    "anomaly_rate": 0.15,
+    "total_machines": 40,
+    "total_sensors": "10",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_20",
+    "seed": 62,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 5,
+    "total_sensors": "4",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_21",
+    "seed": 63,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.15,
+    "total_machines": 8,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_22",
+    "seed": 64,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.2,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_23",
+    "seed": 65,
+    "hours": 6,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_24",
+    "seed": 66,
+    "hours": 6,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.15,
+    "total_machines": 12,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_25",
+    "seed": 67,
+    "hours": 8,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.2,
+    "total_machines": 15,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_26",
+    "seed": 68,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.1,
+    "total_machines": 20,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_27",
+    "seed": 69,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.15,
+    "total_machines": 25,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_28",
+    "seed": 70,
+    "hours": 24,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.2,
+    "total_machines": 30,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_29",
+    "seed": 71,
+    "hours": 24,
+    "interval_minutes": 30,
+    "anomaly_rate": 0.15,
+    "total_machines": 40,
+    "total_sensors": "10",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_30",
+    "seed": 72,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 5,
+    "total_sensors": "4",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_31",
+    "seed": 73,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.15,
+    "total_machines": 8,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_32",
+    "seed": 74,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.2,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_33",
+    "seed": 75,
+    "hours": 6,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_34",
+    "seed": 76,
+    "hours": 6,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.15,
+    "total_machines": 12,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_35",
+    "seed": 77,
+    "hours": 8,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.2,
+    "total_machines": 15,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_36",
+    "seed": 78,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.1,
+    "total_machines": 20,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_37",
+    "seed": 79,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.15,
+    "total_machines": 25,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_38",
+    "seed": 80,
+    "hours": 24,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.2,
+    "total_machines": 30,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_39",
+    "seed": 81,
+    "hours": 24,
+    "interval_minutes": 30,
+    "anomaly_rate": 0.15,
+    "total_machines": 40,
+    "total_sensors": "10",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_40",
+    "seed": 82,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 5,
+    "total_sensors": "4",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_41",
+    "seed": 83,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.15,
+    "total_machines": 8,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_42",
+    "seed": 84,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.2,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_43",
+    "seed": 85,
+    "hours": 6,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_44",
+    "seed": 86,
+    "hours": 6,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.15,
+    "total_machines": 12,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_45",
+    "seed": 87,
+    "hours": 8,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.2,
+    "total_machines": 15,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_46",
+    "seed": 88,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.1,
+    "total_machines": 20,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_47",
+    "seed": 89,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.15,
+    "total_machines": 25,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_48",
+    "seed": 90,
+    "hours": 24,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.2,
+    "total_machines": 30,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_49",
+    "seed": 91,
+    "hours": 24,
+    "interval_minutes": 30,
+    "anomaly_rate": 0.15,
+    "total_machines": 40,
+    "total_sensors": "10",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_50",
+    "seed": 92,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 5,
+    "total_sensors": "4",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_51",
+    "seed": 93,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.15,
+    "total_machines": 8,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_52",
+    "seed": 94,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.2,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_53",
+    "seed": 95,
+    "hours": 6,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_54",
+    "seed": 96,
+    "hours": 6,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.15,
+    "total_machines": 12,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_55",
+    "seed": 97,
+    "hours": 8,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.2,
+    "total_machines": 15,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_56",
+    "seed": 98,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.1,
+    "total_machines": 20,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_57",
+    "seed": 99,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.15,
+    "total_machines": 25,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_58",
+    "seed": 100,
+    "hours": 24,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.2,
+    "total_machines": 30,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_59",
+    "seed": 101,
+    "hours": 24,
+    "interval_minutes": 30,
+    "anomaly_rate": 0.15,
+    "total_machines": 40,
+    "total_sensors": "10",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_60",
+    "seed": 102,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 5,
+    "total_sensors": "4",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_61",
+    "seed": 103,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.15,
+    "total_machines": 8,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_62",
+    "seed": 104,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.2,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_63",
+    "seed": 105,
+    "hours": 6,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_64",
+    "seed": 106,
+    "hours": 6,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.15,
+    "total_machines": 12,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_65",
+    "seed": 107,
+    "hours": 8,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.2,
+    "total_machines": 15,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_66",
+    "seed": 108,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.1,
+    "total_machines": 20,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_67",
+    "seed": 109,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.15,
+    "total_machines": 25,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_68",
+    "seed": 110,
+    "hours": 24,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.2,
+    "total_machines": 30,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_69",
+    "seed": 111,
+    "hours": 24,
+    "interval_minutes": 30,
+    "anomaly_rate": 0.15,
+    "total_machines": 40,
+    "total_sensors": "10",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_70",
+    "seed": 112,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 5,
+    "total_sensors": "4",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_71",
+    "seed": 113,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.15,
+    "total_machines": 8,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_72",
+    "seed": 114,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.2,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_73",
+    "seed": 115,
+    "hours": 6,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_74",
+    "seed": 116,
+    "hours": 6,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.15,
+    "total_machines": 12,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_75",
+    "seed": 117,
+    "hours": 8,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.2,
+    "total_machines": 15,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_76",
+    "seed": 118,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.1,
+    "total_machines": 20,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_77",
+    "seed": 119,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.15,
+    "total_machines": 25,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_78",
+    "seed": 120,
+    "hours": 24,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.2,
+    "total_machines": 30,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_79",
+    "seed": 121,
+    "hours": 24,
+    "interval_minutes": 30,
+    "anomaly_rate": 0.15,
+    "total_machines": 40,
+    "total_sensors": "10",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_80",
+    "seed": 122,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 5,
+    "total_sensors": "4",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_81",
+    "seed": 123,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.15,
+    "total_machines": 8,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_82",
+    "seed": 124,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.2,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_83",
+    "seed": 125,
+    "hours": 6,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_84",
+    "seed": 126,
+    "hours": 6,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.15,
+    "total_machines": 12,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_85",
+    "seed": 127,
+    "hours": 8,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.2,
+    "total_machines": 15,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_86",
+    "seed": 128,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.1,
+    "total_machines": 20,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_87",
+    "seed": 129,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.15,
+    "total_machines": 25,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_88",
+    "seed": 130,
+    "hours": 24,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.2,
+    "total_machines": 30,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_89",
+    "seed": 131,
+    "hours": 24,
+    "interval_minutes": 30,
+    "anomaly_rate": 0.15,
+    "total_machines": 40,
+    "total_sensors": "10",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_90",
+    "seed": 132,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 5,
+    "total_sensors": "4",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_91",
+    "seed": 133,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.15,
+    "total_machines": 8,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_92",
+    "seed": 134,
+    "hours": 4,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.2,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_93",
+    "seed": 135,
+    "hours": 6,
+    "interval_minutes": 5,
+    "anomaly_rate": 0.1,
+    "total_machines": 10,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_94",
+    "seed": 136,
+    "hours": 6,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.15,
+    "total_machines": 12,
+    "total_sensors": "6",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_95",
+    "seed": 137,
+    "hours": 8,
+    "interval_minutes": 10,
+    "anomaly_rate": 0.2,
+    "total_machines": 15,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_96",
+    "seed": 138,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.1,
+    "total_machines": 20,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_97",
+    "seed": 139,
+    "hours": 12,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.15,
+    "total_machines": 25,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_98",
+    "seed": 140,
+    "hours": 24,
+    "interval_minutes": 15,
+    "anomaly_rate": 0.2,
+    "total_machines": 30,
+    "total_sensors": "8",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  },
+  {
+    "id": "machine_operating_s2l_99",
+    "seed": 141,
+    "hours": 24,
+    "interval_minutes": 30,
+    "anomaly_rate": 0.15,
+    "total_machines": 40,
+    "total_sensors": "10",
+    "prompt": "A production line in the factory streams real-time data through IoT sensors into the live_sensor table of the machine_operating dataset in BigQuery. The normal operating parameter ranges (minimum/maximum values) for each machine's sensors are defined in a configuration file named machine_operating_parameters.xlsx. Please query the live_sensor table in the machine_operating dataset in BigQuery for sensor data between 11:30 and 12:30 on August 19, 2025, and, using the parameter ranges from the Excel file, identify all readings that fall outside their normal ranges (you may choose any efficient method for comparison). Compile the final anomaly report with the fields `timestamp`, `machine_id`, `sensor_type`, `reading`, (the format of these data should be exactly the same as in the BigQuery table) and `normal_range` (min - max)  into a file named \"anomaly_report.csv\", save it to the workspace, and upload it to the cloud storage bucket named \"iot_anomaly_reports\" (create it if not exists)."
+  }
+]

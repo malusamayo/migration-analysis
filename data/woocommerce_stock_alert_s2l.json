@@ -1,0 +1,702 @@
+[
+  {
+    "id": "woocommerce_stock_alert_s2l_0",
+    "seed": 42,
+    "num_low_stock": 3,
+    "num_normal_stock": 5,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_1",
+    "seed": 43,
+    "num_low_stock": 5,
+    "num_normal_stock": 10,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_2",
+    "seed": 44,
+    "num_low_stock": 8,
+    "num_normal_stock": 12,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_3",
+    "seed": 45,
+    "num_low_stock": 10,
+    "num_normal_stock": 20,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_4",
+    "seed": 46,
+    "num_low_stock": 15,
+    "num_normal_stock": 25,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_5",
+    "seed": 47,
+    "num_low_stock": 20,
+    "num_normal_stock": 40,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_6",
+    "seed": 48,
+    "num_low_stock": 30,
+    "num_normal_stock": 70,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_7",
+    "seed": 49,
+    "num_low_stock": 50,
+    "num_normal_stock": 100,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_8",
+    "seed": 50,
+    "num_low_stock": 100,
+    "num_normal_stock": 150,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_9",
+    "seed": 51,
+    "num_low_stock": 150,
+    "num_normal_stock": 200,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_10",
+    "seed": 52,
+    "num_low_stock": 3,
+    "num_normal_stock": 5,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_11",
+    "seed": 53,
+    "num_low_stock": 5,
+    "num_normal_stock": 10,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_12",
+    "seed": 54,
+    "num_low_stock": 8,
+    "num_normal_stock": 12,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_13",
+    "seed": 55,
+    "num_low_stock": 10,
+    "num_normal_stock": 20,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_14",
+    "seed": 56,
+    "num_low_stock": 15,
+    "num_normal_stock": 25,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_15",
+    "seed": 57,
+    "num_low_stock": 20,
+    "num_normal_stock": 40,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_16",
+    "seed": 58,
+    "num_low_stock": 30,
+    "num_normal_stock": 70,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_17",
+    "seed": 59,
+    "num_low_stock": 50,
+    "num_normal_stock": 100,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_18",
+    "seed": 60,
+    "num_low_stock": 100,
+    "num_normal_stock": 150,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_19",
+    "seed": 61,
+    "num_low_stock": 150,
+    "num_normal_stock": 200,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_20",
+    "seed": 62,
+    "num_low_stock": 3,
+    "num_normal_stock": 5,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_21",
+    "seed": 63,
+    "num_low_stock": 5,
+    "num_normal_stock": 10,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_22",
+    "seed": 64,
+    "num_low_stock": 8,
+    "num_normal_stock": 12,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_23",
+    "seed": 65,
+    "num_low_stock": 10,
+    "num_normal_stock": 20,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_24",
+    "seed": 66,
+    "num_low_stock": 15,
+    "num_normal_stock": 25,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_25",
+    "seed": 67,
+    "num_low_stock": 20,
+    "num_normal_stock": 40,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_26",
+    "seed": 68,
+    "num_low_stock": 30,
+    "num_normal_stock": 70,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_27",
+    "seed": 69,
+    "num_low_stock": 50,
+    "num_normal_stock": 100,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_28",
+    "seed": 70,
+    "num_low_stock": 100,
+    "num_normal_stock": 150,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_29",
+    "seed": 71,
+    "num_low_stock": 150,
+    "num_normal_stock": 200,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_30",
+    "seed": 72,
+    "num_low_stock": 3,
+    "num_normal_stock": 5,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_31",
+    "seed": 73,
+    "num_low_stock": 5,
+    "num_normal_stock": 10,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_32",
+    "seed": 74,
+    "num_low_stock": 8,
+    "num_normal_stock": 12,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_33",
+    "seed": 75,
+    "num_low_stock": 10,
+    "num_normal_stock": 20,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_34",
+    "seed": 76,
+    "num_low_stock": 15,
+    "num_normal_stock": 25,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_35",
+    "seed": 77,
+    "num_low_stock": 20,
+    "num_normal_stock": 40,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_36",
+    "seed": 78,
+    "num_low_stock": 30,
+    "num_normal_stock": 70,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_37",
+    "seed": 79,
+    "num_low_stock": 50,
+    "num_normal_stock": 100,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_38",
+    "seed": 80,
+    "num_low_stock": 100,
+    "num_normal_stock": 150,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_39",
+    "seed": 81,
+    "num_low_stock": 150,
+    "num_normal_stock": 200,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_40",
+    "seed": 82,
+    "num_low_stock": 3,
+    "num_normal_stock": 5,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_41",
+    "seed": 83,
+    "num_low_stock": 5,
+    "num_normal_stock": 10,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_42",
+    "seed": 84,
+    "num_low_stock": 8,
+    "num_normal_stock": 12,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_43",
+    "seed": 85,
+    "num_low_stock": 10,
+    "num_normal_stock": 20,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_44",
+    "seed": 86,
+    "num_low_stock": 15,
+    "num_normal_stock": 25,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_45",
+    "seed": 87,
+    "num_low_stock": 20,
+    "num_normal_stock": 40,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_46",
+    "seed": 88,
+    "num_low_stock": 30,
+    "num_normal_stock": 70,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_47",
+    "seed": 89,
+    "num_low_stock": 50,
+    "num_normal_stock": 100,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_48",
+    "seed": 90,
+    "num_low_stock": 100,
+    "num_normal_stock": 150,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_49",
+    "seed": 91,
+    "num_low_stock": 150,
+    "num_normal_stock": 200,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_50",
+    "seed": 92,
+    "num_low_stock": 3,
+    "num_normal_stock": 5,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_51",
+    "seed": 93,
+    "num_low_stock": 5,
+    "num_normal_stock": 10,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_52",
+    "seed": 94,
+    "num_low_stock": 8,
+    "num_normal_stock": 12,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_53",
+    "seed": 95,
+    "num_low_stock": 10,
+    "num_normal_stock": 20,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_54",
+    "seed": 96,
+    "num_low_stock": 15,
+    "num_normal_stock": 25,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_55",
+    "seed": 97,
+    "num_low_stock": 20,
+    "num_normal_stock": 40,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_56",
+    "seed": 98,
+    "num_low_stock": 30,
+    "num_normal_stock": 70,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_57",
+    "seed": 99,
+    "num_low_stock": 50,
+    "num_normal_stock": 100,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_58",
+    "seed": 100,
+    "num_low_stock": 100,
+    "num_normal_stock": 150,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_59",
+    "seed": 101,
+    "num_low_stock": 150,
+    "num_normal_stock": 200,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_60",
+    "seed": 102,
+    "num_low_stock": 3,
+    "num_normal_stock": 5,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_61",
+    "seed": 103,
+    "num_low_stock": 5,
+    "num_normal_stock": 10,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_62",
+    "seed": 104,
+    "num_low_stock": 8,
+    "num_normal_stock": 12,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_63",
+    "seed": 105,
+    "num_low_stock": 10,
+    "num_normal_stock": 20,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_64",
+    "seed": 106,
+    "num_low_stock": 15,
+    "num_normal_stock": 25,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_65",
+    "seed": 107,
+    "num_low_stock": 20,
+    "num_normal_stock": 40,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_66",
+    "seed": 108,
+    "num_low_stock": 30,
+    "num_normal_stock": 70,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_67",
+    "seed": 109,
+    "num_low_stock": 50,
+    "num_normal_stock": 100,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_68",
+    "seed": 110,
+    "num_low_stock": 100,
+    "num_normal_stock": 150,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_69",
+    "seed": 111,
+    "num_low_stock": 150,
+    "num_normal_stock": 200,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_70",
+    "seed": 112,
+    "num_low_stock": 3,
+    "num_normal_stock": 5,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_71",
+    "seed": 113,
+    "num_low_stock": 5,
+    "num_normal_stock": 10,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_72",
+    "seed": 114,
+    "num_low_stock": 8,
+    "num_normal_stock": 12,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_73",
+    "seed": 115,
+    "num_low_stock": 10,
+    "num_normal_stock": 20,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_74",
+    "seed": 116,
+    "num_low_stock": 15,
+    "num_normal_stock": 25,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_75",
+    "seed": 117,
+    "num_low_stock": 20,
+    "num_normal_stock": 40,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_76",
+    "seed": 118,
+    "num_low_stock": 30,
+    "num_normal_stock": 70,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_77",
+    "seed": 119,
+    "num_low_stock": 50,
+    "num_normal_stock": 100,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_78",
+    "seed": 120,
+    "num_low_stock": 100,
+    "num_normal_stock": 150,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_79",
+    "seed": 121,
+    "num_low_stock": 150,
+    "num_normal_stock": 200,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_80",
+    "seed": 122,
+    "num_low_stock": 3,
+    "num_normal_stock": 5,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_81",
+    "seed": 123,
+    "num_low_stock": 5,
+    "num_normal_stock": 10,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_82",
+    "seed": 124,
+    "num_low_stock": 8,
+    "num_normal_stock": 12,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_83",
+    "seed": 125,
+    "num_low_stock": 10,
+    "num_normal_stock": 20,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_84",
+    "seed": 126,
+    "num_low_stock": 15,
+    "num_normal_stock": 25,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_85",
+    "seed": 127,
+    "num_low_stock": 20,
+    "num_normal_stock": 40,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_86",
+    "seed": 128,
+    "num_low_stock": 30,
+    "num_normal_stock": 70,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_87",
+    "seed": 129,
+    "num_low_stock": 50,
+    "num_normal_stock": 100,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_88",
+    "seed": 130,
+    "num_low_stock": 100,
+    "num_normal_stock": 150,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_89",
+    "seed": 131,
+    "num_low_stock": 150,
+    "num_normal_stock": 200,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_90",
+    "seed": 132,
+    "num_low_stock": 3,
+    "num_normal_stock": 5,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_91",
+    "seed": 133,
+    "num_low_stock": 5,
+    "num_normal_stock": 10,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_92",
+    "seed": 134,
+    "num_low_stock": 8,
+    "num_normal_stock": 12,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_93",
+    "seed": 135,
+    "num_low_stock": 10,
+    "num_normal_stock": 20,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_94",
+    "seed": 136,
+    "num_low_stock": 15,
+    "num_normal_stock": 25,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_95",
+    "seed": 137,
+    "num_low_stock": 20,
+    "num_normal_stock": 40,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_96",
+    "seed": 138,
+    "num_low_stock": 30,
+    "num_normal_stock": 70,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_97",
+    "seed": 139,
+    "num_low_stock": 50,
+    "num_normal_stock": 100,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_98",
+    "seed": 140,
+    "num_low_stock": 100,
+    "num_normal_stock": 150,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  },
+  {
+    "id": "woocommerce_stock_alert_s2l_99",
+    "seed": 141,
+    "num_low_stock": 150,
+    "num_normal_stock": 200,
+    "prompt": "You need to read the inventory levels of WooCommerce products, check the current stock quantity (stock_quantity) for each product against the safety threshold (stock_threshold), identify all products with stock strictly below the threshold (stock_quantity < stock_threshold), and automatically update a Google Sheets purchase requisition list named WooCommerce Stock Alert (already in Google Sheets). For each low-stock product, record it in Google Sheets and send an individual email notification to the purchasing manager (the email address is in purchasing_manager_email.txt). You need to find all low-stock products, record them and send emails. The email template can be found in stock_alert_email_template.md. The email account credentials are in admin_credentials.txt in the workspace."
+  }
+]

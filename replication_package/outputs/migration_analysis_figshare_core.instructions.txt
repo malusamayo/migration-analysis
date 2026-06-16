@@ -1,0 +1,24 @@
+Migration Analysis Core Replication Artifact
+
+Quick rerun:
+
+1. Decompress the compact archive.
+
+  unzip migration_analysis_figshare_core.zip
+
+2. Recreate the table and figures from the included intermediate data.
+
+  uv run --project replication_package python replication_package/scripts/render_from_intermediates.py
+
+3. Inspect the regenerated outputs.
+
+  replication_package/outputs/tables/results_table.tex
+  replication_package/outputs/tables/results_table.md
+  replication_package/outputs/figures/cost_performance_quadrants.png
+  replication_package/outputs/figures/intelligence_vs_performance.png
+  replication_package/outputs/figures/trajectory_diversity_side_by_side.png
+  replication_package/outputs/figures/trajectory_diversity_side_by_side_labeled.png
+
+The compact inputs are in replication_package/outputs/data/*.json. To recompute
+summary.json and tableau_data.json, also decompress
+migration_analysis_run_eval_artifacts.zip and follow README.md.

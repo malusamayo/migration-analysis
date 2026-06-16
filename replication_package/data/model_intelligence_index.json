@@ -1,0 +1,6 @@
+[
+  {"model_name": "ministral-3-8b", "intelligence_index": 15},
+  {"model_name": "qwen3-coder-30b-a3b", "intelligence_index": 20},
+  {"model_name": "gemma-4-26b-a4b", "intelligence_index": 31},
+  {"model_name": "gemini-3.1-pro-preview", "intelligence_index": 57}
+]

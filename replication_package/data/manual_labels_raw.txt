@@ -1,0 +1,22 @@
+Task / Model / Seed	Failure modes					Strategies		
+attendance / gemma-26b / s1		instruction-following	knowledge			context		
+attendance / ministral-8b / s1	tool-use	instruction-following	knowledge		planning	context	tool	
+attendance / qwen-30b / s0		instruction-following	knowledge		planning	context		
+budget / gemma-26b / s0	tool-use	instruction-following	knowledge			context	tool	orchestration
+budget / ministral-8b / s0	tool-use	instruction-following	knowledge			context	tool	
+budget / qwen-30b / s0	tool-use	instruction-following				context		
+machine_op / gemma-26b / s2	tool-use		knowledge	long-context		context	tool	
+machine_op / ministral-8b / s0	tool-use		knowledge	long-context	planning			
+machine_op / qwen-30b / s11	tool-use		knowledge			context	tool	
+refactor / gemma-26b / s0	tool-use	instruction-following	knowledge			context	tool	
+refactor / ministral-8b / s0		instruction-following	knowledge			context		
+refactor / qwen-30b / s15	tool-use	instruction-following	knowledge			context	tool	
+webarena / gemma-26b / s0		instruction-following	knowledge			context		
+webarena / ministral-8b / s2		instruction-following	knowledge			context		
+webarena / qwen-30b / s5	tool-use	instruction-following	knowledge			context	tool	
+webtest / gemma-26b / s2		instruction-following	knowledge	long-context		context		orchestration
+webtest / ministral-8b / s5	tool-use	instruction-following		long-context			tool	
+webtest / qwen-30b / s10		instruction-following		long-context		context	tool	orchestration
+woocommerce / gemma-26b / s2		instruction-following	knowledge	long-context		context		orchestration
+woocommerce / ministral-8b / s0	tool-use	instruction-following	knowledge	long-context				
+woocommerce / qwen-30b / s2	tool-use				planning	context	tool	
