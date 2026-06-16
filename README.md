@@ -7,7 +7,7 @@ This repository contains the replication package for the paper result table and 
 The large replication artifacts are hosted on figshare:
 
 ```text
-FIGSHARE_LINK_OR_DOI_HERE
+https://figshare.com/s/520e6259e3cc730c358d
 ```
 
 Download these files into the repository root:
