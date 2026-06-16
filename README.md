@@ -2,6 +2,33 @@
 
 This repository contains the replication package for the paper result table and figures. 
 
+## Download Artifacts
+
+The large replication artifacts are hosted on figshare:
+
+```text
+FIGSHARE_LINK_OR_DOI_HERE
+```
+
+Download these files into the repository root:
+
+```text
+migration_analysis_figshare_core.zip
+migration_analysis_run_eval_artifacts.zip
+```
+
+If a checksum file is provided, download it into the repository root and verify
+the archives:
+
+```bash
+sha256sum -c SHA256SUMS.txt
+```
+
+The compact archive is sufficient to rerender the paper table and figures. The
+run/eval archive is only needed to recompute `summary.json`,
+`selected_test_rows.json`, and `tableau_data.json` from the curated
+`run.json`/`eval_results.yaml` files.
+
 ## Quick Rerun
 
 1. Decompress the compact archive.
@@ -31,6 +58,8 @@ replication_package/outputs/figures/trajectory_diversity_side_by_side_labeled.pn
 
 Use this path to recompute `summary.json`, `selected_test_rows.json`, and
 `tableau_data.json` from the curated `run.json` and `eval_results.yaml` files.
+The curated run list is stored in
+`replication_package/data/curated_run_eval_inputs.json`.
 
 1. Decompress both archives.
 
@@ -64,8 +93,9 @@ does not include raw trace files, so the diversity figure uses the included
 
 ## Data Flow
 
-1. `collect_run_data.py` reads curated `run.json` and `eval_results.yaml` files
-   and writes `replication_package/outputs/data/summary.json`.
+1. `collect_run_data.py` reads `curated_run_eval_inputs.json`, the curated
+   `run.json` files, and the curated `eval_results.yaml` files, then writes
+   `replication_package/outputs/data/summary.json`.
 2. `derive_tableau_data.py` reads `summary.json`, applies the validation
    selection used in the paper, and writes `selected_test_rows.json` and
    `tableau_data.json`.
@@ -87,13 +117,14 @@ does not include raw trace files, so the diversity figure uses the included
 ## Included Data
 
 ```text
+replication_package/data/curated_run_eval_inputs.json
+replication_package/data/manual_labels_raw.txt
+replication_package/data/model_intelligence_index.json
+replication_package/data/task_template_scores.json
 replication_package/outputs/data/summary.json
 replication_package/outputs/data/selected_test_rows.json
 replication_package/outputs/data/tableau_data.json
 replication_package/outputs/data/task_diversity_metrics.json
 replication_package/outputs/data/manual_labels.json
 replication_package/outputs/data/included_task_model_seed_triplets.csv
-replication_package/data/model_intelligence_index.json
-replication_package/data/task_template_scores.json
-replication_package/data/manual_labels_raw.txt
 ```

@@ -63,6 +63,18 @@ def load_batch_dirs(path: Path) -> list[Path]:
     return [resolve_repo_path(Path(line.strip())) for line in lines if line.strip()]
 
 
+def load_run_jobs_from_inputs(path: Path) -> list[tuple[Path, dict[str, Any], dict[str, Any] | None]]:
+    payload = load_json(path)
+    return [
+        (
+            resolve_repo_path(Path(row["batch_dir"])),
+            row["run_meta"],
+            row["launch_meta"],
+        )
+        for row in payload["runs"]
+    ]
+
+
 def parse_workspace_key(workspace_dir: str) -> tuple[int, int]:
     match = WORKSPACE_RE.search(workspace_dir)
     if match is None:
@@ -479,9 +491,13 @@ def summarize_run_job(job: tuple[Path, dict[str, Any], dict[str, Any] | None]) -
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--run-inputs",
+        type=Path,
+        default=PACKAGE_DIR / "data" / "curated_run_eval_inputs.json",
+    )
+    parser.add_argument(
         "--source-batches",
         type=Path,
-        default=PACKAGE_DIR / "data" / "source_batch_dirs.txt",
     )
     parser.add_argument("--output-dir", type=Path, default=PACKAGE_DIR / "outputs" / "data")
     parser.add_argument("--max-workers", type=int, default=32)
@@ -489,14 +505,18 @@ def main() -> None:
 
     output_dir = args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
-    batch_dirs = load_batch_dirs(args.source_batches)
 
-    run_jobs = []
-    for batch_dir in batch_dirs:
-        batch_meta = load_json(batch_dir / "batch.json")
-        launch_by_index = launch_results_by_index(batch_dir)
-        for run_meta in batch_meta["runs"]:
-            run_jobs.append((batch_dir, run_meta, launch_by_index.get(int(run_meta["index"]))))
+    if args.source_batches is None:
+        run_jobs = load_run_jobs_from_inputs(args.run_inputs)
+        batch_dirs = sorted({job[0] for job in run_jobs})
+    else:
+        batch_dirs = load_batch_dirs(args.source_batches)
+        run_jobs = []
+        for batch_dir in batch_dirs:
+            batch_meta = load_json(batch_dir / "batch.json")
+            launch_by_index = launch_results_by_index(batch_dir)
+            for run_meta in batch_meta["runs"]:
+                run_jobs.append((batch_dir, run_meta, launch_by_index.get(int(run_meta["index"]))))
 
     with ThreadPoolExecutor(max_workers=args.max_workers) as executor:
         summaries = list(executor.map(summarize_run_job, run_jobs))

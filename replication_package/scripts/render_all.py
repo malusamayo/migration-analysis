@@ -7,13 +7,17 @@ PACKAGE_DIR = Path(__file__).resolve().parents[1]
 SCRIPTS_DIR = PACKAGE_DIR / "scripts"
 
 
-def run_script(script_name: str) -> None:
-    subprocess.run([sys.executable, str(SCRIPTS_DIR / script_name)], check=True)
+def run_script(script_name: str, *args: str) -> None:
+    subprocess.run([sys.executable, str(SCRIPTS_DIR / script_name), *args], check=True)
 
 
 def main() -> None:
-    for script_name in [
+    run_script(
         "collect_run_data.py",
+        "--source-batches",
+        str(PACKAGE_DIR / "data" / "source_batch_dirs.txt"),
+    )
+    for script_name in [
         "derive_tableau_data.py",
         "compute_task_diversity.py",
         "normalize_manual_labels.py",

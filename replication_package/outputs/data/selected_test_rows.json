@@ -4370,64 +4370,64 @@
   {
     "task_id":"refactorbench",
     "model_name":"qwen3-coder-30b-a3b",
-    "rollout_version":"gepa_seed15_best",
+    "rollout_version":"gepa_seed13_best",
     "is_optimized":true,
     "val.score":0.5333333333,
     "examples":60,
     "records":180,
-    "score":0.6222222222,
-    "cost":21.8332716,
-    "end_to_end_latency_sec":17931.813225,
-    "model_inference_latency_sec":16272.4419133663,
-    "avg_end_to_end_latency_sec":99.6211845833,
-    "avg_model_inference_latency_sec":90.4024550743,
-    "model_inference_calls":6919,
+    "score":0.7222222222,
+    "cost":18.0215601,
+    "end_to_end_latency_sec":27577.037703,
+    "model_inference_latency_sec":24309.2200198174,
+    "avg_end_to_end_latency_sec":153.2057650167,
+    "avg_model_inference_latency_sec":135.0512223323,
+    "model_inference_calls":6230,
     "trial_scores":[
-      0.5666666667,
-      0.65,
-      0.65
+      0.7,
+      0.7166666667,
+      0.75
     ],
     "trial_costs":[
-      7.5860004,
-      7.40655945,
-      6.84071175
+      6.04448265,
+      5.7695658,
+      6.20751165
     ],
     "trial_end_to_end_latency_sec":[
-      6235.369779,
-      5921.844941,
-      5774.598505
+      8802.209986,
+      9527.645879,
+      9247.181838
     ],
     "trial_model_inference_latency_sec":[
-      5628.393068552,
-      5413.3119270802,
-      5230.7369177341
+      7862.3768472672,
+      8325.2197377682,
+      8121.623434782
     ],
     "trial_avg_end_to_end_latency_sec":[
-      103.92282965,
-      98.6974156833,
-      96.2433084167
+      146.7034997667,
+      158.7940979833,
+      154.1196973
     ],
     "trial_avg_model_inference_latency_sec":[
-      93.8065511425,
-      90.2218654513,
-      87.1789486289
+      131.0396141211,
+      138.7536622961,
+      135.3603905797
     ],
     "trial_model_inference_calls":[
-      2372,
-      2301,
-      2246
+      2146,
+      1999,
+      2085
     ],
-    "prompt_tokens":141699924,
+    "prompt_tokens":116510626,
     "trial_prompt_tokens":[
-      49252192,
-      48080335,
-      44367397
+      39105075,
+      37271628,
+      40133923
     ],
-    "completion_tokens":963805,
+    "completion_tokens":908277,
     "trial_completion_tokens":[
-      330286,
-      324182,
-      309337
+      297869,
+      298036,
+      312372
     ],
     "cache_read_tokens":0,
     "trial_cache_read_tokens":[
@@ -4449,13 +4449,13 @@
     ],
     "input_price_per_million":0.15,
     "output_price_per_million":0.6,
-    "estimated_cost":21.8332716,
-    "estimated_cost_per_query":0.1212959533,
+    "estimated_cost":18.0215601,
+    "estimated_cost_per_query":0.1001197783,
     "task_sort":"refactorbench",
     "model_sort":"qwen3-coder-30b-a3b",
     "task_label":"Refact.",
     "rollout_label":"+ optimized harness",
-    "score_pct":62.2222222222,
-    "latency_sec":99.6211845833
+    "score_pct":72.2222222222,
+    "latency_sec":153.2057650167
   }
 ]

@@ -13,9 +13,9 @@ CORE_FILES = [
     "replication_package/RUNME.txt",
     "replication_package/pyproject.toml",
     "replication_package/uv.lock",
+    "replication_package/data/curated_run_eval_inputs.json",
     "replication_package/data/manual_labels_raw.txt",
     "replication_package/data/model_intelligence_index.json",
-    "replication_package/data/source_batch_dirs.txt",
     "replication_package/data/task_template_scores.json",
     "replication_package/outputs/data/manual_labels.json",
     "replication_package/outputs/data/included_task_model_seed_triplets.csv",
@@ -39,6 +39,7 @@ GEPA_JSON_FILES = [
 SCRIPT_FILES = [
     "normalize_manual_labels.py",
     "build_triplet_coverage.py",
+    "build_curated_run_eval_inputs.py",
     "package_figshare_core.py",
     "package_run_eval_artifacts.py",
     "plot_cost_performance_quadrants.py",
@@ -65,16 +66,6 @@ def add_file(files: dict[str, Path], logical_path: str | Path) -> None:
 def add_scripts(files: dict[str, Path]) -> None:
     for script_name in [*SCRIPT_FILES, *PROVENANCE_SCRIPT_FILES]:
         add_file(files, Path("replication_package") / "scripts" / script_name)
-
-
-def add_batch_metadata(files: dict[str, Path]) -> None:
-    source_batches = PACKAGE_DIR / "data" / "source_batch_dirs.txt"
-    for line in source_batches.read_text(encoding="utf-8").splitlines():
-        if not line.strip():
-            continue
-        batch_dir = Path(line.strip())
-        add_file(files, batch_dir / "batch.json")
-        add_file(files, batch_dir / "launch_results.json")
 
 
 def add_best_configs_and_summaries(files: dict[str, Path]) -> None:
@@ -157,7 +148,6 @@ def main() -> None:
     for logical_path in CORE_FILES:
         add_file(files, logical_path)
     add_scripts(files)
-    add_batch_metadata(files)
     add_best_configs_and_summaries(files)
 
     total_size = sum(path.stat().st_size for path in files.values())

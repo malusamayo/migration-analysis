@@ -1,0 +1,2665 @@
+{
+  "description": "Curated run/eval inputs used by the replication package.",
+  "runs": [
+    {
+      "batch_dir": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0",
+      "run_meta": {
+        "index": 2,
+        "task_id": "attendance_payroll_audit_s2l_extra_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_extra_high/qwen3-coder-30b-a3b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_extra_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/02_attendance_payroll_audit_s2l_extra_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/02_attendance_payroll_audit_s2l_extra_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/02_attendance_payroll_audit_s2l_extra_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 2,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_extra_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/02_attendance_payroll_audit_s2l_extra_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization",
+      "run_meta": {
+        "index": 8,
+        "task_id": "attendance_payroll_audit_s2l_extra_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_extra_high/qwen3-coder-30b-a3b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_extra_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/08_attendance_payroll_audit_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/08_attendance_payroll_audit_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/08_attendance_payroll_audit_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 8,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_extra_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/08_attendance_payroll_audit_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 13,
+        "task_id": "attendance_payroll_audit_s2l_extra_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_extra_high/qwen3-coder-30b-a3b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_extra_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/13_attendance_payroll_audit_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/13_attendance_payroll_audit_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/13_attendance_payroll_audit_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 13,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_extra_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/13_attendance_payroll_audit_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0",
+      "run_meta": {
+        "index": 4,
+        "task_id": "attendance_payroll_audit_s2l_high",
+        "model_name": "gemini-3.1-pro-preview",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/gemini-3.1-pro-preview_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/04_attendance_payroll_audit_s2l_high_gemini-3.1-pro-preview_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/04_attendance_payroll_audit_s2l_high_gemini-3.1-pro-preview_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/04_attendance_payroll_audit_s2l_high_gemini-3.1-pro-preview_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 4,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/gemini-3.1-pro-preview_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/04_attendance_payroll_audit_s2l_high_gemini-3.1-pro-preview_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0",
+      "run_meta": {
+        "index": 5,
+        "task_id": "attendance_payroll_audit_s2l_high",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/gemma-4-26b-a4b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/05_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/05_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/05_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 5,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/gemma-4-26b-a4b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/05_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization",
+      "run_meta": {
+        "index": 0,
+        "task_id": "attendance_payroll_audit_s2l_high",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_high/gemma-4-26b-a4b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_high/gemma-4-26b-a4b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/00_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/00_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/00_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 0,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/gemma-4-26b-a4b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/00_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 5,
+        "task_id": "attendance_payroll_audit_s2l_high",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_high/gemma-4-26b-a4b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_high/gemma-4-26b-a4b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/05_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/05_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/05_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 5,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/gemma-4-26b-a4b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/05_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 15,
+        "task_id": "attendance_payroll_audit_s2l_high",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_high/gemma-4-26b-a4b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_high/gemma-4-26b-a4b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/15_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/15_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/15_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 15,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/gemma-4-26b-a4b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/15_attendance_payroll_audit_s2l_high_gemma-4-26b-a4b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0",
+      "run_meta": {
+        "index": 6,
+        "task_id": "attendance_payroll_audit_s2l_high",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/ministral-3-8b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/06_attendance_payroll_audit_s2l_high_ministral-3-8b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/06_attendance_payroll_audit_s2l_high_ministral-3-8b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/06_attendance_payroll_audit_s2l_high_ministral-3-8b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 6,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/ministral-3-8b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/06_attendance_payroll_audit_s2l_high_ministral-3-8b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization",
+      "run_meta": {
+        "index": 2,
+        "task_id": "attendance_payroll_audit_s2l_high",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_high/ministral-3-8b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_high/ministral-3-8b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/02_attendance_payroll_audit_s2l_high_ministral-3-8b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/02_attendance_payroll_audit_s2l_high_ministral-3-8b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/02_attendance_payroll_audit_s2l_high_ministral-3-8b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 2,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/ministral-3-8b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/02_attendance_payroll_audit_s2l_high_ministral-3-8b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 7,
+        "task_id": "attendance_payroll_audit_s2l_high",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_high/ministral-3-8b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_high/ministral-3-8b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/07_attendance_payroll_audit_s2l_high_ministral-3-8b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/07_attendance_payroll_audit_s2l_high_ministral-3-8b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/07_attendance_payroll_audit_s2l_high_ministral-3-8b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 7,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/ministral-3-8b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/07_attendance_payroll_audit_s2l_high_ministral-3-8b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 17,
+        "task_id": "attendance_payroll_audit_s2l_high",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_high/ministral-3-8b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_high/ministral-3-8b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/17_attendance_payroll_audit_s2l_high_ministral-3-8b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/17_attendance_payroll_audit_s2l_high_ministral-3-8b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/17_attendance_payroll_audit_s2l_high_ministral-3-8b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 17,
+        "status": "failed_collect",
+        "return_code": 1,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/ministral-3-8b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/17_attendance_payroll_audit_s2l_high_ministral-3-8b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0",
+      "run_meta": {
+        "index": 3,
+        "task_id": "attendance_payroll_audit_s2l_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/qwen3-coder-30b-a3b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/03_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/03_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/03_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 3,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/qwen3-coder-30b-a3b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/03_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0",
+      "run_meta": {
+        "index": 0,
+        "task_id": "attendance_payroll_audit_s2l_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_high/qwen3-coder-30b-a3b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/00_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/00_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/00_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 0,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/00_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization",
+      "run_meta": {
+        "index": 6,
+        "task_id": "attendance_payroll_audit_s2l_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_high/qwen3-coder-30b-a3b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/06_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/06_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/06_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 6,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/06_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 11,
+        "task_id": "attendance_payroll_audit_s2l_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_high/qwen3-coder-30b-a3b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/11_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/11_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/11_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 11,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/11_attendance_payroll_audit_s2l_high_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0",
+      "run_meta": {
+        "index": 1,
+        "task_id": "attendance_payroll_audit_s2l_medium",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_medium/qwen3-coder-30b-a3b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_medium/qwen3-coder-30b-a3b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/01_attendance_payroll_audit_s2l_medium_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/01_attendance_payroll_audit_s2l_medium_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/01_attendance_payroll_audit_s2l_medium_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 1,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_medium/qwen3-coder-30b-a3b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/01_attendance_payroll_audit_s2l_medium_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization",
+      "run_meta": {
+        "index": 4,
+        "task_id": "attendance_payroll_audit_s2l_medium",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_medium/qwen3-coder-30b-a3b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_medium/qwen3-coder-30b-a3b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/04_attendance_payroll_audit_s2l_medium_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/04_attendance_payroll_audit_s2l_medium_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/04_attendance_payroll_audit_s2l_medium_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 4,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_medium/qwen3-coder-30b-a3b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/04_attendance_payroll_audit_s2l_medium_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 9,
+        "task_id": "attendance_payroll_audit_s2l_medium",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/attendance_payroll_audit_s2l_medium/qwen3-coder-30b-a3b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/attendance_payroll_audit_s2l_medium/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/09_attendance_payroll_audit_s2l_medium_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/09_attendance_payroll_audit_s2l_medium_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/09_attendance_payroll_audit_s2l_medium_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 9,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/attendance_payroll_audit_s2l_medium/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/09_attendance_payroll_audit_s2l_medium_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0",
+      "run_meta": {
+        "index": 2,
+        "task_id": "budget_approval_s2l_extra_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/budget_approval_s2l_extra_high/qwen3-coder-30b-a3b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_extra_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0/configs/02_budget_approval_s2l_extra_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0/logs/02_budget_approval_s2l_extra_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0/logs/02_budget_approval_s2l_extra_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 2,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_extra_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0/configs/02_budget_approval_s2l_extra_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization",
+      "run_meta": {
+        "index": 9,
+        "task_id": "budget_approval_s2l_extra_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/budget_approval_s2l_extra_high/qwen3-coder-30b-a3b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_extra_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/09_budget_approval_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/09_budget_approval_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/09_budget_approval_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 9,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_extra_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/09_budget_approval_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 14,
+        "task_id": "budget_approval_s2l_extra_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/budget_approval_s2l_extra_high/qwen3-coder-30b-a3b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_extra_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/14_budget_approval_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/14_budget_approval_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/14_budget_approval_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 14,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_extra_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/14_budget_approval_s2l_extra_high_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0",
+      "run_meta": {
+        "index": 8,
+        "task_id": "budget_approval_s2l_high",
+        "model_name": "gemini-3.1-pro-preview",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/budget_approval_s2l_high/gemini-3.1-pro-preview_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/08_budget_approval_s2l_high_gemini-3.1-pro-preview_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/08_budget_approval_s2l_high_gemini-3.1-pro-preview_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/08_budget_approval_s2l_high_gemini-3.1-pro-preview_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 8,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_high/gemini-3.1-pro-preview_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/08_budget_approval_s2l_high_gemini-3.1-pro-preview_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0",
+      "run_meta": {
+        "index": 9,
+        "task_id": "budget_approval_s2l_high",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/budget_approval_s2l_high/gemma-4-26b-a4b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/09_budget_approval_s2l_high_gemma-4-26b-a4b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/09_budget_approval_s2l_high_gemma-4-26b-a4b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/09_budget_approval_s2l_high_gemma-4-26b-a4b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 9,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_high/gemma-4-26b-a4b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/09_budget_approval_s2l_high_gemma-4-26b-a4b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization",
+      "run_meta": {
+        "index": 1,
+        "task_id": "budget_approval_s2l_high",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/budget_approval_s2l_high/gemma-4-26b-a4b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_high/gemma-4-26b-a4b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/01_budget_approval_s2l_high_gemma-4-26b-a4b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/01_budget_approval_s2l_high_gemma-4-26b-a4b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/01_budget_approval_s2l_high_gemma-4-26b-a4b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 1,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_high/gemma-4-26b-a4b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/01_budget_approval_s2l_high_gemma-4-26b-a4b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 6,
+        "task_id": "budget_approval_s2l_high",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/budget_approval_s2l_high/gemma-4-26b-a4b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_high/gemma-4-26b-a4b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/06_budget_approval_s2l_high_gemma-4-26b-a4b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/06_budget_approval_s2l_high_gemma-4-26b-a4b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/06_budget_approval_s2l_high_gemma-4-26b-a4b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 6,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_high/gemma-4-26b-a4b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/06_budget_approval_s2l_high_gemma-4-26b-a4b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 16,
+        "task_id": "budget_approval_s2l_high",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/budget_approval_s2l_high/gemma-4-26b-a4b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_high/gemma-4-26b-a4b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/16_budget_approval_s2l_high_gemma-4-26b-a4b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/16_budget_approval_s2l_high_gemma-4-26b-a4b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/16_budget_approval_s2l_high_gemma-4-26b-a4b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 16,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_high/gemma-4-26b-a4b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/16_budget_approval_s2l_high_gemma-4-26b-a4b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0",
+      "run_meta": {
+        "index": 10,
+        "task_id": "budget_approval_s2l_high",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/budget_approval_s2l_high/ministral-3-8b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/10_budget_approval_s2l_high_ministral-3-8b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/10_budget_approval_s2l_high_ministral-3-8b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/10_budget_approval_s2l_high_ministral-3-8b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 10,
+        "status": "failed_evaluate",
+        "return_code": 1,
+        "run_dir": "results/budget_approval_s2l_high/ministral-3-8b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/10_budget_approval_s2l_high_ministral-3-8b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization",
+      "run_meta": {
+        "index": 3,
+        "task_id": "budget_approval_s2l_high",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/budget_approval_s2l_high/ministral-3-8b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_high/ministral-3-8b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/03_budget_approval_s2l_high_ministral-3-8b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/03_budget_approval_s2l_high_ministral-3-8b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/03_budget_approval_s2l_high_ministral-3-8b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 3,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_high/ministral-3-8b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/03_budget_approval_s2l_high_ministral-3-8b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 8,
+        "task_id": "budget_approval_s2l_high",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/budget_approval_s2l_high/ministral-3-8b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_high/ministral-3-8b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/08_budget_approval_s2l_high_ministral-3-8b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/08_budget_approval_s2l_high_ministral-3-8b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/08_budget_approval_s2l_high_ministral-3-8b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 8,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_high/ministral-3-8b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/08_budget_approval_s2l_high_ministral-3-8b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 18,
+        "task_id": "budget_approval_s2l_high",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/budget_approval_s2l_high/ministral-3-8b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_high/ministral-3-8b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/18_budget_approval_s2l_high_ministral-3-8b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/18_budget_approval_s2l_high_ministral-3-8b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/18_budget_approval_s2l_high_ministral-3-8b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 18,
+        "status": "failed_collect",
+        "return_code": 1,
+        "run_dir": "results/budget_approval_s2l_high/ministral-3-8b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/18_budget_approval_s2l_high_ministral-3-8b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0",
+      "run_meta": {
+        "index": 7,
+        "task_id": "budget_approval_s2l_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/budget_approval_s2l_high/qwen3-coder-30b-a3b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/07_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/07_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/logs/07_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 7,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_high/qwen3-coder-30b-a3b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260516_attendance_payroll_audit_s2l_qwen_post_gepa_levels_seed0/configs/07_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0",
+      "run_meta": {
+        "index": 0,
+        "task_id": "budget_approval_s2l_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/budget_approval_s2l_high/qwen3-coder-30b-a3b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0/configs/00_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0/logs/00_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0/logs/00_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 0,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0/configs/00_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization",
+      "run_meta": {
+        "index": 7,
+        "task_id": "budget_approval_s2l_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/budget_approval_s2l_high/qwen3-coder-30b-a3b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/07_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/07_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/07_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 7,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/07_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 12,
+        "task_id": "budget_approval_s2l_high",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/budget_approval_s2l_high/qwen3-coder-30b-a3b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/12_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/12_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/12_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 12,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_high/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/12_budget_approval_s2l_high_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0",
+      "run_meta": {
+        "index": 1,
+        "task_id": "budget_approval_s2l_medium",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/budget_approval_s2l_medium/qwen3-coder-30b-a3b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_medium/qwen3-coder-30b-a3b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0/configs/01_budget_approval_s2l_medium_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0/logs/01_budget_approval_s2l_medium_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0/logs/01_budget_approval_s2l_medium_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 1,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_medium/qwen3-coder-30b-a3b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_budget_approval_s2l_qwen_post_gepa_diversity_seed0/configs/01_budget_approval_s2l_medium_qwen3-coder-30b-a3b_default_gepa_seed0_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization",
+      "run_meta": {
+        "index": 5,
+        "task_id": "budget_approval_s2l_medium",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/budget_approval_s2l_medium/qwen3-coder-30b-a3b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_medium/qwen3-coder-30b-a3b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/05_budget_approval_s2l_medium_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/05_budget_approval_s2l_medium_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/logs/05_budget_approval_s2l_medium_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 5,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_medium/qwen3-coder-30b-a3b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260518_post_gepa_from_20260517_high_variant_gepa_optimization/configs/05_budget_approval_s2l_medium_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 10,
+        "task_id": "budget_approval_s2l_medium",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/budget_approval_s2l_medium/qwen3-coder-30b-a3b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/budget_approval_s2l_medium/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/10_budget_approval_s2l_medium_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/10_budget_approval_s2l_medium_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/10_budget_approval_s2l_medium_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 10,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/budget_approval_s2l_medium/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/10_budget_approval_s2l_medium_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260504_gemini31pro_baseline",
+      "run_meta": {
+        "index": 2,
+        "task_id": "machine_operating_s2l",
+        "model_name": "gemini-3.1-pro-preview",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/machine_operating_s2l/gemini-3.1-pro-preview_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260504_gemini31pro_baseline/configs/02_machine_operating_s2l_gemini-3.1-pro-preview_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260504_gemini31pro_baseline/logs/02_machine_operating_s2l_gemini-3.1-pro-preview_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260504_gemini31pro_baseline/logs/02_machine_operating_s2l_gemini-3.1-pro-preview_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 2,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/machine_operating_s2l/gemini-3.1-pro-preview_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260504_gemini31pro_baseline/configs/02_machine_operating_s2l_gemini-3.1-pro-preview_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch",
+      "run_meta": {
+        "index": 2,
+        "task_id": "machine_operating_s2l",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/machine_operating_s2l/gemma-4-26b-a4b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/configs/02_machine_operating_s2l_gemma-4-26b-a4b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/logs/02_machine_operating_s2l_gemma-4-26b-a4b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/logs/02_machine_operating_s2l_gemma-4-26b-a4b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 2,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/machine_operating_s2l/gemma-4-26b-a4b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/configs/02_machine_operating_s2l_gemma-4-26b-a4b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808",
+      "run_meta": {
+        "index": 6,
+        "task_id": "machine_operating_s2l",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/machine_operating_s2l/gemma-4-26b-a4b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/machine_operating_s2l/gemma-4-26b-a4b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/configs/06_machine_operating_s2l_gemma-4-26b-a4b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/logs/06_machine_operating_s2l_gemma-4-26b-a4b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/logs/06_machine_operating_s2l_gemma-4-26b-a4b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 6,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/machine_operating_s2l/gemma-4-26b-a4b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/configs/06_machine_operating_s2l_gemma-4-26b-a4b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 14,
+        "task_id": "machine_operating_s2l",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/machine_operating_s2l/gemma-4-26b-a4b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/machine_operating_s2l/gemma-4-26b-a4b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/14_machine_operating_s2l_gemma-4-26b-a4b_default_gepa_seed1_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/14_machine_operating_s2l_gemma-4-26b-a4b_default_gepa_seed1_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/14_machine_operating_s2l_gemma-4-26b-a4b_default_gepa_seed1_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 14,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/machine_operating_s2l/gemma-4-26b-a4b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/14_machine_operating_s2l_gemma-4-26b-a4b_default_gepa_seed1_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 4,
+        "task_id": "machine_operating_s2l",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/machine_operating_s2l/gemma-4-26b-a4b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/machine_operating_s2l/gemma-4-26b-a4b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/04_machine_operating_s2l_gemma-4-26b-a4b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/04_machine_operating_s2l_gemma-4-26b-a4b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/04_machine_operating_s2l_gemma-4-26b-a4b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 4,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/machine_operating_s2l/gemma-4-26b-a4b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/04_machine_operating_s2l_gemma-4-26b-a4b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines",
+      "run_meta": {
+        "index": 7,
+        "task_id": "machine_operating_s2l",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/machine_operating_s2l/ministral-3-8b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/07_machine_operating_s2l_ministral-3-8b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/07_machine_operating_s2l_ministral-3-8b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/07_machine_operating_s2l_ministral-3-8b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 7,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/machine_operating_s2l/ministral-3-8b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/07_machine_operating_s2l_ministral-3-8b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260502_post_full_resume",
+      "run_meta": {
+        "index": 12,
+        "task_id": "machine_operating_s2l",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/machine_operating_s2l/ministral-3-8b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/machine_operating_s2l/ministral-3-8b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/12_machine_operating_s2l_ministral-3-8b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/12_machine_operating_s2l_ministral-3-8b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/12_machine_operating_s2l_ministral-3-8b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 12,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/machine_operating_s2l/ministral-3-8b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/12_machine_operating_s2l_ministral-3-8b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427",
+      "run_meta": {
+        "index": 13,
+        "task_id": "machine_operating_s2l",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/machine_operating_s2l/ministral-3-8b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/machine_operating_s2l/ministral-3-8b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/13_machine_operating_s2l_ministral-3-8b_default_post_gepa.yaml",
+        "collect_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/13_machine_operating_s2l_ministral-3-8b_default_post_gepa_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/13_machine_operating_s2l_ministral-3-8b_default_post_gepa_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 13,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/machine_operating_s2l/ministral-3-8b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/13_machine_operating_s2l_ministral-3-8b_default_post_gepa.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 9,
+        "task_id": "machine_operating_s2l",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/machine_operating_s2l/ministral-3-8b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/machine_operating_s2l/ministral-3-8b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/09_machine_operating_s2l_ministral-3-8b_default_gepa_seed2_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/09_machine_operating_s2l_ministral-3-8b_default_gepa_seed2_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/09_machine_operating_s2l_ministral-3-8b_default_gepa_seed2_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 9,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/machine_operating_s2l/ministral-3-8b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/09_machine_operating_s2l_ministral-3-8b_default_gepa_seed2_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines",
+      "run_meta": {
+        "index": 3,
+        "task_id": "machine_operating_s2l",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/machine_operating_s2l/qwen3-coder-30b-a3b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/03_machine_operating_s2l_qwen3-coder-30b-a3b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/03_machine_operating_s2l_qwen3-coder-30b-a3b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/03_machine_operating_s2l_qwen3-coder-30b-a3b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 3,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/machine_operating_s2l/qwen3-coder-30b-a3b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/03_machine_operating_s2l_qwen3-coder-30b-a3b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260502_post_full_resume",
+      "run_meta": {
+        "index": 5,
+        "task_id": "machine_operating_s2l",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed10_best",
+        "effective_rollout_version": "gepa_seed10_best_best_config",
+        "agent_file": "results/machine_operating_s2l/qwen3-coder-30b-a3b_default/gepa/seed10/shared/config/best_config.py",
+        "run_dir": "results/machine_operating_s2l/qwen3-coder-30b-a3b_default/rollouts/gepa_seed10_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/05_machine_operating_s2l_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/05_machine_operating_s2l_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/05_machine_operating_s2l_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 5,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/machine_operating_s2l/qwen3-coder-30b-a3b_default/rollouts/gepa_seed10_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/05_machine_operating_s2l_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427",
+      "run_meta": {
+        "index": 6,
+        "task_id": "machine_operating_s2l",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed11_best",
+        "effective_rollout_version": "gepa_seed11_best_best_config",
+        "agent_file": "results/machine_operating_s2l/qwen3-coder-30b-a3b_default/gepa/seed11/shared/config/best_config.py",
+        "run_dir": "results/machine_operating_s2l/qwen3-coder-30b-a3b_default/rollouts/gepa_seed11_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/06_machine_operating_s2l_qwen3-coder-30b-a3b_default_post_gepa.yaml",
+        "collect_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/06_machine_operating_s2l_qwen3-coder-30b-a3b_default_post_gepa_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/06_machine_operating_s2l_qwen3-coder-30b-a3b_default_post_gepa_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 6,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/machine_operating_s2l/qwen3-coder-30b-a3b_default/rollouts/gepa_seed11_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/06_machine_operating_s2l_qwen3-coder-30b-a3b_default_post_gepa.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 3,
+        "task_id": "machine_operating_s2l",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed8_best",
+        "effective_rollout_version": "gepa_seed8_best_best_config",
+        "agent_file": "results/machine_operating_s2l/qwen3-coder-30b-a3b_default/gepa/seed8/shared/config/best_config.py",
+        "run_dir": "results/machine_operating_s2l/qwen3-coder-30b-a3b_default/rollouts/gepa_seed8_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/03_machine_operating_s2l_qwen3-coder-30b-a3b_default_gepa_seed8_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/03_machine_operating_s2l_qwen3-coder-30b-a3b_default_gepa_seed8_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/03_machine_operating_s2l_qwen3-coder-30b-a3b_default_gepa_seed8_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 3,
+        "status": "failed_collect",
+        "return_code": 1,
+        "run_dir": "results/machine_operating_s2l/qwen3-coder-30b-a3b_default/rollouts/gepa_seed8_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/03_machine_operating_s2l_qwen3-coder-30b-a3b_default_gepa_seed8_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260504_gemini31pro_baseline",
+      "run_meta": {
+        "index": 6,
+        "task_id": "refactorbench",
+        "model_name": "gemini-3.1-pro-preview",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/refactorbench/gemini-3.1-pro-preview_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260504_gemini31pro_baseline/configs/06_refactorbench_gemini-3.1-pro-preview_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260504_gemini31pro_baseline/logs/06_refactorbench_gemini-3.1-pro-preview_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260504_gemini31pro_baseline/logs/06_refactorbench_gemini-3.1-pro-preview_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 6,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/refactorbench/gemini-3.1-pro-preview_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260504_gemini31pro_baseline/configs/06_refactorbench_gemini-3.1-pro-preview_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch",
+      "run_meta": {
+        "index": 6,
+        "task_id": "refactorbench",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/refactorbench/gemma-4-26b-a4b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/configs/06_refactorbench_gemma-4-26b-a4b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/logs/06_refactorbench_gemma-4-26b-a4b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/logs/06_refactorbench_gemma-4-26b-a4b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 6,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/refactorbench/gemma-4-26b-a4b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/configs/06_refactorbench_gemma-4-26b-a4b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808",
+      "run_meta": {
+        "index": 5,
+        "task_id": "refactorbench",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/refactorbench/gemma-4-26b-a4b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/refactorbench/gemma-4-26b-a4b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/configs/05_refactorbench_gemma-4-26b-a4b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/logs/05_refactorbench_gemma-4-26b-a4b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/logs/05_refactorbench_gemma-4-26b-a4b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 5,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/refactorbench/gemma-4-26b-a4b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/configs/05_refactorbench_gemma-4-26b-a4b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 13,
+        "task_id": "refactorbench",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/refactorbench/gemma-4-26b-a4b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/refactorbench/gemma-4-26b-a4b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/13_refactorbench_gemma-4-26b-a4b_default_gepa_seed1_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/13_refactorbench_gemma-4-26b-a4b_default_gepa_seed1_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/13_refactorbench_gemma-4-26b-a4b_default_gepa_seed1_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 13,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/refactorbench/gemma-4-26b-a4b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/13_refactorbench_gemma-4-26b-a4b_default_gepa_seed1_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 3,
+        "task_id": "refactorbench",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/refactorbench/gemma-4-26b-a4b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/refactorbench/gemma-4-26b-a4b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/03_refactorbench_gemma-4-26b-a4b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/03_refactorbench_gemma-4-26b-a4b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/03_refactorbench_gemma-4-26b-a4b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 3,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/refactorbench/gemma-4-26b-a4b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/03_refactorbench_gemma-4-26b-a4b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines",
+      "run_meta": {
+        "index": 11,
+        "task_id": "refactorbench",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/refactorbench/ministral-3-8b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/11_refactorbench_ministral-3-8b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/11_refactorbench_ministral-3-8b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/11_refactorbench_ministral-3-8b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 11,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/refactorbench/ministral-3-8b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/11_refactorbench_ministral-3-8b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260502_post_full_resume",
+      "run_meta": {
+        "index": 9,
+        "task_id": "refactorbench",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/refactorbench/ministral-3-8b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/refactorbench/ministral-3-8b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/09_refactorbench_ministral-3-8b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/09_refactorbench_ministral-3-8b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/09_refactorbench_ministral-3-8b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 9,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/refactorbench/ministral-3-8b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/09_refactorbench_ministral-3-8b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427",
+      "run_meta": {
+        "index": 12,
+        "task_id": "refactorbench",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/refactorbench/ministral-3-8b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/refactorbench/ministral-3-8b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/12_refactorbench_ministral-3-8b_default_post_gepa.yaml",
+        "collect_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/12_refactorbench_ministral-3-8b_default_post_gepa_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/12_refactorbench_ministral-3-8b_default_post_gepa_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 12,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/refactorbench/ministral-3-8b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/12_refactorbench_ministral-3-8b_default_post_gepa.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 8,
+        "task_id": "refactorbench",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/refactorbench/ministral-3-8b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/refactorbench/ministral-3-8b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/08_refactorbench_ministral-3-8b_default_gepa_seed2_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/08_refactorbench_ministral-3-8b_default_gepa_seed2_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/08_refactorbench_ministral-3-8b_default_gepa_seed2_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 8,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/refactorbench/ministral-3-8b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/08_refactorbench_ministral-3-8b_default_gepa_seed2_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260502_130019",
+      "run_meta": {
+        "index": 2,
+        "task_id": "refactorbench",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/refactorbench/qwen3-coder-30b-a3b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260502_130019/configs/02_refactorbench_qwen3-coder-30b-a3b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260502_130019/logs/02_refactorbench_qwen3-coder-30b-a3b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260502_130019/logs/02_refactorbench_qwen3-coder-30b-a3b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": null
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 2,
+        "task_id": "refactorbench",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed13_best",
+        "effective_rollout_version": "gepa_seed13_best_best_config",
+        "agent_file": "results/refactorbench/qwen3-coder-30b-a3b_default/gepa/seed13/shared/config/best_config.py",
+        "run_dir": "results/refactorbench/qwen3-coder-30b-a3b_default/rollouts/gepa_seed13_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/02_refactorbench_qwen3-coder-30b-a3b_default_gepa_seed13_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/02_refactorbench_qwen3-coder-30b-a3b_default_gepa_seed13_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/02_refactorbench_qwen3-coder-30b-a3b_default_gepa_seed13_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 2,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/refactorbench/qwen3-coder-30b-a3b_default/rollouts/gepa_seed13_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/02_refactorbench_qwen3-coder-30b-a3b_default_gepa_seed13_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260502_post_full_resume",
+      "run_meta": {
+        "index": 2,
+        "task_id": "refactorbench",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed14_best",
+        "effective_rollout_version": "gepa_seed14_best_best_config",
+        "agent_file": "results/refactorbench/qwen3-coder-30b-a3b_default/gepa/seed14/shared/config/best_config.py",
+        "run_dir": "results/refactorbench/qwen3-coder-30b-a3b_default/rollouts/gepa_seed14_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/02_refactorbench_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/02_refactorbench_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/02_refactorbench_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 2,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/refactorbench/qwen3-coder-30b-a3b_default/rollouts/gepa_seed14_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/02_refactorbench_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427",
+      "run_meta": {
+        "index": 5,
+        "task_id": "refactorbench",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed15_best",
+        "effective_rollout_version": "gepa_seed15_best_best_config",
+        "agent_file": "results/refactorbench/qwen3-coder-30b-a3b_default/gepa/seed15/shared/config/best_config.py",
+        "run_dir": "results/refactorbench/qwen3-coder-30b-a3b_default/rollouts/gepa_seed15_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/05_refactorbench_qwen3-coder-30b-a3b_default_post_gepa.yaml",
+        "collect_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/05_refactorbench_qwen3-coder-30b-a3b_default_post_gepa_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/05_refactorbench_qwen3-coder-30b-a3b_default_post_gepa_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 5,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/refactorbench/qwen3-coder-30b-a3b_default/rollouts/gepa_seed15_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/05_refactorbench_qwen3-coder-30b-a3b_default_post_gepa.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260504_gemini31pro_baseline",
+      "run_meta": {
+        "index": 5,
+        "task_id": "webarena",
+        "model_name": "gemini-3.1-pro-preview",
+        "prompt_name": "shopping_admin",
+        "max_examples": 50,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/webarena/gemini-3.1-pro-preview_shopping_admin/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260504_gemini31pro_baseline/configs/05_webarena_gemini-3.1-pro-preview_shopping_admin_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260504_gemini31pro_baseline/logs/05_webarena_gemini-3.1-pro-preview_shopping_admin_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260504_gemini31pro_baseline/logs/05_webarena_gemini-3.1-pro-preview_shopping_admin_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 5,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webarena/gemini-3.1-pro-preview_shopping_admin/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260504_gemini31pro_baseline/configs/05_webarena_gemini-3.1-pro-preview_shopping_admin_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch",
+      "run_meta": {
+        "index": 5,
+        "task_id": "webarena",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "shopping_admin",
+        "max_examples": 50,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/webarena/gemma-4-26b-a4b_shopping_admin/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/configs/05_webarena_gemma-4-26b-a4b_shopping_admin_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/logs/05_webarena_gemma-4-26b-a4b_shopping_admin_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/logs/05_webarena_gemma-4-26b-a4b_shopping_admin_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 5,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webarena/gemma-4-26b-a4b_shopping_admin/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/configs/05_webarena_gemma-4-26b-a4b_shopping_admin_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808",
+      "run_meta": {
+        "index": 3,
+        "task_id": "webarena",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "shopping_admin",
+        "max_examples": 50,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/webarena/gemma-4-26b-a4b_shopping_admin/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/webarena/gemma-4-26b-a4b_shopping_admin/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/configs/03_webarena_gemma-4-26b-a4b_shopping_admin_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/logs/03_webarena_gemma-4-26b-a4b_shopping_admin_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/logs/03_webarena_gemma-4-26b-a4b_shopping_admin_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 3,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webarena/gemma-4-26b-a4b_shopping_admin/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/configs/03_webarena_gemma-4-26b-a4b_shopping_admin_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 12,
+        "task_id": "webarena",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "shopping_admin",
+        "max_examples": 50,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/webarena/gemma-4-26b-a4b_shopping_admin/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/webarena/gemma-4-26b-a4b_shopping_admin/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/12_webarena_gemma-4-26b-a4b_shopping_admin_gepa_seed1_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/12_webarena_gemma-4-26b-a4b_shopping_admin_gepa_seed1_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/12_webarena_gemma-4-26b-a4b_shopping_admin_gepa_seed1_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 12,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webarena/gemma-4-26b-a4b_shopping_admin/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/12_webarena_gemma-4-26b-a4b_shopping_admin_gepa_seed1_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 2,
+        "task_id": "webarena",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "shopping_admin",
+        "max_examples": 50,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/webarena/gemma-4-26b-a4b_shopping_admin/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/webarena/gemma-4-26b-a4b_shopping_admin/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/02_webarena_gemma-4-26b-a4b_shopping_admin_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/02_webarena_gemma-4-26b-a4b_shopping_admin_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/02_webarena_gemma-4-26b-a4b_shopping_admin_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 2,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webarena/gemma-4-26b-a4b_shopping_admin/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/02_webarena_gemma-4-26b-a4b_shopping_admin_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260504_webarena_qwen_baseline_rerun",
+      "run_meta": {
+        "index": 1,
+        "task_id": "webarena",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "shopping_admin",
+        "max_examples": 50,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/webarena/ministral-3-8b_shopping_admin/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260504_webarena_qwen_baseline_rerun/configs/01_webarena_ministral-3-8b_shopping_admin_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260504_webarena_qwen_baseline_rerun/logs/01_webarena_ministral-3-8b_shopping_admin_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260504_webarena_qwen_baseline_rerun/logs/01_webarena_ministral-3-8b_shopping_admin_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 1,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webarena/ministral-3-8b_shopping_admin/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260504_webarena_qwen_baseline_rerun/configs/01_webarena_ministral-3-8b_shopping_admin_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260502_post_full_resume",
+      "run_meta": {
+        "index": 8,
+        "task_id": "webarena",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "shopping_admin",
+        "max_examples": 50,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/webarena/ministral-3-8b_shopping_admin/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/webarena/ministral-3-8b_shopping_admin/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/08_webarena_ministral-3-8b_shopping_admin_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/08_webarena_ministral-3-8b_shopping_admin_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/08_webarena_ministral-3-8b_shopping_admin_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 8,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webarena/ministral-3-8b_shopping_admin/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/08_webarena_ministral-3-8b_shopping_admin_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427",
+      "run_meta": {
+        "index": 10,
+        "task_id": "webarena",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "shopping_admin",
+        "max_examples": 50,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed3_best",
+        "effective_rollout_version": "gepa_seed3_best_best_config",
+        "agent_file": "results/webarena/ministral-3-8b_shopping_admin/gepa/seed3/shared/config/best_config.py",
+        "run_dir": "results/webarena/ministral-3-8b_shopping_admin/rollouts/gepa_seed3_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/10_webarena_ministral-3-8b_shopping_admin_post_gepa.yaml",
+        "collect_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/10_webarena_ministral-3-8b_shopping_admin_post_gepa_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/10_webarena_ministral-3-8b_shopping_admin_post_gepa_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 10,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webarena/ministral-3-8b_shopping_admin/rollouts/gepa_seed3_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/10_webarena_ministral-3-8b_shopping_admin_post_gepa.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 7,
+        "task_id": "webarena",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "shopping_admin",
+        "max_examples": 50,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed4_best",
+        "effective_rollout_version": "gepa_seed4_best_best_config",
+        "agent_file": "results/webarena/ministral-3-8b_shopping_admin/gepa/seed4/shared/config/best_config.py",
+        "run_dir": "results/webarena/ministral-3-8b_shopping_admin/rollouts/gepa_seed4_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/07_webarena_ministral-3-8b_shopping_admin_gepa_seed4_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/07_webarena_ministral-3-8b_shopping_admin_gepa_seed4_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/07_webarena_ministral-3-8b_shopping_admin_gepa_seed4_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 7,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webarena/ministral-3-8b_shopping_admin/rollouts/gepa_seed4_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/07_webarena_ministral-3-8b_shopping_admin_gepa_seed4_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260504_webarena_qwen_baseline_rerun",
+      "run_meta": {
+        "index": 0,
+        "task_id": "webarena",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "shopping_admin",
+        "max_examples": 50,
+        "n_responses": 3,
+        "rollout_version": "baseline_rerun_20260504",
+        "effective_rollout_version": "baseline_rerun_20260504",
+        "agent_file": null,
+        "run_dir": "results/webarena/qwen3-coder-30b-a3b_shopping_admin/rollouts/baseline_rerun_20260504",
+        "run_config_path": "generated/baseline_batches/20260504_webarena_qwen_baseline_rerun/configs/00_webarena_qwen3-coder-30b-a3b_shopping_admin_baseline_rerun_20260504.yaml",
+        "collect_log_path": "generated/baseline_batches/20260504_webarena_qwen_baseline_rerun/logs/00_webarena_qwen3-coder-30b-a3b_shopping_admin_baseline_rerun_20260504_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260504_webarena_qwen_baseline_rerun/logs/00_webarena_qwen3-coder-30b-a3b_shopping_admin_baseline_rerun_20260504_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": null
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 1,
+        "task_id": "webarena",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "shopping_admin",
+        "max_examples": 50,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed4_best",
+        "effective_rollout_version": "gepa_seed4_best_best_config",
+        "agent_file": "results/webarena/qwen3-coder-30b-a3b_shopping_admin/gepa/seed4/shared/config/best_config.py",
+        "run_dir": "results/webarena/qwen3-coder-30b-a3b_shopping_admin/rollouts/gepa_seed4_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/01_webarena_qwen3-coder-30b-a3b_shopping_admin_gepa_seed4_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/01_webarena_qwen3-coder-30b-a3b_shopping_admin_gepa_seed4_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/01_webarena_qwen3-coder-30b-a3b_shopping_admin_gepa_seed4_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 1,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webarena/qwen3-coder-30b-a3b_shopping_admin/rollouts/gepa_seed4_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/01_webarena_qwen3-coder-30b-a3b_shopping_admin_gepa_seed4_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260502_post_full_resume",
+      "run_meta": {
+        "index": 1,
+        "task_id": "webarena",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "shopping_admin",
+        "max_examples": 50,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed5_best",
+        "effective_rollout_version": "gepa_seed5_best_best_config",
+        "agent_file": "results/webarena/qwen3-coder-30b-a3b_shopping_admin/gepa/seed5/shared/config/best_config.py",
+        "run_dir": "results/webarena/qwen3-coder-30b-a3b_shopping_admin/rollouts/gepa_seed5_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/01_webarena_qwen3-coder-30b-a3b_shopping_admin_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/01_webarena_qwen3-coder-30b-a3b_shopping_admin_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/01_webarena_qwen3-coder-30b-a3b_shopping_admin_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 1,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webarena/qwen3-coder-30b-a3b_shopping_admin/rollouts/gepa_seed5_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/01_webarena_qwen3-coder-30b-a3b_shopping_admin_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427",
+      "run_meta": {
+        "index": 3,
+        "task_id": "webarena",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "shopping_admin",
+        "max_examples": 50,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed6_best",
+        "effective_rollout_version": "gepa_seed6_best_best_config",
+        "agent_file": "results/webarena/qwen3-coder-30b-a3b_shopping_admin/gepa/seed6/shared/config/best_config.py",
+        "run_dir": "results/webarena/qwen3-coder-30b-a3b_shopping_admin/rollouts/gepa_seed6_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/03_webarena_qwen3-coder-30b-a3b_shopping_admin_post_gepa.yaml",
+        "collect_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/03_webarena_qwen3-coder-30b-a3b_shopping_admin_post_gepa_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/03_webarena_qwen3-coder-30b-a3b_shopping_admin_post_gepa_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 3,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webarena/qwen3-coder-30b-a3b_shopping_admin/rollouts/gepa_seed6_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/03_webarena_qwen3-coder-30b-a3b_shopping_admin_post_gepa.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260504_gemini31pro_baseline",
+      "run_meta": {
+        "index": 4,
+        "task_id": "webtest",
+        "model_name": "gemini-3.1-pro-preview",
+        "prompt_name": "static",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/webtest/gemini-3.1-pro-preview_static/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260504_gemini31pro_baseline/configs/04_webtest_gemini-3.1-pro-preview_static_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260504_gemini31pro_baseline/logs/04_webtest_gemini-3.1-pro-preview_static_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260504_gemini31pro_baseline/logs/04_webtest_gemini-3.1-pro-preview_static_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 4,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webtest/gemini-3.1-pro-preview_static/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260504_gemini31pro_baseline/configs/04_webtest_gemini-3.1-pro-preview_static_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch",
+      "run_meta": {
+        "index": 4,
+        "task_id": "webtest",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "static",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/webtest/gemma-4-26b-a4b_static/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/configs/04_webtest_gemma-4-26b-a4b_static_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/logs/04_webtest_gemma-4-26b-a4b_static_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/logs/04_webtest_gemma-4-26b-a4b_static_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 4,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webtest/gemma-4-26b-a4b_static/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/configs/04_webtest_gemma-4-26b-a4b_static_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808",
+      "run_meta": {
+        "index": 1,
+        "task_id": "webtest",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "static",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/webtest/gemma-4-26b-a4b_static/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/webtest/gemma-4-26b-a4b_static/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/configs/01_webtest_gemma-4-26b-a4b_static_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/logs/01_webtest_gemma-4-26b-a4b_static_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/logs/01_webtest_gemma-4-26b-a4b_static_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 1,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webtest/gemma-4-26b-a4b_static/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/configs/01_webtest_gemma-4-26b-a4b_static_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 11,
+        "task_id": "webtest",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "static",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/webtest/gemma-4-26b-a4b_static/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/webtest/gemma-4-26b-a4b_static/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/11_webtest_gemma-4-26b-a4b_static_gepa_seed1_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/11_webtest_gemma-4-26b-a4b_static_gepa_seed1_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/11_webtest_gemma-4-26b-a4b_static_gepa_seed1_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 11,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webtest/gemma-4-26b-a4b_static/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/11_webtest_gemma-4-26b-a4b_static_gepa_seed1_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 1,
+        "task_id": "webtest",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "static",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/webtest/gemma-4-26b-a4b_static/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/webtest/gemma-4-26b-a4b_static/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/01_webtest_gemma-4-26b-a4b_static_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/01_webtest_gemma-4-26b-a4b_static_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/01_webtest_gemma-4-26b-a4b_static_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 1,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webtest/gemma-4-26b-a4b_static/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/01_webtest_gemma-4-26b-a4b_static_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines",
+      "run_meta": {
+        "index": 9,
+        "task_id": "webtest",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "static",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/webtest/ministral-3-8b_static/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/09_webtest_ministral-3-8b_static_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/09_webtest_ministral-3-8b_static_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/09_webtest_ministral-3-8b_static_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 9,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webtest/ministral-3-8b_static/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/09_webtest_ministral-3-8b_static_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260502_post_full_resume",
+      "run_meta": {
+        "index": 7,
+        "task_id": "webtest",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "static",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed4_best",
+        "effective_rollout_version": "gepa_seed4_best_best_config",
+        "agent_file": "results/webtest/ministral-3-8b_static/gepa/seed4/shared/config/best_config.py",
+        "run_dir": "results/webtest/ministral-3-8b_static/rollouts/gepa_seed4_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/07_webtest_ministral-3-8b_static_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/07_webtest_ministral-3-8b_static_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/07_webtest_ministral-3-8b_static_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 7,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webtest/ministral-3-8b_static/rollouts/gepa_seed4_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/07_webtest_ministral-3-8b_static_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427",
+      "run_meta": {
+        "index": 8,
+        "task_id": "webtest",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "static",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed5_best",
+        "effective_rollout_version": "gepa_seed5_best_best_config",
+        "agent_file": "results/webtest/ministral-3-8b_static/gepa/seed5/shared/config/best_config.py",
+        "run_dir": "results/webtest/ministral-3-8b_static/rollouts/gepa_seed5_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/08_webtest_ministral-3-8b_static_post_gepa.yaml",
+        "collect_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/08_webtest_ministral-3-8b_static_post_gepa_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/08_webtest_ministral-3-8b_static_post_gepa_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 8,
+        "status": "failed_collect",
+        "return_code": 1,
+        "run_dir": "results/webtest/ministral-3-8b_static/rollouts/gepa_seed5_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/08_webtest_ministral-3-8b_static_post_gepa.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 6,
+        "task_id": "webtest",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "static",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed6_best",
+        "effective_rollout_version": "gepa_seed6_best_best_config",
+        "agent_file": "results/webtest/ministral-3-8b_static/gepa/seed6/shared/config/best_config.py",
+        "run_dir": "results/webtest/ministral-3-8b_static/rollouts/gepa_seed6_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/06_webtest_ministral-3-8b_static_gepa_seed6_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/06_webtest_ministral-3-8b_static_gepa_seed6_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/06_webtest_ministral-3-8b_static_gepa_seed6_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 6,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webtest/ministral-3-8b_static/rollouts/gepa_seed6_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/06_webtest_ministral-3-8b_static_gepa_seed6_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260502_130019",
+      "run_meta": {
+        "index": 0,
+        "task_id": "webtest",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "static",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/webtest/qwen3-coder-30b-a3b_static/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260502_130019/configs/00_webtest_qwen3-coder-30b-a3b_static_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260502_130019/logs/00_webtest_qwen3-coder-30b-a3b_static_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260502_130019/logs/00_webtest_qwen3-coder-30b-a3b_static_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": null
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427",
+      "run_meta": {
+        "index": 1,
+        "task_id": "webtest",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "static",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed10_best",
+        "effective_rollout_version": "gepa_seed10_best_best_config",
+        "agent_file": "results/webtest/qwen3-coder-30b-a3b_static/gepa/seed10/shared/config/best_config.py",
+        "run_dir": "results/webtest/qwen3-coder-30b-a3b_static/rollouts/gepa_seed10_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/01_webtest_qwen3-coder-30b-a3b_static_post_gepa.yaml",
+        "collect_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/01_webtest_qwen3-coder-30b-a3b_static_post_gepa_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/01_webtest_qwen3-coder-30b-a3b_static_post_gepa_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 1,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webtest/qwen3-coder-30b-a3b_static/rollouts/gepa_seed10_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/01_webtest_qwen3-coder-30b-a3b_static_post_gepa.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 0,
+        "task_id": "webtest",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "static",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed8_best",
+        "effective_rollout_version": "gepa_seed8_best_best_config",
+        "agent_file": "results/webtest/qwen3-coder-30b-a3b_static/gepa/seed8/shared/config/best_config.py",
+        "run_dir": "results/webtest/qwen3-coder-30b-a3b_static/rollouts/gepa_seed8_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/00_webtest_qwen3-coder-30b-a3b_static_gepa_seed8_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/00_webtest_qwen3-coder-30b-a3b_static_gepa_seed8_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/00_webtest_qwen3-coder-30b-a3b_static_gepa_seed8_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 0,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webtest/qwen3-coder-30b-a3b_static/rollouts/gepa_seed8_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/00_webtest_qwen3-coder-30b-a3b_static_gepa_seed8_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260502_post_full_resume",
+      "run_meta": {
+        "index": 0,
+        "task_id": "webtest",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "static",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed9_best",
+        "effective_rollout_version": "gepa_seed9_best_best_config",
+        "agent_file": "results/webtest/qwen3-coder-30b-a3b_static/gepa/seed9/shared/config/best_config.py",
+        "run_dir": "results/webtest/qwen3-coder-30b-a3b_static/rollouts/gepa_seed9_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/00_webtest_qwen3-coder-30b-a3b_static_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/00_webtest_qwen3-coder-30b-a3b_static_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/00_webtest_qwen3-coder-30b-a3b_static_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 0,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/webtest/qwen3-coder-30b-a3b_static/rollouts/gepa_seed9_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/00_webtest_qwen3-coder-30b-a3b_static_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260504_gemini31pro_baseline",
+      "run_meta": {
+        "index": 3,
+        "task_id": "woocommerce_stock_alert_s2l",
+        "model_name": "gemini-3.1-pro-preview",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/woocommerce_stock_alert_s2l/gemini-3.1-pro-preview_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260504_gemini31pro_baseline/configs/03_woocommerce_stock_alert_s2l_gemini-3.1-pro-preview_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260504_gemini31pro_baseline/logs/03_woocommerce_stock_alert_s2l_gemini-3.1-pro-preview_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260504_gemini31pro_baseline/logs/03_woocommerce_stock_alert_s2l_gemini-3.1-pro-preview_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 3,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/woocommerce_stock_alert_s2l/gemini-3.1-pro-preview_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260504_gemini31pro_baseline/configs/03_woocommerce_stock_alert_s2l_gemini-3.1-pro-preview_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch",
+      "run_meta": {
+        "index": 3,
+        "task_id": "woocommerce_stock_alert_s2l",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/woocommerce_stock_alert_s2l/gemma-4-26b-a4b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/configs/03_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/logs/03_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/logs/03_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 3,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/woocommerce_stock_alert_s2l/gemma-4-26b-a4b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260507_gemma-4-26b-a4b_baseline_batch/configs/03_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808",
+      "run_meta": {
+        "index": 0,
+        "task_id": "woocommerce_stock_alert_s2l",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/woocommerce_stock_alert_s2l/gemma-4-26b-a4b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/woocommerce_stock_alert_s2l/gemma-4-26b-a4b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/configs/00_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/logs/00_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/logs/00_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 0,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/woocommerce_stock_alert_s2l/gemma-4-26b-a4b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260511_post_gepa_from_20260509_101808/configs/00_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 10,
+        "task_id": "woocommerce_stock_alert_s2l",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/woocommerce_stock_alert_s2l/gemma-4-26b-a4b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/woocommerce_stock_alert_s2l/gemma-4-26b-a4b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/10_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_gepa_seed1_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/10_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_gepa_seed1_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/10_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_gepa_seed1_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 10,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/woocommerce_stock_alert_s2l/gemma-4-26b-a4b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/10_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_gepa_seed1_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530",
+      "run_meta": {
+        "index": 0,
+        "task_id": "woocommerce_stock_alert_s2l",
+        "model_name": "gemma-4-26b-a4b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/woocommerce_stock_alert_s2l/gemma-4-26b-a4b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/woocommerce_stock_alert_s2l/gemma-4-26b-a4b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/00_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/00_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/logs/00_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 0,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/woocommerce_stock_alert_s2l/gemma-4-26b-a4b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260521_post_gepa_from_20260519_121530/configs/00_woocommerce_stock_alert_s2l_gemma-4-26b-a4b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines",
+      "run_meta": {
+        "index": 8,
+        "task_id": "woocommerce_stock_alert_s2l",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/woocommerce_stock_alert_s2l/ministral-3-8b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/08_woocommerce_stock_alert_s2l_ministral-3-8b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/08_woocommerce_stock_alert_s2l_ministral-3-8b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/08_woocommerce_stock_alert_s2l_ministral-3-8b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 8,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/woocommerce_stock_alert_s2l/ministral-3-8b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/08_woocommerce_stock_alert_s2l_ministral-3-8b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines",
+      "run_meta": {
+        "index": 0,
+        "task_id": "woocommerce_stock_alert_s2l",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed0_best",
+        "effective_rollout_version": "gepa_seed0_best_best_config",
+        "agent_file": "results/woocommerce_stock_alert_s2l/ministral-3-8b_default/gepa/seed0/shared/config/best_config.py",
+        "run_dir": "results/woocommerce_stock_alert_s2l/ministral-3-8b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/00_woocommerce_stock_alert_s2l_ministral-3-8b_default_post_gepa.yaml",
+        "collect_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/00_woocommerce_stock_alert_s2l_ministral-3-8b_default_post_gepa_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/00_woocommerce_stock_alert_s2l_ministral-3-8b_default_post_gepa_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 0,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/woocommerce_stock_alert_s2l/ministral-3-8b_default/rollouts/gepa_seed0_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/00_woocommerce_stock_alert_s2l_ministral-3-8b_default_post_gepa.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427",
+      "run_meta": {
+        "index": 7,
+        "task_id": "woocommerce_stock_alert_s2l",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed1_best",
+        "effective_rollout_version": "gepa_seed1_best_best_config",
+        "agent_file": "results/woocommerce_stock_alert_s2l/ministral-3-8b_default/gepa/seed1/shared/config/best_config.py",
+        "run_dir": "results/woocommerce_stock_alert_s2l/ministral-3-8b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/07_woocommerce_stock_alert_s2l_ministral-3-8b_default_post_gepa.yaml",
+        "collect_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/07_woocommerce_stock_alert_s2l_ministral-3-8b_default_post_gepa_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/07_woocommerce_stock_alert_s2l_ministral-3-8b_default_post_gepa_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 7,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/woocommerce_stock_alert_s2l/ministral-3-8b_default/rollouts/gepa_seed1_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/07_woocommerce_stock_alert_s2l_ministral-3-8b_default_post_gepa.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 5,
+        "task_id": "woocommerce_stock_alert_s2l",
+        "model_name": "ministral-3-8b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/woocommerce_stock_alert_s2l/ministral-3-8b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/woocommerce_stock_alert_s2l/ministral-3-8b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/05_woocommerce_stock_alert_s2l_ministral-3-8b_default_gepa_seed2_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/05_woocommerce_stock_alert_s2l_ministral-3-8b_default_gepa_seed2_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/05_woocommerce_stock_alert_s2l_ministral-3-8b_default_gepa_seed2_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 5,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/woocommerce_stock_alert_s2l/ministral-3-8b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/05_woocommerce_stock_alert_s2l_ministral-3-8b_default_gepa_seed2_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines",
+      "run_meta": {
+        "index": 4,
+        "task_id": "woocommerce_stock_alert_s2l",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "baseline",
+        "effective_rollout_version": "baseline",
+        "agent_file": null,
+        "run_dir": "results/woocommerce_stock_alert_s2l/qwen3-coder-30b-a3b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/04_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_baseline.yaml",
+        "collect_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/04_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_baseline_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/logs/04_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_baseline_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 4,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/woocommerce_stock_alert_s2l/qwen3-coder-30b-a3b_default/rollouts/baseline",
+        "run_config_path": "generated/baseline_batches/20260503_mixed_post_gepa_plus_baselines/configs/04_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_baseline.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected",
+      "run_meta": {
+        "index": 4,
+        "task_id": "woocommerce_stock_alert_s2l",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed2_best",
+        "effective_rollout_version": "gepa_seed2_best_best_config",
+        "agent_file": "results/woocommerce_stock_alert_s2l/qwen3-coder-30b-a3b_default/gepa/seed2/shared/config/best_config.py",
+        "run_dir": "results/woocommerce_stock_alert_s2l/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/04_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_gepa_seed2_best_best_config.yaml",
+        "collect_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/04_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_gepa_seed2_best_best_config_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/logs/04_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_gepa_seed2_best_best_config_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 4,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/woocommerce_stock_alert_s2l/qwen3-coder-30b-a3b_default/rollouts/gepa_seed2_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260514_selected_post_gepa_best_configs_corrected/configs/04_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_gepa_seed2_best_best_config.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260502_post_full_resume",
+      "run_meta": {
+        "index": 6,
+        "task_id": "woocommerce_stock_alert_s2l",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed5_best",
+        "effective_rollout_version": "gepa_seed5_best_best_config",
+        "agent_file": "results/woocommerce_stock_alert_s2l/qwen3-coder-30b-a3b_default/gepa/seed5/shared/config/best_config.py",
+        "run_dir": "results/woocommerce_stock_alert_s2l/qwen3-coder-30b-a3b_default/rollouts/gepa_seed5_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/06_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_full_resume.yaml",
+        "collect_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/06_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_full_resume_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260502_post_full_resume/logs/06_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_full_resume_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 6,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/woocommerce_stock_alert_s2l/qwen3-coder-30b-a3b_default/rollouts/gepa_seed5_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260502_post_full_resume/configs/06_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_full_resume.yaml"
+      }
+    },
+    {
+      "batch_dir": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427",
+      "run_meta": {
+        "index": 0,
+        "task_id": "woocommerce_stock_alert_s2l",
+        "model_name": "qwen3-coder-30b-a3b",
+        "prompt_name": "default",
+        "max_examples": 100,
+        "n_responses": 3,
+        "rollout_version": "gepa_seed6_best",
+        "effective_rollout_version": "gepa_seed6_best_best_config",
+        "agent_file": "results/woocommerce_stock_alert_s2l/qwen3-coder-30b-a3b_default/gepa/seed6/shared/config/best_config.py",
+        "run_dir": "results/woocommerce_stock_alert_s2l/qwen3-coder-30b-a3b_default/rollouts/gepa_seed6_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/00_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_post_gepa.yaml",
+        "collect_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/00_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_post_gepa_collect.log",
+        "evaluate_log_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/logs/00_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_post_gepa_evaluate.log",
+        "source_batch_dir": null
+      },
+      "launch_meta": {
+        "index": 0,
+        "status": "completed",
+        "return_code": 0,
+        "run_dir": "results/woocommerce_stock_alert_s2l/qwen3-coder-30b-a3b_default/rollouts/gepa_seed6_best_best_config",
+        "run_config_path": "generated/baseline_batches/20260506_post_gepa_from_20260505_091427/configs/00_woocommerce_stock_alert_s2l_qwen3-coder-30b-a3b_default_post_gepa.yaml"
+      }
+    }
+  ]
+}
